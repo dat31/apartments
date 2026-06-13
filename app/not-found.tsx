@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ErrorShell } from "@/components/error-shell";
 import { GlyphTile } from "@/components/glyph-tile";
-import { IconSearch, IconLeft } from "@/components/icons";
+import { ChevronLeft, Search } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -27,12 +27,12 @@ export default function NotFound() {
       <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
         <Button asChild size="lg" className="h-14 px-7 text-base gap-2">
           <Link href="/apartments">
-            <IconSearch size={18} /> Browse apartments
+            <Search size={18} /> Browse apartments
           </Link>
         </Button>
         <Button asChild variant="ghost" size="lg" className="h-14 px-7 text-base gap-2">
           <Link href="/apartments">
-            <IconLeft size={18} /> Go back
+            <ChevronLeft size={18} /> Go back
           </Link>
         </Button>
       </div>

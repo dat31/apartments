@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ListingCard } from "@/components/listing-card";
 import { SkeletonGrid } from "@/components/skeleton-listing-card";
 import { useSaved } from "@/hooks/use-saved";
-import { IconHeart, IconSearch } from "@/components/icons";
+import { Heart, Search } from "lucide-react";
 import { type Listing } from "@/lib/data/listings";
 
 export function SavedList({ listings }: { listings: Listing[] }) {
@@ -21,7 +21,7 @@ export function SavedList({ listings }: { listings: Listing[] }) {
       <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2.5">
-            <IconHeart size={26} className="text-primary" /> Saved homes
+            <Heart size={26} className="text-primary" /> Saved homes
           </h1>
           <p className="mt-1 text-muted-foreground">
             {savedListings.length === 0
@@ -34,7 +34,7 @@ export function SavedList({ listings }: { listings: Listing[] }) {
         {savedListings.length > 0 && (
           <Button asChild variant="secondary" className="h-11 gap-1.5">
             <Link href="/apartments">
-              <IconSearch size={16} /> Keep browsing
+              <Search size={16} /> Keep browsing
             </Link>
           </Button>
         )}
@@ -45,7 +45,7 @@ export function SavedList({ listings }: { listings: Listing[] }) {
       ) : savedListings.length === 0 ? (
         <div className="bg-card p-16 text-center anim-fade">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
-            <IconHeart size={26} />
+            <Heart size={26} />
           </div>
           <h3 className="text-lg font-semibold">No saved homes yet</h3>
           <p className="mt-1 text-muted-foreground text-pretty max-w-sm mx-auto">
@@ -54,7 +54,7 @@ export function SavedList({ listings }: { listings: Listing[] }) {
           </p>
           <Button asChild className="mt-5 h-11 gap-1.5">
             <Link href="/apartments">
-              <IconSearch size={16} /> Browse homes
+              <Search size={16} /> Browse homes
             </Link>
           </Button>
         </div>

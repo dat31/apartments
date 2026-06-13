@@ -7,12 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
-import {
-  IconArrowLeft,
-  IconRight,
-  IconLock,
-  IconMail,
-} from "@/components/icons";
+import { ArrowLeft, ChevronRight, Lock, Mail } from "lucide-react";
 import { AuthShell } from "../components/auth-shell";
 import { FILLED_INPUT } from "../components/password-field";
 import { forgotSchema, type ForgotValues } from "../schemas/auth";
@@ -35,13 +30,13 @@ export default function ForgotPasswordPage() {
         href="/signin"
         className="flex w-fit items-center gap-1.5 whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground mb-8"
       >
-        <IconArrowLeft size={16} /> Back to sign in
+        <ArrowLeft size={16} /> Back to sign in
       </Link>
 
       {!sentTo ? (
         <>
           <span className="inline-flex items-center justify-center w-12 h-12 bg-secondary text-primary mb-5">
-            <IconLock size={22} />
+            <Lock size={22} />
           </span>
           <h1 className="text-[1.85rem] font-semibold tracking-tight">
             Reset your password
@@ -75,7 +70,7 @@ export default function ForgotPasswordPage() {
               type="submit"
               className="w-full mt-1 h-14 text-base gap-2"
             >
-              Send reset link <IconRight size={18} />
+              Send reset link <ChevronRight size={18} />
             </Button>
           </form>
 
@@ -92,7 +87,7 @@ export default function ForgotPasswordPage() {
       ) : (
         <div className="anim-scale">
           <span className="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground mb-5">
-            <IconMail size={22} />
+            <Mail size={22} />
           </span>
           <h1 className="text-[1.85rem] font-semibold tracking-tight">
             Check your email
@@ -110,7 +105,7 @@ export default function ForgotPasswordPage() {
               className="w-full h-14 text-base gap-2"
             >
               <Link href="/signin">
-                Back to sign in <IconRight size={18} />
+                Back to sign in <ChevronRight size={18} />
               </Link>
             </Button>
             <Button

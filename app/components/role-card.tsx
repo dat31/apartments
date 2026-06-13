@@ -1,6 +1,5 @@
-import * as React from "react";
 import { cn } from "@/lib/utils";
-import { IconCheck } from "@/components/icons";
+import { Check, type LucideIcon } from "lucide-react";
 
 export function RoleCard({
   active,
@@ -14,7 +13,7 @@ export function RoleCard({
   onClick: () => void;
   title: string;
   blurb: string;
-  icon: (p: { size?: number }) => React.JSX.Element;
+  icon: LucideIcon;
   points: string[];
 }) {
   return (
@@ -51,7 +50,7 @@ export function RoleCard({
       <ul className="mt-4 space-y-1.5">
         {points.map((p) => (
           <li key={p} className="flex items-start gap-2 text-sm leading-snug">
-            <IconCheck
+            <Check
               size={16}
               className={cn(
                 "mt-0.5 shrink-0",

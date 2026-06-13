@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Input } from "@/components/ui/input";
-import { IconEye, IconEyeOff } from "@/components/icons";
+import { Eye, EyeOff } from "lucide-react";
 
 export const FILLED_INPUT =
   "h-11 bg-input border-transparent px-3.5 text-[15px] focus-ring";
@@ -35,7 +35,7 @@ export const PasswordField = React.forwardRef<HTMLInputElement, Props>(
             className="absolute right-0 top-0 h-11 w-11 inline-flex items-center justify-center text-muted-foreground hover:text-foreground focus-ring"
             aria-label={show ? "Hide password" : "Show password"}
           >
-            {show ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+            {show ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
       </div>

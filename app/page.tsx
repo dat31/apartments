@@ -10,13 +10,7 @@ import { RoleCard } from "./components/role-card";
 import { useTheme } from "@/hooks/use-theme";
 import { useProfile } from "@/hooks/use-profile";
 import { FILLED_INPUT } from "@/app/(auth)/components/password-field";
-import {
-  IconSearch,
-  IconBuilding,
-  IconRight,
-  IconSun,
-  IconMoon,
-} from "@/components/icons";
+import { Building2, ChevronRight, Moon, Search, Sun } from "lucide-react";
 import { type Role } from "@/lib/data/profile";
 
 export default function RoleSelectPage() {
@@ -46,7 +40,7 @@ export default function RoleSelectPage() {
           onClick={toggleTheme}
           aria-label="Toggle theme"
         >
-          {theme === "dark" ? <IconSun size={20} /> : <IconMoon size={20} />}
+          {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
         </Button>
       </header>
 
@@ -70,7 +64,7 @@ export default function RoleSelectPage() {
               active={role === "renter"}
               onClick={() => setRole("renter")}
               title="I'm renting"
-              icon={IconSearch}
+              icon={Search}
               blurb="Browse homes and find your next place."
               points={[
                 "Filter by price & size",
@@ -82,7 +76,7 @@ export default function RoleSelectPage() {
               active={role === "owner"}
               onClick={() => setRole("owner")}
               title="I'm listing"
-              icon={IconBuilding}
+              icon={Building2}
               blurb="Post your place and manage it in one view."
               points={[
                 "Publish in minutes",
@@ -114,7 +108,7 @@ export default function RoleSelectPage() {
                 : role === "renter"
                   ? "as renter"
                   : ""}
-              <IconRight size={18} />
+              <ChevronRight size={18} />
             </Button>
           </div>
         </div>

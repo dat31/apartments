@@ -8,13 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
-import {
-  GoogleMark,
-  AppleMark,
-  IconRight,
-  IconSearch,
-  IconBuilding,
-} from "@/components/icons";
+import { Building2, ChevronRight, Search } from "lucide-react";
+import { GoogleMark, AppleMark } from "@/components/icons";
 import { AuthShell } from "../components/auth-shell";
 import { SocialButton } from "../components/social-button";
 import { AuthDivider } from "../components/auth-divider";
@@ -66,8 +61,8 @@ export default function SignUpPage() {
           <div className="grid grid-cols-2 gap-2">
             {(
               [
-                { id: "renter", label: "Rent", icon: IconSearch },
-                { id: "owner", label: "List", icon: IconBuilding },
+                { id: "renter", label: "Rent", icon: Search },
+                { id: "owner", label: "List", icon: Building2 },
               ] as const
             ).map(({ id, label, icon: I }) => (
               <button
@@ -158,7 +153,7 @@ export default function SignUpPage() {
           type="submit"
           className="w-full mt-1 h-14 text-base gap-2"
         >
-          Create account <IconRight size={18} />
+          Create account <ChevronRight size={18} />
         </Button>
       </form>
 

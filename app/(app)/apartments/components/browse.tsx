@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/pagination";
 import { ListingCard } from "@/components/listing-card";
 import { FiltersPanel } from "./filters-panel";
-import { IconSliders, IconSearch, IconChevronDown } from "@/components/icons";
+import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
 import { useSaved } from "@/hooks/use-saved";
 import { type Listing } from "@/lib/data/listings";
 import {
@@ -134,7 +134,7 @@ export function Browse({ listings }: { listings: Listing[] }) {
         <aside className="hidden lg:block w-72 shrink-0">
           <div className="sticky top-24 bg-sidebar text-sidebar-foreground p-6">
             <h3 className="text-base font-semibold mb-5 flex items-center gap-2">
-              <IconSliders size={18} /> Filters
+              <SlidersHorizontal size={18} /> Filters
             </h3>
             <FiltersPanel
               filters={filters}
@@ -153,7 +153,7 @@ export function Browse({ listings }: { listings: Listing[] }) {
               className="lg:hidden h-9 gap-1.5 px-3"
               onClick={() => setMobileFilters(true)}
             >
-              <IconSliders size={16} /> Filters
+              <SlidersHorizontal size={16} /> Filters
               {activeCount > 0 && (
                 <span className="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs bg-primary text-primary-foreground">
                   {activeCount}
@@ -171,7 +171,7 @@ export function Browse({ listings }: { listings: Listing[] }) {
                     className="h-11 gap-2 bg-input border-transparent font-normal"
                   >
                     {SORT_OPTIONS.find((o) => o.value === sort)?.label}
-                    <IconChevronDown size={16} className="text-muted-foreground" />
+                    <ChevronDown size={16} className="text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -193,7 +193,7 @@ export function Browse({ listings }: { listings: Listing[] }) {
           {results.length === 0 ? (
             <div className="bg-card p-16 text-center anim-fade">
               <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
-                <IconSearch size={26} />
+                <Search size={26} />
               </div>
               <h3 className="text-lg font-semibold">
                 No homes match those filters

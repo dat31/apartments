@@ -13,18 +13,7 @@ import {
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { useTheme } from "@/hooks/use-theme";
 import { type Profile, type Role } from "@/lib/data/profile";
-import {
-  IconChevronDown,
-  IconSettings,
-  IconEye,
-  IconSwap,
-  IconSun,
-  IconMoon,
-  IconLogout,
-  IconBuilding,
-  IconSearch,
-  IconPin,
-} from "@/components/icons";
+import { ArrowLeftRight, Building2, ChevronDown, Eye, LogOut, MapPin, Moon, Search, Settings, Sun } from "lucide-react";
 
 export function AccountMenu({
   profile,
@@ -57,7 +46,7 @@ export function AccountMenu({
           <span className="hidden lg:block text-sm font-medium leading-tight max-w-[9rem] truncate">
             {first}
           </span>
-          <IconChevronDown
+          <ChevronDown
             size={16}
             className={cn(
               "text-muted-foreground transition-transform",
@@ -88,12 +77,12 @@ export function AccountMenu({
         {/* role pill row */}
         <div className="px-4 py-3 flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-secondary text-secondary-foreground">
-            {role === "owner" ? <IconBuilding size={13} /> : <IconSearch size={13} />}
+            {role === "owner" ? <Building2 size={13} /> : <Search size={13} />}
             {role === "owner" ? "Owner" : "Renter"}
           </span>
           {profile.location && (
             <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground truncate">
-              <IconPin size={13} /> {profile.location}
+              <MapPin size={13} /> {profile.location}
             </span>
           )}
         </div>
@@ -105,21 +94,21 @@ export function AccountMenu({
             className="px-4 h-11 text-[15px] rounded-none"
             onSelect={onManage}
           >
-            <IconSettings size={18} /> Manage profile
+            <Settings size={18} /> Manage profile
           </DropdownMenuItem>
           {role === "owner" && (
             <DropdownMenuItem
               className="px-4 h-11 text-[15px] rounded-none"
               onSelect={() => router.push("/owner/you")}
             >
-              <IconEye size={18} /> View public profile
+              <Eye size={18} /> View public profile
             </DropdownMenuItem>
           )}
           <DropdownMenuItem
             className="px-4 h-11 text-[15px] rounded-none"
             onSelect={() => onSwitchRole(role === "owner" ? "renter" : "owner")}
           >
-            <IconSwap size={18} /> Switch to{" "}
+            <ArrowLeftRight size={18} /> Switch to{" "}
             {role === "owner" ? "renting" : "listing"}
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -129,7 +118,7 @@ export function AccountMenu({
               toggleTheme();
             }}
           >
-            {theme === "dark" ? <IconSun size={18} /> : <IconMoon size={18} />}
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
             {theme === "dark" ? "Light mode" : "Dark mode"}
           </DropdownMenuItem>
         </div>
@@ -142,7 +131,7 @@ export function AccountMenu({
             className="px-4 h-11 text-[15px] rounded-none"
             onSelect={() => router.push("/signin")}
           >
-            <IconLogout size={18} /> Sign out
+            <LogOut size={18} /> Sign out
           </DropdownMenuItem>
         </div>
       </DropdownMenuContent>

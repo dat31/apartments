@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { IconStar } from "@/components/icons";
+import { Star } from "lucide-react";
 
 export function StarPicker({
   value,
@@ -26,7 +26,7 @@ export function StarPicker({
           className="text-primary focus-ring p-0.5 active:scale-90"
           aria-label={`${n} star${n > 1 ? "s" : ""}`}
         >
-          <IconStar filled={n <= shown} size={30} />
+          <Star fill={(n <= shown) ? "currentColor" : "none"} size={30} />
         </button>
       ))}
       <span className="ml-2 text-sm text-muted-foreground tabular-nums">

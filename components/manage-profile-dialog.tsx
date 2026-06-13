@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { FILLED_INPUT } from "@/app/(auth)/components/password-field";
-import { IconCheck } from "@/components/icons";
+import { Check } from "lucide-react";
 import { PALETTE } from "@/lib/data/listings";
 import {
   type Profile,
@@ -123,7 +123,7 @@ export function ManageProfileDialog({
                         )}
                         style={{ background: p[0] }}
                       >
-                        {sel && <IconCheck size={18} className="text-background" />}
+                        {sel && <Check size={18} className="text-background" />}
                       </button>
                     );
                   })}
@@ -189,7 +189,7 @@ export function ManageProfileDialog({
               Cancel
             </Button>
             <Button type="submit" className="h-11 gap-2">
-              <IconCheck size={18} /> Save changes
+              <Check size={18} /> Save changes
             </Button>
           </div>
         </form>

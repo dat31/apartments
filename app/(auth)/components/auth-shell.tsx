@@ -4,7 +4,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { useTheme } from "@/hooks/use-theme";
-import { IconSun, IconMoon } from "@/components/icons";
+import { Moon, Sun } from "lucide-react";
 import { BrandPanel } from "./brand-panel";
 
 /* Brand panel + centered form column. */
@@ -25,7 +25,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
             onClick={toggleTheme}
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? <IconSun size={20} /> : <IconMoon size={20} />}
+            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
           </Button>
         </div>
         <div className="flex-1 flex items-center justify-center px-6 sm:px-10 pb-14">

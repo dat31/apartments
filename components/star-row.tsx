@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { IconStar } from "@/components/icons";
+import { Star } from "lucide-react";
 
 export function StarRow({
   value,
@@ -18,7 +18,7 @@ export function StarRow({
       aria-label={`${value.toFixed(1)} out of 5`}
     >
       {[0, 1, 2, 3, 4].map((i) => (
-        <IconStar key={i} filled={i < full} size={size} />
+        <Star key={i} fill={(i < full) ? "currentColor" : "none"} size={size} />
       ))}
     </span>
   );

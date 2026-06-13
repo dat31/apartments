@@ -5,14 +5,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  IconHeart,
-  IconPin,
-  IconClock,
-  IconBed,
-  IconBath,
-  IconArea,
-} from "@/components/icons";
+import { Bath, BedDouble, Clock, Heart, MapPin, Maximize } from "lucide-react";
 import {
   type Listing,
   PALETTE,
@@ -62,7 +55,7 @@ export function ListingCard({
           )}
           aria-label={saved ? "Remove from saved" : "Save"}
         >
-          <IconHeart size={18} />
+          <Heart size={18} />
         </button>
         <span className="absolute bottom-3 left-3 z-10">
           <Badge variant="secondary" className="bg-background text-foreground">
@@ -79,20 +72,20 @@ export function ListingCard({
           {listing.title}
         </h3>
         <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
-          <IconPin size={14} /> {listing.neighborhood}
+          <MapPin size={14} /> {listing.neighborhood}
         </p>
         <p className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-primary">
-          <IconClock size={14} /> {availLabel(listing)}
+          <Clock size={14} /> {availLabel(listing)}
         </p>
         <div className="mt-3 pt-3 flex items-center gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
-            <IconBed size={16} /> {specStr(listing)}
+            <BedDouble size={16} /> {specStr(listing)}
           </span>
           <span className="flex items-center gap-1.5">
-            <IconBath size={16} /> {listing.baths}
+            <Bath size={16} /> {listing.baths}
           </span>
           <span className="flex items-center gap-1.5">
-            <IconArea size={16} /> {listing.area} m²
+            <Maximize size={16} /> {listing.area} m²
           </span>
         </div>
       </div>

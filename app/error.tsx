@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ErrorShell } from "@/components/error-shell";
 import { GlyphTile } from "@/components/glyph-tile";
-import { IconHome } from "@/components/icons";
+import { Home } from "lucide-react";
 
 export default function Error({ reset }: { error: Error; reset: () => void }) {
   return (
@@ -32,7 +32,7 @@ export default function Error({ reset }: { error: Error; reset: () => void }) {
         </Button>
         <Button asChild variant="ghost" size="lg" className="h-14 px-7 text-base gap-2">
           <Link href="/apartments">
-            <IconHome size={18} /> Go home
+            <Home size={18} /> Go home
           </Link>
         </Button>
       </div>

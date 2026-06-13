@@ -1,5 +1,5 @@
 import { Logo } from "@/components/logo";
-import { IconCheck } from "@/components/icons";
+import { Check } from "lucide-react";
 
 const BRAND_POINTS = [
   "Browse calm, clutter-free listings",
@@ -26,7 +26,7 @@ export function BrandPanel() {
           {BRAND_POINTS.map((p) => (
             <li key={p} className="flex items-start gap-3 text-[15px]">
               <span className="mt-0.5 inline-flex items-center justify-center w-6 h-6 bg-primary-foreground/15 shrink-0">
-                <IconCheck size={15} />
+                <Check size={15} />
               </span>
               <span className="opacity-90">{p}</span>
             </li>

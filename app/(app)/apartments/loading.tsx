@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { SkeletonGrid } from "@/components/skeleton-listing-card";
-import { IconSliders } from "@/components/icons";
+import { SlidersHorizontal } from "lucide-react";
 
 export default function Loading() {
   return (
@@ -13,7 +13,7 @@ export default function Loading() {
         <aside className="hidden lg:block w-72 shrink-0">
           <div className="sticky top-24 bg-sidebar p-6">
             <h3 className="text-base font-semibold mb-5 flex items-center gap-2 text-sidebar-foreground">
-              <IconSliders size={18} /> Filters
+              <SlidersHorizontal size={18} /> Filters
             </h3>
             <div className="flex flex-col gap-7">
               {Array.from({ length: 4 }).map((_, i) => (

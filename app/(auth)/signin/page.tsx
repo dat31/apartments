@@ -11,7 +11,8 @@ import {
   FieldLabel,
   FieldError,
 } from "@/components/ui/field";
-import { GoogleMark, AppleMark, IconRight } from "@/components/icons";
+import { ChevronRight } from "lucide-react";
+import { GoogleMark, AppleMark } from "@/components/icons";
 import { AuthShell } from "../components/auth-shell";
 import { SocialButton } from "../components/social-button";
 import { AuthDivider } from "../components/auth-divider";
@@ -92,7 +93,7 @@ export default function SignInPage() {
         </label>
 
         <Button size="lg" type="submit" className="w-full mt-1 h-14 text-base gap-2">
-          Sign in <IconRight size={18} />
+          Sign in <ChevronRight size={18} />
         </Button>
       </form>
 

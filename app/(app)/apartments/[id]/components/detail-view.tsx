@@ -18,20 +18,8 @@ import { ReviewCard } from "@/components/review-card";
 import { StarRow } from "@/components/star-row";
 import { BookTourDialog } from "./book-tour-dialog";
 import { useSaved } from "@/hooks/use-saved";
-import {
-  IconLeft,
-  IconPin,
-  IconBed,
-  IconBath,
-  IconArea,
-  IconClock,
-  IconHeart,
-  IconCalendar,
-  IconStar,
-  IconCheck,
-  IconUser,
-  AMENITY_ICONS,
-} from "@/components/icons";
+import { Bath, BedDouble, Calendar, Check, ChevronLeft, Clock, Heart, MapPin, Maximize, Star, User } from "lucide-react";
+import { AMENITY_ICONS } from "@/components/icons";
 import {
   type Listing,
   type Review,
@@ -90,7 +78,7 @@ export function DetailView({
         }}
       >
         {ownerLabel === "You" ? (
-          <IconUser size={20} className="text-background/95" />
+          <User size={20} className="text-background/95" />
         ) : (
           ownerLabel
             .split(/\s+/)
@@ -104,7 +92,7 @@ export function DetailView({
         <p className="text-sm text-muted-foreground">Listed by</p>
         <p className="font-medium capitalize group-hover:text-primary transition-colors flex items-center gap-1.5">
           {ownerLabel}{" "}
-          {owner?.verified && <IconCheck size={14} className="text-primary" />}
+          {owner?.verified && <Check size={14} className="text-primary" />}
         </p>
         <p className="text-xs text-muted-foreground mt-0.5 group-hover:text-primary transition-colors">
           View profile →
@@ -119,7 +107,7 @@ export function DetailView({
         onClick={() => router.push("/apartments")}
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-5 focus-ring"
       >
-        <IconLeft size={18} /> Back to results
+        <ChevronLeft size={18} /> Back to results
       </button>
 
       {/* Gallery */}
@@ -159,17 +147,17 @@ export function DetailView({
             {listing.title}
           </h1>
           <p className="mt-1.5 flex items-center gap-1.5 text-muted-foreground">
-            <IconPin size={16} /> {listing.neighborhood}, {listing.city}
+            <MapPin size={16} /> {listing.neighborhood}, {listing.city}
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
             {[
-              { I: IconBed, label: specStr(listing) },
+              { I: BedDouble, label: specStr(listing) },
               {
-                I: IconBath,
+                I: Bath,
                 label: `${listing.baths} bath${listing.baths > 1 ? "s" : ""}`,
               },
-              { I: IconArea, label: `${listing.area} m²` },
+              { I: Maximize, label: `${listing.area} m²` },
             ].map(({ I, label }) => (
               <div
                 key={label}
@@ -237,7 +225,7 @@ export function DetailView({
             {reviews.length === 0 ? (
               <div className="bg-card p-10 text-center">
                 <div className="inline-flex items-center justify-center w-12 h-12 bg-secondary text-muted-foreground mb-3">
-                  <IconStar size={22} />
+                  <Star size={22} />
                 </div>
                 <h3 className="font-semibold">No reviews yet</h3>
                 <p className="mt-1 text-sm text-muted-foreground text-pretty">
@@ -321,7 +309,7 @@ export function DetailView({
               <span className="text-muted-foreground">/ month</span>
             </div>
             <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-primary">
-              <IconClock size={16} /> {availLabel(listing)}
+              <Clock size={16} /> {availLabel(listing)}
             </p>
             <div className="mt-5 flex flex-col gap-2.5">
               <Button
@@ -329,7 +317,7 @@ export function DetailView({
                 className="h-12 gap-2"
                 onClick={() => setTourOpen(true)}
               >
-                <IconCalendar size={18} /> Book tour
+                <Calendar size={18} /> Book tour
               </Button>
               <Button
                 variant="secondary"
@@ -337,7 +325,7 @@ export function DetailView({
                 className="h-12 gap-2"
                 onClick={() => toggleSave(listing.id)}
               >
-                <IconHeart size={18} /> {saved ? "Saved" : "Save home"}
+                <Heart size={18} /> {saved ? "Saved" : "Save home"}
               </Button>
             </div>
             {renderOwner("mt-6 pt-6")}
@@ -362,7 +350,7 @@ export function DetailView({
               <span className="text-sm text-muted-foreground">/mo</span>
             </div>
             <p className="flex items-center gap-1 text-xs font-medium text-primary truncate">
-              <IconClock size={13} /> {availLabel(listing)}
+              <Clock size={13} /> {availLabel(listing)}
             </p>
           </div>
           <Button
@@ -372,10 +360,10 @@ export function DetailView({
             aria-label={saved ? "Saved" : "Save home"}
             onClick={() => toggleSave(listing.id)}
           >
-            <IconHeart size={20} />
+            <Heart size={20} />
           </Button>
           <Button className="h-11 gap-2" onClick={() => setTourOpen(true)}>
-            <IconCalendar size={18} /> Book tour
+            <Calendar size={18} /> Book tour
           </Button>
         </div>
       </div>

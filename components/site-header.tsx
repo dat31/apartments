@@ -10,7 +10,7 @@ import { AccountMenu } from "@/components/account-menu";
 import { ManageProfileDialog } from "@/components/manage-profile-dialog";
 import { useSaved } from "@/hooks/use-saved";
 import { useProfile } from "@/hooks/use-profile";
-import { IconHeart, IconBuilding, IconSearch } from "@/components/icons";
+import { Building2, Heart, Search } from "lucide-react";
 
 export function SiteHeader() {
   const { saved } = useSaved();
@@ -35,7 +35,7 @@ export function SiteHeader() {
             className="relative h-9 gap-1.5 px-3"
           >
             <Link href="/apartments/saved">
-              <IconHeart size={16} />
+              <Heart size={16} />
               <span className="hidden sm:inline">Saved</span>
               {saved.length > 0 && (
                 <span
@@ -53,7 +53,7 @@ export function SiteHeader() {
           </Button>
 
           <span className="hidden md:inline-flex items-center gap-2 h-9 px-3 bg-secondary text-secondary-foreground text-sm font-medium">
-            {isOwner ? <IconBuilding size={16} /> : <IconSearch size={16} />}
+            {isOwner ? <Building2 size={16} /> : <Search size={16} />}
             {isOwner ? "Owner" : "Renter"}
           </span>
 

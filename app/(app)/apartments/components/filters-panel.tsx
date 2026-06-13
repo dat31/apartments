@@ -3,7 +3,8 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/chip";
-import { IconSearch, IconCheck, AMENITY_ICONS } from "@/components/icons";
+import { Check, Search } from "lucide-react";
+import { AMENITY_ICONS } from "@/components/icons";
 import { AMENITIES, TYPES } from "@/lib/data/listings";
 import { FILLED_INPUT } from "@/app/(auth)/components/password-field";
 import { type Filters } from "../schemas/filters";
@@ -36,7 +37,7 @@ export function FiltersPanel({
       <div>
         <h4 className={heading}>Search</h4>
         <div className="relative">
-          <IconSearch
+          <Search
             size={16}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
           />
@@ -141,7 +142,7 @@ export function FiltersPanel({
                     on ? "text-primary" : "text-muted-foreground"
                   )}
                 >
-                  {on ? <IconCheck size={18} /> : <I size={18} />}
+                  {on ? <Check size={18} /> : <I size={18} />}
                 </span>
                 {a.label}
               </button>

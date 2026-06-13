@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { IconClock } from "@/components/icons";
+import { Clock } from "lucide-react";
 import { tourTimeLabel } from "../constants/tours";
 
 /* Grid of selectable tour times for the chosen day. */
@@ -34,7 +34,7 @@ export function TimeSlots({
               : "bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground"
           )}
         >
-          <IconClock size={15} /> {tourTimeLabel(t)}
+          <Clock size={15} /> {tourTimeLabel(t)}
         </button>
       ))}
     </div>

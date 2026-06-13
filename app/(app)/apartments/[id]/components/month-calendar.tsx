@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { IconLeft, IconRight } from "@/components/icons";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   MONTHS,
   MONTHS_AHEAD,
@@ -63,7 +63,7 @@ export function MonthCalendar({
             className="w-9 h-9 inline-flex items-center justify-center text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none focus-ring"
             aria-label="Previous month"
           >
-            <IconLeft size={18} />
+            <ChevronLeft size={18} />
           </button>
           <button
             type="button"
@@ -72,7 +72,7 @@ export function MonthCalendar({
             className="w-9 h-9 inline-flex items-center justify-center text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none focus-ring"
             aria-label="Next month"
           >
-            <IconRight size={18} />
+            <ChevronRight size={18} />
           </button>
         </div>
       </div>

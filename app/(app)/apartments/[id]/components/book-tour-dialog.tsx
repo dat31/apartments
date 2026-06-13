@@ -27,15 +27,8 @@ import {
 import { SocialButton } from "@/app/(auth)/components/social-button";
 import { AuthDivider } from "@/app/(auth)/components/auth-divider";
 import { FILLED_INPUT } from "@/app/(auth)/components/password-field";
-import {
-  GoogleMark,
-  IconCalendar,
-  IconCheckCircle,
-  IconClock,
-  IconLeft,
-  IconRight,
-  IconShield,
-} from "@/components/icons";
+import { Calendar, ChevronLeft, ChevronRight, CircleCheck, Clock, ShieldCheck } from "lucide-react";
+import { GoogleMark } from "@/components/icons";
 import { type Listing, PALETTE, money } from "@/lib/data/listings";
 import { acctInitials } from "@/lib/data/profile";
 import { type TourSignInValues, tourSignInSchema } from "../schemas/tour";
@@ -151,7 +144,7 @@ export function BookTourDialog({
     step === "done" ? (
       <div className="text-center py-6 anim-fade">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground mb-4">
-          <IconCalendar size={30} />
+          <Calendar size={30} />
         </div>
         <h3 className="text-xl font-semibold tracking-tight">Tour requested</h3>
         <p className="mt-2 text-muted-foreground text-pretty max-w-sm mx-auto">
@@ -172,7 +165,7 @@ export function BookTourDialog({
         <div className="grid sm:grid-cols-2 gap-5">
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 flex items-center gap-1.5">
-              <IconCalendar size={14} /> Pick a date
+              <Calendar size={14} /> Pick a date
             </h4>
             <MonthCalendar
               template={template}
@@ -186,7 +179,7 @@ export function BookTourDialog({
           </div>
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 flex items-center gap-1.5">
-              <IconClock size={14} /> {date ? tourDateMed(date) : "Available times"}
+              <Clock size={14} /> {date ? tourDateMed(date) : "Available times"}
             </h4>
             {date ? (
               <TimeSlots slots={slots} value={time} onPick={setTime} />
@@ -221,7 +214,7 @@ export function BookTourDialog({
             disabled={!date || !time}
             onClick={() => setStep("verify")}
           >
-            Continue <IconRight size={18} />
+            Continue <ChevronRight size={18} />
           </Button>
         </div>
       </div>
@@ -232,10 +225,10 @@ export function BookTourDialog({
           onClick={() => setStep("pick")}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-4 focus-ring"
         >
-          <IconLeft size={16} /> Back
+          <ChevronLeft size={16} /> Back
         </button>
         <div className="flex items-center gap-2.5 bg-secondary p-3 mb-5 text-sm">
-          <IconCalendar size={18} className="text-primary shrink-0" />
+          <Calendar size={18} className="text-primary shrink-0" />
           <span className="font-medium">{tourDateLong(date)}</span>
           <span className="text-muted-foreground">at {tourTimeLabel(time)}</span>
         </div>
@@ -243,7 +236,7 @@ export function BookTourDialog({
         {!authed ? (
           <form className="flex flex-col gap-4" onSubmit={signIn} noValidate>
             <h4 className="font-semibold flex items-center gap-2">
-              <IconShield size={18} className="text-primary" /> Sign in to book
+              <ShieldCheck size={18} className="text-primary" /> Sign in to book
             </h4>
             <SocialButton icon={<GoogleMark />} onClick={google}>
               Continue with Google
@@ -303,7 +296,7 @@ export function BookTourDialog({
                 </p>
               </div>
               <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
-                <IconCheckCircle size={15} /> Signed in
+                <CircleCheck size={15} /> Signed in
               </span>
             </div>
             <div>
@@ -313,7 +306,7 @@ export function BookTourDialog({
               <RecaptchaCheck checked={robot} onChange={setRobot} />
             </div>
             <Button size="lg" className="gap-2" disabled={!robot} onClick={confirm}>
-              <IconCalendar size={18} /> Confirm tour request
+              <Calendar size={18} /> Confirm tour request
             </Button>
             <p className="text-xs text-muted-foreground text-center">
               The owner will accept, decline, or suggest another time.

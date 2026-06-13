@@ -9,18 +9,7 @@ import { ReviewCard } from "@/components/review-card";
 import { StarRow } from "@/components/star-row";
 import { ReviewModal } from "./review-modal";
 import { useSaved } from "@/hooks/use-saved";
-import {
-  IconLeft,
-  IconPin,
-  IconCalendar,
-  IconMessage,
-  IconClock,
-  IconGlobe,
-  IconShield,
-  IconCheck,
-  IconStar,
-  IconBuilding,
-} from "@/components/icons";
+import { Building2, Calendar, Check, ChevronLeft, Clock, Globe, MapPin, MessageSquare, ShieldCheck, Star } from "lucide-react";
 import {
   type Owner,
   type Review,
@@ -77,10 +66,10 @@ export function OwnerProfile({
   };
 
   const stats = [
-    { label: "Member since", value: monthLabel(owner.joined) || "—", icon: IconCalendar },
-    { label: "Response rate", value: `${owner.responseRate}%`, icon: IconMessage },
-    { label: "Responds", value: owner.responseTime, icon: IconClock },
-    { label: "Languages", value: owner.languages.join(", "), icon: IconGlobe },
+    { label: "Member since", value: monthLabel(owner.joined) || "—", icon: Calendar },
+    { label: "Response rate", value: `${owner.responseRate}%`, icon: MessageSquare },
+    { label: "Responds", value: owner.responseTime, icon: Clock },
+    { label: "Languages", value: owner.languages.join(", "), icon: Globe },
   ];
 
   return (
@@ -89,7 +78,7 @@ export function OwnerProfile({
         onClick={() => router.push("/apartments")}
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-5 focus-ring"
       >
-        <IconLeft size={18} /> Back
+        <ChevronLeft size={18} /> Back
       </button>
 
       {/* Hero */}
@@ -108,12 +97,12 @@ export function OwnerProfile({
             <div className="flex flex-wrap items-center gap-2">
               {owner.superhost && (
                 <Badge>
-                  <IconShield size={13} /> Superhost
+                  <ShieldCheck size={13} /> Superhost
                 </Badge>
               )}
               {owner.verified && (
                 <Badge variant="secondary">
-                  <IconCheck size={13} /> Verified
+                  <Check size={13} /> Verified
                 </Badge>
               )}
             </div>
@@ -122,10 +111,10 @@ export function OwnerProfile({
             </h1>
             <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <IconPin size={16} /> {owner.location}
+                <MapPin size={16} /> {owner.location}
               </span>
               <span className="flex items-center gap-1.5">
-                <IconCalendar size={16} /> Joined {monthLabel(owner.joined)}
+                <Calendar size={16} /> Joined {monthLabel(owner.joined)}
               </span>
             </p>
             <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground text-pretty max-w-xl">
@@ -174,14 +163,14 @@ export function OwnerProfile({
             </p>
           </div>
           <Button className="h-11 gap-1.5" onClick={() => setReviewOpen(true)}>
-            <IconStar size={17} /> Write a review
+            <Star size={17} /> Write a review
           </Button>
         </div>
 
         {reviews.length === 0 ? (
           <div className="bg-card p-14 text-center anim-fade">
             <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
-              <IconStar size={26} />
+              <Star size={26} />
             </div>
             <h3 className="text-lg font-semibold">No reviews yet</h3>
             <p className="mt-1 text-muted-foreground text-pretty max-w-sm mx-auto">
@@ -191,7 +180,7 @@ export function OwnerProfile({
               className="mt-5 h-11 gap-1.5"
               onClick={() => setReviewOpen(true)}
             >
-              <IconStar size={17} /> Write a review
+              <Star size={17} /> Write a review
             </Button>
           </div>
         ) : (
@@ -203,7 +192,7 @@ export function OwnerProfile({
                   <div key={s} className="flex items-center gap-2.5 text-sm">
                     <span className="flex items-center gap-1 w-9 text-muted-foreground tabular-nums">
                       {s}{" "}
-                      <IconStar filled size={12} className="text-primary" />
+                      <Star fill="currentColor" size={12} className="text-primary" />
                     </span>
                     <span className="flex-1 h-2 bg-muted overflow-hidden">
                       <span
@@ -238,7 +227,7 @@ export function OwnerProfile({
         {homes.length === 0 ? (
           <div className="bg-card p-14 text-center anim-fade">
             <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
-              <IconBuilding size={26} />
+              <Building2 size={26} />
             </div>
             <p className="text-muted-foreground">
               {firstName} has no active listings at the moment.
