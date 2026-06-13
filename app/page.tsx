@@ -104,10 +104,9 @@ export default function RoleSelectPage() {
               />
             </Field>
             <Button
-              size="lg"
               disabled={!role}
               onClick={onContinue}
-              className="sm:w-auto w-full h-14 px-7 text-base gap-2"
+              className="sm:w-auto w-full h-11 px-7 text-base gap-2"
             >
               Continue{" "}
               {role === "owner"
