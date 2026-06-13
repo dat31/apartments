@@ -123,12 +123,12 @@ export function DetailView({
       </button>
 
       {/* Gallery */}
-      <div className="grid sm:grid-cols-[1fr_auto] gap-3">
+      <div className="grid md:grid-cols-[1fr_auto] gap-3">
         <div
-          className="aspect-[16/10] sm:aspect-[16/9]"
+          className="aspect-video"
           style={{ background: colors[active] }}
         />
-        <div className="flex sm:flex-col gap-3">
+        <div className="flex md:flex-col gap-3">
           {colors.map((c, i) => (
             <button
               key={i}

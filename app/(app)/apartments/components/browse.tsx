@@ -4,12 +4,12 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from "@/components/ui/dropdown-menu";
 import {
   Drawer,
   DrawerContent,
@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/pagination";
 import { ListingCard } from "@/components/listing-card";
 import { FiltersPanel } from "./filters-panel";
-import { IconSliders, IconSearch } from "@/components/icons";
+import { IconSliders, IconSearch, IconChevronDown } from "@/components/icons";
 import { useSaved } from "@/hooks/use-saved";
 import { type Listing } from "@/lib/data/listings";
 import {
@@ -37,6 +37,13 @@ import {
 } from "../schemas/filters";
 
 const PAGE_SIZE = 6;
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "featured", label: "Featured" },
+  { value: "low", label: "Price: low to high" },
+  { value: "high", label: "Price: high to low" },
+  { value: "area", label: "Largest area" },
+];
 
 export function Browse({ listings }: { listings: Listing[] }) {
   const { isSaved, toggleSave } = useSaved();
@@ -157,20 +164,29 @@ export function Browse({ listings }: { listings: Listing[] }) {
               <span className="text-sm text-muted-foreground hidden sm:inline">
                 Sort
               </span>
-              <Select
-                value={sort}
-                onValueChange={(v) => setSort(v as SortKey)}
-              >
-                <SelectTrigger className="h-11 bg-input border-transparent">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="featured">Featured</SelectItem>
-                  <SelectItem value="low">Price: low to high</SelectItem>
-                  <SelectItem value="high">Price: high to low</SelectItem>
-                  <SelectItem value="area">Largest area</SelectItem>
-                </SelectContent>
-              </Select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    className="h-11 gap-2 bg-input border-transparent font-normal"
+                  >
+                    {SORT_OPTIONS.find((o) => o.value === sort)?.label}
+                    <IconChevronDown size={16} className="text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuRadioGroup
+                    value={sort}
+                    onValueChange={(v) => setSort(v as SortKey)}
+                  >
+                    {SORT_OPTIONS.map((o) => (
+                      <DropdownMenuRadioItem key={o.value} value={o.value}>
+                        {o.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
@@ -243,7 +259,7 @@ export function Browse({ listings }: { listings: Listing[] }) {
                           aria-disabled={safePage >= totalPages}
                           className={cn(
                             safePage >= totalPages &&
-                              "pointer-events-none opacity-40"
+                            "pointer-events-none opacity-40"
                           )}
                           onClick={(e) => {
                             e.preventDefault();
