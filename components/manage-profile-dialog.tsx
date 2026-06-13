@@ -10,6 +10,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -68,24 +75,17 @@ export function ManageProfileDialog({
   const location = watch("location");
   const palette = watch("palette");
   const roleLabel = profile.role === "owner" ? "Owner" : "Renter";
+  const isMobile = useIsMobile();
 
-  return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg p-0 gap-0 max-h-[85vh] flex flex-col">
-        <DialogHeader className="px-6 pt-6 pb-4">
-          <DialogTitle className="text-xl font-semibold tracking-tight">
-            Manage profile
-          </DialogTitle>
-        </DialogHeader>
-
-        <form
-          className="px-6 pb-6 flex flex-col gap-5 overflow-y-auto"
-          onSubmit={handleSubmit((data) => {
-            onSave(data);
-            onClose();
-          })}
-          noValidate
-        >
+  const body = (
+    <form
+      className="px-6 pb-6 flex flex-col gap-5 overflow-y-auto"
+      onSubmit={handleSubmit((data) => {
+        onSave(data);
+        onClose();
+      })}
+      noValidate
+    >
           {/* preview */}
           <div className="flex items-center gap-4 bg-muted px-4 py-4">
             <ProfileAvatar name={name} palette={palette} size={56} />
@@ -193,6 +193,32 @@ export function ManageProfileDialog({
             </Button>
           </div>
         </form>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
+        <DrawerContent className="max-h-[90vh]">
+          <DrawerHeader className="px-6 pt-2 pb-4 text-left">
+            <DrawerTitle className="text-xl font-semibold tracking-tight">
+              Manage profile
+            </DrawerTitle>
+          </DrawerHeader>
+          {body}
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg p-0 gap-0 max-h-[85vh] flex flex-col">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="text-xl font-semibold tracking-tight">
+            Manage profile
+          </DialogTitle>
+        </DialogHeader>
+        {body}
       </DialogContent>
     </Dialog>
   );

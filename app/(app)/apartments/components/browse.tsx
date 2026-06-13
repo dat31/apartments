@@ -11,12 +11,12 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerFooter,
+} from "@/components/ui/drawer";
 import {
   Pagination,
   PaginationContent,
@@ -265,13 +265,13 @@ export function Browse({ listings }: { listings: Listing[] }) {
         </div>
       </div>
 
-      <Dialog open={mobileFilters} onOpenChange={setMobileFilters}>
-        <DialogContent className="max-w-md p-0 gap-0 max-h-[85vh] flex flex-col">
-          <DialogHeader className="px-6 pt-6 pb-4">
-            <DialogTitle className="text-xl font-semibold tracking-tight">
+      <Drawer open={mobileFilters} onOpenChange={setMobileFilters}>
+        <DrawerContent className="max-h-[85vh]">
+          <DrawerHeader className="px-6 pt-6 pb-4">
+            <DrawerTitle className="text-xl font-semibold tracking-tight">
               Filters
-            </DialogTitle>
-          </DialogHeader>
+            </DrawerTitle>
+          </DrawerHeader>
           <div className="px-6 pb-6 overflow-y-auto">
             <FiltersPanel
               filters={filters}
@@ -280,16 +280,16 @@ export function Browse({ listings }: { listings: Listing[] }) {
               districts={districts}
             />
           </div>
-          <DialogFooter className="px-6 py-4 bg-muted">
+          <DrawerFooter className="px-6 py-4 bg-muted">
             <Button
               className="w-full h-11"
               onClick={() => setMobileFilters(false)}
             >
               Show {results.length} homes
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
