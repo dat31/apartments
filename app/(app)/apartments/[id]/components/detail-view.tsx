@@ -6,13 +6,20 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/components/ui/pagination";
 import { ReviewCard } from "@/components/review-card";
 import { StarRow } from "@/components/star-row";
 import { BookTourDialog } from "./book-tour-dialog";
 import { useSaved } from "@/hooks/use-saved";
 import {
   IconLeft,
-  IconRight,
   IconPin,
   IconBed,
   IconBath,
@@ -249,46 +256,55 @@ export function DetailView({
                 </div>
 
                 {pageCount > 1 && (
-                  <nav
-                    className="mt-6 flex items-center justify-between gap-3"
+                  <Pagination
                     aria-label="Reviews pagination"
+                    className="mt-6 justify-center"
                   >
-                    <Button
-                      variant="secondary"
-                      className="h-10 gap-1.5"
-                      disabled={safePage === 0}
-                      onClick={() => setPage(Math.max(0, safePage - 1))}
-                    >
-                      <IconLeft size={17} /> Prev
-                    </Button>
-                    <div className="flex items-center gap-1.5">
-                      {Array.from({ length: pageCount }).map((_, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setPage(i)}
-                          aria-current={i === safePage ? "page" : undefined}
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          href="#"
+                          text="Prev"
+                          aria-disabled={safePage === 0}
                           className={cn(
-                            "w-10 h-10 text-sm font-medium tabular-nums transition-colors focus-ring",
-                            i === safePage
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-secondary text-secondary-foreground hover:bg-primary/10"
+                            safePage === 0 && "pointer-events-none opacity-40"
                           )}
-                        >
-                          {i + 1}
-                        </button>
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setPage(Math.max(0, safePage - 1));
+                          }}
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: pageCount }).map((_, i) => (
+                        <PaginationItem key={i}>
+                          <PaginationLink
+                            href="#"
+                            isActive={i === safePage}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setPage(i);
+                            }}
+                          >
+                            {i + 1}
+                          </PaginationLink>
+                        </PaginationItem>
                       ))}
-                    </div>
-                    <Button
-                      variant="secondary"
-                      className="h-10 gap-1.5"
-                      disabled={safePage === pageCount - 1}
-                      onClick={() =>
-                        setPage(Math.min(pageCount - 1, safePage + 1))
-                      }
-                    >
-                      Next <IconRight size={17} />
-                    </Button>
-                  </nav>
+                      <PaginationItem>
+                        <PaginationNext
+                          href="#"
+                          aria-disabled={safePage === pageCount - 1}
+                          className={cn(
+                            safePage === pageCount - 1 &&
+                              "pointer-events-none opacity-40"
+                          )}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setPage(Math.min(pageCount - 1, safePage + 1));
+                          }}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 )}
               </>
             )}

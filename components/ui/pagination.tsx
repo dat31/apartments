@@ -23,7 +23,7 @@ function PaginationContent({
   return (
     <ul
       data-slot="pagination-content"
-      className={cn("flex items-center gap-0.5", className)}
+      className={cn("flex items-center gap-1.5", className)}
       {...props}
     />
   )
@@ -47,9 +47,9 @@ function PaginationLink({
   return (
     <Button
       asChild
-      variant={isActive ? "outline" : "ghost"}
+      variant={isActive ? "default" : "secondary"}
       size={size}
-      className={cn(className)}
+      className={cn("size-10 font-medium tabular-nums", className)}
     >
       <a
         aria-current={isActive ? "page" : undefined}
@@ -70,7 +70,7 @@ function PaginationPrevious({
     <PaginationLink
       aria-label="Go to previous page"
       size="default"
-      className={cn("pl-1.5!", className)}
+      className={cn("h-10 w-auto gap-1.5 px-3", className)}
       {...props}
     >
       <ChevronLeftIcon data-icon="inline-start" />
@@ -88,7 +88,7 @@ function PaginationNext({
     <PaginationLink
       aria-label="Go to next page"
       size="default"
-      className={cn("pr-1.5!", className)}
+      className={cn("h-10 w-auto gap-1.5 px-3", className)}
       {...props}
     >
       <span className="hidden sm:block">{text}</span>
