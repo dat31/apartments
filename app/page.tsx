@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Logo } from "@/components/logo";
 import { RoleCard } from "./components/role-card";
-import { useTheme } from "@/hooks/use-theme";
+import { useTheme } from "next-themes";
 import { useProfile } from "@/hooks/use-profile";
 import { FILLED_INPUT } from "@/app/(auth)/components/password-field";
 import { Building2, ChevronRight, Moon, Search, Sun } from "lucide-react";
@@ -15,7 +15,8 @@ import { type Role } from "@/lib/data/profile";
 
 export default function RoleSelectPage() {
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const { updateProfile } = useProfile();
   const [role, setRole] = React.useState<Role | null>(null);
   const [name, setName] = React.useState("");
@@ -37,10 +38,10 @@ export default function RoleSelectPage() {
           variant="ghost"
           size="icon"
           className="size-9"
-          onClick={toggleTheme}
+          onClick={() => setTheme(isDark ? "light" : "dark")}
           aria-label="Toggle theme"
         >
-          {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+          {isDark ? <Sun size={20} /> : <Moon size={20} />}
         </Button>
       </header>
 

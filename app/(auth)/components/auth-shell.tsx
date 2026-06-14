@@ -3,13 +3,14 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
-import { useTheme } from "@/hooks/use-theme";
+import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { BrandPanel } from "./brand-panel";
 
 /* Brand panel + centered form column. */
 export function AuthShell({ children }: { children: React.ReactNode }) {
-  const { theme, toggleTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   return (
     <div className="min-h-screen w-full lg:grid lg:grid-cols-2">
       <BrandPanel />
@@ -22,10 +23,10 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
             variant="ghost"
             size="icon"
             className="size-9 ml-auto"
-            onClick={toggleTheme}
+            onClick={() => setTheme(isDark ? "light" : "dark")}
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+            {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </Button>
         </div>
         <div className="flex-1 flex items-center justify-center px-6 sm:px-10 pb-14">
