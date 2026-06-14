@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { ProfileAvatar } from "@/components/profile-avatar";
-import { useTheme } from "@/hooks/use-theme";
+import { useTheme } from "next-themes";
 import { type Profile, type Role } from "@/lib/data/profile";
 import { ArrowLeftRight, Building2, ChevronDown, Eye, LogOut, MapPin, Moon, Search, Settings, Sun } from "lucide-react";
 
@@ -25,7 +25,8 @@ export function AccountMenu({
   onSwitchRole: (role: Role) => void;
 }) {
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const [open, setOpen] = React.useState(false);
 
   const role = profile.role;
@@ -115,11 +116,11 @@ export function AccountMenu({
             className="px-4 h-11 text-[15px] rounded-none"
             onSelect={(e) => {
               e.preventDefault();
-              toggleTheme();
+              setTheme(isDark ? "light" : "dark");
             }}
           >
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-            {theme === "dark" ? "Light mode" : "Dark mode"}
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+            {isDark ? "Light mode" : "Dark mode"}
           </DropdownMenuItem>
         </div>
 
