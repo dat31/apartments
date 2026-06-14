@@ -17,6 +17,7 @@ import {
 import { ReviewCard } from "@/components/review-card";
 import { StarRow } from "@/components/star-row";
 import { BookTourDialog } from "./book-tour-dialog";
+import { Gallery } from "./gallery";
 import { useSaved } from "@/hooks/use-saved";
 import { Bath, BedDouble, Calendar, Check, ChevronLeft, Clock, Heart, MapPin, Maximize, Star, User } from "lucide-react";
 import { AMENITY_ICONS } from "@/components/icons";
@@ -45,7 +46,6 @@ export function DetailView({
 }) {
   const router = useRouter();
   const { isSaved, toggleSave } = useSaved();
-  const [active, setActive] = React.useState(0);
   const [page, setPage] = React.useState(0);
   const [tourOpen, setTourOpen] = React.useState(false);
 
@@ -111,28 +111,7 @@ export function DetailView({
       </button>
 
       {/* Gallery */}
-      <div className="grid md:grid-cols-[1fr_auto] gap-3">
-        <div
-          className="aspect-video"
-          style={{ background: colors[active] }}
-        />
-        <div className="flex md:flex-col gap-3">
-          {colors.map((c, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(i)}
-              className={cn(
-                "w-20 sm:w-24 aspect-square overflow-hidden transition-all focus-ring",
-                active === i
-                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                  : "opacity-70 hover:opacity-100"
-              )}
-            >
-              <span className="block w-full h-full" style={{ background: c }} />
-            </button>
-          ))}
-        </div>
-      </div>
+      <Gallery images={listing.images} colors={colors} label={listing.title} />
 
       <div className="mt-8 grid lg:grid-cols-[1fr_340px] gap-10">
         {/* Main */}

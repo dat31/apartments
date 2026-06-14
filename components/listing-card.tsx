@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -37,10 +38,22 @@ export function ListingCard({
       className="group/listing gap-0 overflow-hidden py-0 ring-0 anim-up cursor-pointer transition-transform hover:-translate-y-1 hover:bg-accent focus-ring"
     >
       <div className="card-media relative aspect-[4/3] overflow-hidden">
-        <div
-          className="absolute inset-0 transition-transform duration-500 group-hover/listing:scale-105"
-          style={{ background: colors[0] }}
-        />
+        <div className="absolute inset-0">
+          {listing.images?.length ? (
+            <Image
+              src={listing.images[0]}
+              alt={listing.title}
+              fill
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              className="object-cover"
+            />
+          ) : (
+            <span
+              className="absolute inset-0"
+              style={{ background: colors[0] }}
+            />
+          )}
+        </div>
         <button
           type="button"
           onClick={(e) => {
