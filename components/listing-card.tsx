@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -14,6 +13,7 @@ import {
   specStr,
   availLabel,
 } from "@/lib/data/listings";
+import { ViewTransition } from 'react'
 
 export function ListingCard({
   listing,
@@ -37,16 +37,18 @@ export function ListingCard({
       }}
       className="group/listing gap-0 overflow-hidden py-0 ring-0 anim-up cursor-pointer transition-transform hover:-translate-y-1 hover:bg-accent focus-ring"
     >
-      <div className="card-media relative aspect-[4/3] overflow-hidden">
+      <div className="card-media relative aspect-4/3 overflow-hidden">
         <div className="absolute inset-0">
           {listing.images?.length ? (
-            <Image
-              src={listing.images[0]}
-              alt={listing.title}
-              fill
-              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-              className="object-cover"
-            />
+            <ViewTransition name={`photo-${listing.id}`}>
+              <Image
+                src={listing.images[0]}
+                alt={listing.title}
+                fill
+                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                className="object-cover"
+              />
+            </ViewTransition>
           ) : (
             <span
               className="absolute inset-0"
