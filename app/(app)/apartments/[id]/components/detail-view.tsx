@@ -111,7 +111,7 @@ export function DetailView({
       </button>
 
       {/* Gallery */}
-      <Gallery images={listing.images} colors={colors} label={listing.title} />
+      <Gallery id={listing.id} images={listing.images} colors={colors} label={listing.title} />
 
       <div className="mt-8 grid lg:grid-cols-[1fr_340px] gap-10">
         {/* Main */}

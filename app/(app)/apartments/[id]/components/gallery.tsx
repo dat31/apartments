@@ -14,6 +14,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { Grid2x2, Image as ImageIcon, X } from "lucide-react";
+import { ViewTransition } from 'react'
 
 /* Photo gallery: editorial mosaic on desktop, single hero on mobile, both
    opening a fullscreen lightbox carousel with a synced thumbnail rail.
@@ -23,10 +24,12 @@ export function Gallery({
   images,
   colors,
   label,
+  id
 }: {
   images?: string[];
   colors: string[];
   label: string;
+  id: string;
 }) {
   const shots = images?.length ? images : colors;
   const hasPhotos = Boolean(images?.length);
@@ -39,15 +42,24 @@ export function Gallery({
     setOpen(true);
   };
 
-  const fill = (i: number, sizes: string) =>
+  const fill = (i: number, sizes: string, transition = false) =>
     hasPhotos ? (
-      <Image
-        src={shots[i]}
-        alt={label}
-        fill
-        sizes={sizes}
-        className="object-cover"
-      />
+      transition ? <ViewTransition name={`photo-${id}`}>
+        <Image
+          src={shots[i]}
+          alt={label}
+          fill
+          sizes={sizes}
+          className="object-cover"
+        />
+      </ViewTransition> :
+        <Image
+          src={shots[i]}
+          alt={label}
+          fill
+          sizes={sizes}
+          className="object-cover"
+        />
     ) : (
       <span className="absolute inset-0" style={{ background: shots[i] }} />
     );
@@ -74,7 +86,7 @@ export function Gallery({
                 spanFor(i)
               )}
             >
-              {fill(i, i === 0 ? "(min-width: 768px) 75vw, 75vw" : "25vw")}
+              {fill(i, i === 0 ? "(min-width: 768px) 75vw, 75vw" : "25vw", i === 0)}
               <span className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors" />
               {n > 3 && i === 2 && (
                 <span className="absolute inset-0 flex items-center justify-center bg-foreground/55 text-background text-xl font-semibold">
