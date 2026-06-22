@@ -36,6 +36,7 @@ Available primitives: accordion, alert, avatar, badge, button, card, carousel, c
 - **Forms** — `useForm({ resolver: zodResolver(schema) })`; render with the `field` primitives from `components/ui/field.tsx`.
 - **`cn()`** for all conditional/merged classNames. Keep CVA pattern (`data-slot`, `data-variant`, `data-size`) when extending components.
 - **Imports** use the `@/` alias.
+- **Navigation** — for anything that navigates to a route, render a real `<Link>` (`next/link`), not an `onClick` handler with `router.push`. When the link should look like a button, use `<Button asChild><Link href="…">…</Link></Button>`. Reserve `router.push`/`useRouter` for imperative navigation that can't be expressed as a link (e.g. after a form submit or async action). Don't pass `onPreview`/`onEdit`-style navigation callbacks down to child components — give the child the data it needs and let it build the `<Link href>` itself.
 
 ## Route / file structure
 

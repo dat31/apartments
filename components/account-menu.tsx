@@ -13,7 +13,7 @@ import {
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { useTheme } from "next-themes";
 import { type Profile, type Role } from "@/lib/data/profile";
-import { ArrowLeftRight, Building2, ChevronDown, Eye, LogOut, MapPin, Moon, Search, Settings, Sun } from "lucide-react";
+import { ArrowLeftRight, Building2, ChevronDown, Eye, LayoutGrid, LogOut, MapPin, Moon, Search, Settings, Sun } from "lucide-react";
 
 export function AccountMenu({
   profile,
@@ -97,6 +97,14 @@ export function AccountMenu({
           >
             <Settings size={18} /> Manage profile
           </DropdownMenuItem>
+          {role === "owner" && (
+            <DropdownMenuItem
+              className="px-4 h-11 text-[15px] rounded-none"
+              onSelect={() => router.push("/owner/dashboard")}
+            >
+              <LayoutGrid size={18} /> Owner dashboard
+            </DropdownMenuItem>
+          )}
           {role === "owner" && (
             <DropdownMenuItem
               className="px-4 h-11 text-[15px] rounded-none"
