@@ -10,7 +10,10 @@ export const tourRequestSchema = z.object({
   note: z.string(),
   renterName: z.string(),
   renterEmail: z.string(),
-  status: z.enum(["pending", "confirmed", "declined"]),
+  status: z.enum(["pending", "confirmed", "declined", "reschedule"]),
+  // Set when the owner suggests an alternative slot (status "reschedule").
+  proposedDate: z.string().optional(),
+  proposedTime: z.string().optional(),
   createdAt: z.number(),
 });
 export type TourRequest = z.infer<typeof tourRequestSchema>;

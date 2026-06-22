@@ -2,11 +2,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
-import { type TourRequest, tourRequestSchema } from "@/app/(app)/apartments/[id]/schemas/tour";
+import {
+  type TourRequest,
+  tourRequestSchema,
+} from "@/app/(app)/apartments/[id]/schemas/tour";
+import { seedTours } from "@/app/(app)/apartments/[id]/constants/tours";
 
 const KEY = "danapa-tours";
 
-/* Persisted list of the renter's requested tours. */
+/* Persisted tours — shared by the renter booking flow and the owner
+   dashboard. On first visit (nothing stored) it seeds a few example requests
+   so the owner's tour surface isn't empty. */
 export function useTours() {
   const [tours, setTours] = useState<TourRequest[]>([]);
   const [ready, setReady] = useState(false);
@@ -18,6 +24,8 @@ export function useTours() {
         const parsed = z.array(tourRequestSchema).safeParse(JSON.parse(s));
         // eslint-disable-next-line react-hooks/set-state-in-effect
         if (parsed.success) setTours(parsed.data);
+      } else {
+        setTours(seedTours());
       }
     } catch {}
     setReady(true);
@@ -47,5 +55,30 @@ export function useTours() {
     []
   );
 
-  return { tours, addTour, ready };
+  const acceptTour = useCallback((id: string) => {
+    setTours((ts) =>
+      ts.map((t) => (t.id === id ? { ...t, status: "confirmed" } : t))
+    );
+  }, []);
+
+  const declineTour = useCallback((id: string) => {
+    setTours((ts) =>
+      ts.map((t) => (t.id === id ? { ...t, status: "declined" } : t))
+    );
+  }, []);
+
+  const proposeTime = useCallback(
+    (id: string, date: string, time: string) => {
+      setTours((ts) =>
+        ts.map((t) =>
+          t.id === id
+            ? { ...t, status: "reschedule", proposedDate: date, proposedTime: time }
+            : t
+        )
+      );
+    },
+    []
+  );
+
+  return { tours, addTour, acceptTour, declineTour, proposeTime, ready };
 }

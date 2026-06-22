@@ -1,4 +1,5 @@
 import { SiteHeader } from "@/components/site-header";
+import { ListingsProvider } from "@/hooks/use-listings";
 
 export default function AppLayout({
   children,
@@ -6,9 +7,11 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <SiteHeader />
-      <main className="flex-1">{children}</main>
-    </div>
+    <ListingsProvider>
+      <div className="min-h-screen flex flex-col">
+        <SiteHeader />
+        <main className="flex-1">{children}</main>
+      </div>
+    </ListingsProvider>
   );
 }
