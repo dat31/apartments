@@ -11,9 +11,15 @@ import {
   availLabel,
 } from "@/lib/data/listings";
 import { SaveButton } from "@/components/save-button";
-import { ViewTransition } from "react";
+import { ViewTransition, type ReactNode } from "react";
 
-export function ListingCard({ listing }: { listing: Listing }) {
+export function ListingCard({
+  listing,
+  badge,
+}: {
+  listing: Listing;
+  badge?: { icon: ReactNode; label: string };
+}) {
   const colors = PALETTE[listing.palette];
   const href = `/apartments/${listing.id}`;
   return (
@@ -44,6 +50,12 @@ export function ListingCard({ listing }: { listing: Listing }) {
             />
           )}
         </div>
+        {badge && (
+          <span className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 bg-foreground text-background text-xs font-semibold px-2.5 h-7 pointer-events-none">
+            {badge.icon}
+            {badge.label}
+          </span>
+        )}
         <SaveButton id={listing.id} />
         <span className="absolute bottom-3 left-3">
           <Badge variant="secondary" className="bg-background text-foreground">
