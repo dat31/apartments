@@ -1,11 +1,8 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bath, BedDouble, Clock, Heart, MapPin, Maximize } from "lucide-react";
+import { Bath, BedDouble, Clock, MapPin, Maximize } from "lucide-react";
 import {
   type Listing,
   PALETTE,
@@ -13,30 +10,21 @@ import {
   specStr,
   availLabel,
 } from "@/lib/data/listings";
-import { ViewTransition } from 'react'
+import { SaveButton } from "@/components/save-button";
+import { ViewTransition } from "react";
 
-export function ListingCard({
-  listing,
-  saved,
-  onToggleSave,
-}: {
-  listing: Listing;
-  saved: boolean;
-  onToggleSave: (id: string) => void;
-}) {
-  const router = useRouter();
+export function ListingCard({ listing }: { listing: Listing }) {
   const colors = PALETTE[listing.palette];
   const href = `/apartments/${listing.id}`;
   return (
-    <Card
-      onClick={() => router.push(href)}
-      role="link"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") router.push(href);
-      }}
-      className="group/listing gap-0 overflow-hidden py-0 ring-0 anim-up cursor-pointer transition-transform hover:-translate-y-1 hover:bg-accent focus-ring"
-    >
+    <Card className="group/listing relative gap-0 overflow-hidden py-0 ring-0 anim-up transition-transform hover:-translate-y-1 hover:bg-accent">
+      {/* Stretched link covers the whole card so it stays server-rendered;
+          the save button (z-20) and its own clicks sit above it. */}
+      <Link
+        href={href}
+        aria-label={listing.title}
+        className="absolute inset-0 z-10 focus-ring"
+      />
       <div className="card-media relative aspect-4/3 overflow-hidden">
         <div className="absolute inset-0">
           {listing.images?.length ? (
@@ -56,23 +44,8 @@ export function ListingCard({
             />
           )}
         </div>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleSave(listing.id);
-          }}
-          className={cn(
-            "absolute top-3 right-3 z-10 w-9 h-9 inline-flex items-center justify-center transition-colors focus-ring",
-            saved
-              ? "bg-primary text-primary-foreground"
-              : "bg-background text-foreground hover:bg-secondary"
-          )}
-          aria-label={saved ? "Remove from saved" : "Save"}
-        >
-          <Heart size={18} />
-        </button>
-        <span className="absolute bottom-3 left-3 z-10">
+        <SaveButton id={listing.id} />
+        <span className="absolute bottom-3 left-3">
           <Badge variant="secondary" className="bg-background text-foreground">
             {listing.type}
           </Badge>

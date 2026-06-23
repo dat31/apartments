@@ -10,7 +10,7 @@ import { Heart, Search } from "lucide-react";
 import { type Listing } from "@/lib/data/listings";
 
 export function SavedList({ listings }: { listings: Listing[] }) {
-  const { saved, isSaved, toggleSave, ready } = useSaved();
+  const { saved, ready } = useSaved();
   const savedListings = React.useMemo(
     () => saved.map((id) => listings.find((l) => l.id === id)).filter(Boolean) as Listing[],
     [listings, saved]
@@ -61,12 +61,7 @@ export function SavedList({ listings }: { listings: Listing[] }) {
       ) : (
         <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
           {savedListings.map((l) => (
-            <ListingCard
-              key={l.id}
-              listing={l}
-              saved={isSaved(l.id)}
-              onToggleSave={toggleSave}
-            />
+            <ListingCard key={l.id} listing={l} />
           ))}
         </div>
       )}

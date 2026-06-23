@@ -1,6 +1,10 @@
 import { Browse } from "./components/browse";
-import { SEED_LISTINGS } from "@/lib/data/listings";
+import { type SearchParams } from "./lib/query";
 
-export default function ApartmentsPage() {
-  return <Browse listings={SEED_LISTINGS} />;
+export default async function ApartmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  return <Browse searchParams={await searchParams} />;
 }
