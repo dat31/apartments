@@ -8,7 +8,6 @@ import { ListingCard } from "@/components/listing-card";
 import { ReviewCard } from "@/components/review-card";
 import { StarRow } from "@/components/star-row";
 import { ReviewModal } from "./review-modal";
-import { useSaved } from "@/hooks/use-saved";
 import { Building2, Calendar, Check, ChevronLeft, Clock, Globe, MapPin, MessageSquare, ShieldCheck, Star } from "lucide-react";
 import {
   type Owner,
@@ -31,7 +30,6 @@ export function OwnerProfile({
   reviews: Review[];
 }) {
   const router = useRouter();
-  const { isSaved, toggleSave } = useSaved();
   const [reviewOpen, setReviewOpen] = React.useState(false);
   const [reviews, setReviews] = React.useState<Review[]>(initialReviews);
 
@@ -236,12 +234,7 @@ export function OwnerProfile({
         ) : (
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
             {homes.map((l) => (
-              <ListingCard
-                key={l.id}
-                listing={l}
-                saved={isSaved(l.id)}
-                onToggleSave={toggleSave}
-              />
+              <ListingCard key={l.id} listing={l} />
             ))}
           </div>
         )}

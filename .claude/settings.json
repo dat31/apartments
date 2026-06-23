@@ -3,7 +3,8 @@
     "allow": [
       "Bash(grep -A2 -iE \"owner.dashboard.components|use-tours.ts$|use-availability.ts$|use-listings|chip.tsx$|listing-form|photo-\")",
       "Edit(/.claude/skills/design-handoff/**)",
-      "PowerShell(npm run lint)"
+      "PowerShell(npm run lint)",
+      "Edit(/.claude/skills/server-first-rendering/**)"
     ]
   }
 }

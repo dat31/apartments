@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -7,30 +9,61 @@ import { Check, Search } from "lucide-react";
 import { AMENITY_ICONS } from "@/components/icons";
 import { AMENITIES, TYPES } from "@/lib/data/listings";
 import { FILLED_INPUT } from "@/app/(auth)/components/password-field";
-import { type Filters } from "../schemas/filters";
+import { parseFilters } from "../lib/query";
+import { useFilterNav } from "./use-filter-nav";
 
-export function FiltersPanel({
-  filters,
-  setFilters,
-  onReset,
-  districts = [],
-}: {
-  filters: Filters;
-  setFilters: React.Dispatch<React.SetStateAction<Filters>>;
-  onReset: () => void;
-  districts?: string[];
-}) {
-  const set = (patch: Partial<Filters>) =>
-    setFilters((f) => ({ ...f, ...patch }));
-  const toggleAmenity = (id: string) =>
-    setFilters((f) => ({
-      ...f,
-      amenities: f.amenities.includes(id)
-        ? f.amenities.filter((a) => a !== id)
-        : [...f.amenities, id],
-    }));
+/* Debounces a text field into a single URL param: keeps the input snappy
+   while only navigating once typing settles. Resyncs when the URL changes
+   underneath us (reset button, back/forward). */
+function useDebouncedTextParam(
+  key: string,
+  urlValue: string,
+  setParams: (patch: Record<string, string | null>) => void
+) {
+  const [value, setValue] = React.useState(urlValue);
 
-  const heading = "text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-3";
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setValue(urlValue);
+  }, [urlValue]);
+
+  React.useEffect(() => {
+    if (value === urlValue) return;
+    const t = setTimeout(() => setParams({ [key]: value || null }), 350);
+    return () => clearTimeout(t);
+  }, [value, urlValue, key, setParams]);
+
+  return [value, setValue] as const;
+}
+
+export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
+  const { searchParams, setParams, reset } = useFilterNav();
+  const filters = React.useMemo(
+    () => parseFilters(Object.fromEntries(searchParams.entries())),
+    [searchParams]
+  );
+
+  const [q, setQ] = useDebouncedTextParam("q", filters.q, setParams);
+  const [minPrice, setMinPrice] = useDebouncedTextParam(
+    "minPrice",
+    filters.minPrice,
+    setParams
+  );
+  const [maxPrice, setMaxPrice] = useDebouncedTextParam(
+    "maxPrice",
+    filters.maxPrice,
+    setParams
+  );
+
+  const toggleAmenity = (id: string) => {
+    const next = filters.amenities.includes(id)
+      ? filters.amenities.filter((a) => a !== id)
+      : [...filters.amenities, id];
+    setParams({ amenities: next.length ? next.join(",") : null });
+  };
+
+  const heading =
+    "text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-3";
 
   return (
     <div className="flex flex-col gap-7">
@@ -42,8 +75,8 @@ export function FiltersPanel({
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
           />
           <Input
-            value={filters.q}
-            onChange={(e) => set({ q: e.target.value })}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
             placeholder="Area, type, or name…"
             className={cn(FILLED_INPUT, "pl-9")}
           />
@@ -57,7 +90,7 @@ export function FiltersPanel({
             <Chip
               key={t}
               active={filters.type === t}
-              onClick={() => set({ type: t })}
+              onClick={() => setParams({ type: t === "All" ? null : t })}
             >
               {t}
             </Chip>
@@ -72,7 +105,7 @@ export function FiltersPanel({
             <Chip
               key={d}
               active={filters.district === d}
-              onClick={() => set({ district: d })}
+              onClick={() => setParams({ district: d === "All" ? null : d })}
             >
               {d}
             </Chip>
@@ -87,8 +120,8 @@ export function FiltersPanel({
             type="number"
             inputMode="numeric"
             placeholder="Min"
-            value={filters.minPrice}
-            onChange={(e) => set({ minPrice: e.target.value })}
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value)}
             className={FILLED_INPUT}
           />
           <span className="text-muted-foreground">–</span>
@@ -96,8 +129,8 @@ export function FiltersPanel({
             type="number"
             inputMode="numeric"
             placeholder="Max"
-            value={filters.maxPrice}
-            onChange={(e) => set({ maxPrice: e.target.value })}
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
             className={FILLED_INPUT}
           />
         </div>
@@ -110,7 +143,7 @@ export function FiltersPanel({
             <Chip
               key={b}
               active={filters.beds === b}
-              onClick={() => set({ beds: b })}
+              onClick={() => setParams({ beds: b === "Any" ? null : b })}
             >
               {b}
             </Chip>
@@ -151,7 +184,7 @@ export function FiltersPanel({
         </div>
       </div>
 
-      <Button variant="secondary" className="h-11" onClick={onReset}>
+      <Button variant="secondary" className="h-11" onClick={reset}>
         Reset filters
       </Button>
     </div>

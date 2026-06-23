@@ -1,122 +1,39 @@
-"use client";
-
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import { Suspense } from "react";
+import { SEED_LISTINGS } from "@/lib/data/listings";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-} from "@/components/ui/dropdown-menu";
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
   DrawerFooter,
+  DrawerTrigger,
+  DrawerClose,
 } from "@/components/ui/drawer";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationPrevious,
-  PaginationNext,
-} from "@/components/ui/pagination";
-import { ListingCard } from "@/components/listing-card";
+import { SkeletonGrid } from "@/components/skeleton-listing-card";
+import { SlidersHorizontal } from "lucide-react";
 import { FiltersPanel } from "./filters-panel";
-import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
-import { useSaved } from "@/hooks/use-saved";
-import { type Listing } from "@/lib/data/listings";
+import { SortMenu } from "./sort-menu";
+import { Listing } from "./listing";
 import {
-  DEFAULT_FILTERS,
-  type Filters,
-  type SortKey,
-} from "../schemas/filters";
+  activeFilterCount,
+  filterListings,
+  getDistricts,
+  parseFilters,
+  parseSort,
+  type SearchParams,
+} from "../lib/query";
 
-const PAGE_SIZE = 6;
+export function Browse({ searchParams }: { searchParams: SearchParams }) {
+  const filters = parseFilters(searchParams);
+  const sort = parseSort(searchParams);
+  const results = filterListings(SEED_LISTINGS, filters, sort);
+  const districts = getDistricts(SEED_LISTINGS);
+  const activeCount = activeFilterCount(filters);
 
-const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: "featured", label: "Featured" },
-  { value: "low", label: "Price: low to high" },
-  { value: "high", label: "Price: high to low" },
-  { value: "area", label: "Largest area" },
-];
-
-export function Browse({ listings }: { listings: Listing[] }) {
-  const { isSaved, toggleSave } = useSaved();
-  const [filters, setFilters] = React.useState<Filters>(DEFAULT_FILTERS);
-  const [sort, setSort] = React.useState<SortKey>("featured");
-  const [mobileFilters, setMobileFilters] = React.useState(false);
-  const [page, setPage] = React.useState(1);
-
-  const results = React.useMemo(() => {
-    let r = listings.filter((l) => l.status === "active");
-    const q = filters.q.trim().toLowerCase();
-    if (q)
-      r = r.filter((l) =>
-        (l.title + l.neighborhood + l.city + l.type).toLowerCase().includes(q)
-      );
-    if (filters.type !== "All") r = r.filter((l) => l.type === filters.type);
-    if (filters.district !== "All")
-      r = r.filter((l) => l.neighborhood === filters.district);
-    if (filters.minPrice) r = r.filter((l) => l.price >= +filters.minPrice);
-    if (filters.maxPrice) r = r.filter((l) => l.price <= +filters.maxPrice);
-    if (filters.beds !== "Any") {
-      if (filters.beds === "Studio") r = r.filter((l) => l.beds === 0);
-      else if (filters.beds === "3+") r = r.filter((l) => l.beds >= 3);
-      else r = r.filter((l) => l.beds === +filters.beds);
-    }
-    if (filters.amenities.length)
-      r = r.filter((l) =>
-        filters.amenities.every((a) => l.amenities.includes(a))
-      );
-    if (sort === "low") r = [...r].sort((a, b) => a.price - b.price);
-    else if (sort === "high") r = [...r].sort((a, b) => b.price - a.price);
-    else if (sort === "area") r = [...r].sort((a, b) => b.area - a.area);
-    return r;
-  }, [listings, filters, sort]);
-
-  const districts = React.useMemo(
-    () =>
-      [
-        ...new Set(
-          listings
-            .filter((l) => l.status === "active")
-            .map((l) => l.neighborhood)
-        ),
-      ].sort(),
-    [listings]
-  );
-
-  const activeCount =
-    Number(filters.type !== "All") +
-    Number(filters.district !== "All") +
-    Number(!!filters.minPrice) +
-    Number(!!filters.maxPrice) +
-    Number(filters.beds !== "Any") +
-    filters.amenities.length;
-
-  const totalPages = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
-
-  // Reset to page 1 whenever the result set changes (filter/sort/search),
-  // adjusting state during render per the React-recommended pattern.
-  const sig = JSON.stringify([filters, sort]);
-  const [prevSig, setPrevSig] = React.useState(sig);
-  if (sig !== prevSig) {
-    setPrevSig(sig);
-    setPage(1);
-  }
-
-  const safePage = Math.min(page, totalPages);
-  const start = (safePage - 1) * PAGE_SIZE;
-  const pageResults = results.slice(start, start + PAGE_SIZE);
-  const goToPage = (p: number) => {
-    setPage(Math.min(Math.max(p, 1), totalPages));
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  // Re-key the Suspense boundary on every query change so the skeleton
+  // re-shows while the new result set streams in.
+  const suspenseKey = JSON.stringify(searchParams);
 
   return (
     <div className="max-w-[1400px] mx-auto px-5 sm:px-8 py-8">
@@ -136,176 +53,59 @@ export function Browse({ listings }: { listings: Listing[] }) {
             <h3 className="text-base font-semibold mb-5 flex items-center gap-2">
               <SlidersHorizontal size={18} /> Filters
             </h3>
-            <FiltersPanel
-              filters={filters}
-              setFilters={setFilters}
-              onReset={() => setFilters(DEFAULT_FILTERS)}
-              districts={districts}
-            />
+            <FiltersPanel districts={districts} />
           </div>
         </aside>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-3 mb-5">
-            <Button
-              variant="secondary"
-              size="default"
-              className="lg:hidden h-9 gap-1.5 px-3"
-              onClick={() => setMobileFilters(true)}
-            >
-              <SlidersHorizontal size={16} /> Filters
-              {activeCount > 0 && (
-                <span className="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs bg-primary text-primary-foreground">
-                  {activeCount}
-                </span>
-              )}
-            </Button>
+            <Drawer>
+              <DrawerTrigger asChild>
+                <Button
+                  variant="secondary"
+                  size="default"
+                  className="lg:hidden h-9 gap-1.5 px-3"
+                >
+                  <SlidersHorizontal size={16} /> Filters
+                  {activeCount > 0 && (
+                    <span className="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs bg-primary text-primary-foreground">
+                      {activeCount}
+                    </span>
+                  )}
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent className="max-h-[85vh]">
+                <DrawerHeader className="px-6 pt-6 pb-4">
+                  <DrawerTitle className="text-xl font-semibold tracking-tight">
+                    Filters
+                  </DrawerTitle>
+                </DrawerHeader>
+                <div className="px-6 pb-6 overflow-y-auto">
+                  <FiltersPanel districts={districts} />
+                </div>
+                <DrawerFooter className="px-6 py-4 bg-muted">
+                  <DrawerClose asChild>
+                    <Button className="w-full h-11">
+                      Show {results.length} homes
+                    </Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+
             <div className="ml-auto flex items-center gap-2">
               <span className="text-sm text-muted-foreground hidden sm:inline">
                 Sort
               </span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="secondary"
-                    className="h-11 gap-2 bg-input border-transparent font-normal"
-                  >
-                    {SORT_OPTIONS.find((o) => o.value === sort)?.label}
-                    <ChevronDown size={16} className="text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuRadioGroup
-                    value={sort}
-                    onValueChange={(v) => setSort(v as SortKey)}
-                  >
-                    {SORT_OPTIONS.map((o) => (
-                      <DropdownMenuRadioItem key={o.value} value={o.value}>
-                        {o.label}
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <SortMenu value={sort} />
             </div>
           </div>
 
-          {results.length === 0 ? (
-            <div className="bg-card p-16 text-center anim-fade">
-              <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
-                <Search size={26} />
-              </div>
-              <h3 className="text-lg font-semibold">
-                No homes match those filters
-              </h3>
-              <p className="mt-1 text-muted-foreground">
-                Try widening your price range or clearing a filter.
-              </p>
-              <Button
-                variant="secondary"
-                className="mt-5 h-11"
-                onClick={() => setFilters(DEFAULT_FILTERS)}
-              >
-                Reset filters
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
-                {pageResults.map((l) => (
-                  <ListingCard
-                    key={l.id}
-                    listing={l}
-                    saved={isSaved(l.id)}
-                    onToggleSave={toggleSave}
-                  />
-                ))}
-              </div>
-              {totalPages > 1 && (
-                <div className="mt-10 flex flex-col items-center gap-3">
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          href="#"
-                          text="Prev"
-                          aria-disabled={safePage <= 1}
-                          className={cn(
-                            safePage <= 1 && "pointer-events-none opacity-40"
-                          )}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            goToPage(safePage - 1);
-                          }}
-                        />
-                      </PaginationItem>
-                      {Array.from({ length: totalPages }).map((_, i) => (
-                        <PaginationItem key={i}>
-                          <PaginationLink
-                            href="#"
-                            isActive={i + 1 === safePage}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              goToPage(i + 1);
-                            }}
-                          >
-                            {i + 1}
-                          </PaginationLink>
-                        </PaginationItem>
-                      ))}
-                      <PaginationItem>
-                        <PaginationNext
-                          href="#"
-                          aria-disabled={safePage >= totalPages}
-                          className={cn(
-                            safePage >= totalPages &&
-                            "pointer-events-none opacity-40"
-                          )}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            goToPage(safePage + 1);
-                          }}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                  <p className="text-sm text-muted-foreground tabular-nums">
-                    Showing {start + 1}–
-                    {Math.min(start + PAGE_SIZE, results.length)} of{" "}
-                    {results.length}
-                  </p>
-                </div>
-              )}
-            </>
-          )}
+          <Suspense key={suspenseKey} fallback={<SkeletonGrid count={6} />}>
+            <Listing searchParams={searchParams} />
+          </Suspense>
         </div>
       </div>
-
-      <Drawer open={mobileFilters} onOpenChange={setMobileFilters}>
-        <DrawerContent className="max-h-[85vh]">
-          <DrawerHeader className="px-6 pt-6 pb-4">
-            <DrawerTitle className="text-xl font-semibold tracking-tight">
-              Filters
-            </DrawerTitle>
-          </DrawerHeader>
-          <div className="px-6 pb-6 overflow-y-auto">
-            <FiltersPanel
-              filters={filters}
-              setFilters={setFilters}
-              onReset={() => setFilters(DEFAULT_FILTERS)}
-              districts={districts}
-            />
-          </div>
-          <DrawerFooter className="px-6 py-4 bg-muted">
-            <Button
-              className="w-full h-11"
-              onClick={() => setMobileFilters(false)}
-            >
-              Show {results.length} homes
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
     </div>
   );
 }
