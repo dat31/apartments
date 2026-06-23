@@ -1,25 +1,21 @@
-"use client";
-
-import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationPrevious,
-  PaginationNext,
-} from "@/components/ui/pagination";
-import { ReviewCard } from "@/components/review-card";
-import { StarRow } from "@/components/star-row";
-import { BookTourDialog } from "./book-tour-dialog";
 import { Gallery } from "./gallery";
-import { useSaved } from "@/hooks/use-saved";
-import { Bath, BedDouble, Calendar, Check, ChevronLeft, Clock, Heart, MapPin, Maximize, Star, User } from "lucide-react";
+import { Reviews } from "./reviews";
+import { SaveHomeButton } from "./save-home-button";
+import { BookTourButton } from "./book-tour-button";
+import { AvailabilityLabel } from "./availability-label";
+import {
+  Bath,
+  BedDouble,
+  Check,
+  ChevronLeft,
+  Clock,
+  MapPin,
+  Maximize,
+  User,
+} from "lucide-react";
 import { AMENITY_ICONS } from "@/components/icons";
 import {
   type Listing,
@@ -29,11 +25,7 @@ import {
   AMENITIES,
   money,
   specStr,
-  availLabel,
-  avgOf,
 } from "@/lib/data/listings";
-
-const PER_PAGE = 4;
 
 export function DetailView({
   listing,
@@ -44,23 +36,9 @@ export function DetailView({
   reviews: Review[];
   owner: Owner | null;
 }) {
-  const router = useRouter();
-  const { isSaved, toggleSave } = useSaved();
-  const [page, setPage] = React.useState(0);
-  const [tourOpen, setTourOpen] = React.useState(false);
-
   const colors = PALETTE[listing.palette];
   const ams = AMENITIES.filter((a) => listing.amenities.includes(a.id));
   const ownerLabel = listing.owner === "you" ? "You" : owner?.name ?? listing.owner;
-  const saved = isSaved(listing.id);
-
-  const avg = avgOf(reviews);
-  const pageCount = Math.max(1, Math.ceil(reviews.length / PER_PAGE));
-  const safePage = Math.min(page, pageCount - 1);
-  const pageReviews = reviews.slice(
-    safePage * PER_PAGE,
-    safePage * PER_PAGE + PER_PAGE
-  );
 
   const renderOwner = (cls: string) => (
     <Link
@@ -103,12 +81,12 @@ export function DetailView({
 
   return (
     <div className="max-w-[1100px] mx-auto px-5 sm:px-8 pt-6 pb-28 md:pb-6 anim-up">
-      <button
-        onClick={() => router.push("/apartments")}
+      <Link
+        href="/apartments"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-5 focus-ring"
       >
         <ChevronLeft size={18} /> Back to results
-      </button>
+      </Link>
 
       {/* Gallery */}
       <Gallery id={listing.id} images={listing.images} colors={colors} label={listing.title} />
@@ -119,7 +97,9 @@ export function DetailView({
           <div className="flex items-center gap-2 mb-2">
             <Badge variant="secondary">{listing.type}</Badge>
             {listing.status === "active" && (
-              <Badge>{availLabel(listing)}</Badge>
+              <Badge>
+                <AvailabilityLabel listing={listing} />
+              </Badge>
             )}
           </div>
           <h1 className="text-3xl font-semibold tracking-tight text-balance">
@@ -176,106 +156,8 @@ export function DetailView({
           {/* Owner — inline on mobile */}
           <div className="md:hidden mt-8 bg-card p-5">{renderOwner("")}</div>
 
-          {/* Reviews */}
-          <div className="mt-10">
-            <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
-              <div>
-                <h2 className="text-lg font-semibold">Reviews</h2>
-                {reviews.length > 0 && (
-                  <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                    <StarRow value={avg} size={15} />
-                    <span className="text-foreground font-medium tabular-nums">
-                      {avg.toFixed(1)}
-                    </span>
-                    · {reviews.length} review{reviews.length !== 1 ? "s" : ""}
-                  </p>
-                )}
-              </div>
-              {owner && (
-                <Link
-                  href={`/owner/${listing.owner}`}
-                  className="text-sm font-medium text-primary hover:underline focus-ring"
-                >
-                  See host profile →
-                </Link>
-              )}
-            </div>
-
-            {reviews.length === 0 ? (
-              <div className="bg-card p-10 text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-secondary text-muted-foreground mb-3">
-                  <Star size={22} />
-                </div>
-                <h3 className="font-semibold">No reviews yet</h3>
-                <p className="mt-1 text-sm text-muted-foreground text-pretty">
-                  This home&apos;s host hasn&apos;t been reviewed yet.
-                </p>
-              </div>
-            ) : (
-              <>
-                <div
-                  key={safePage}
-                  className="grid sm:grid-cols-2 gap-4 stagger"
-                >
-                  {pageReviews.map((r) => (
-                    <ReviewCard key={r.id} r={r} />
-                  ))}
-                </div>
-
-                {pageCount > 1 && (
-                  <Pagination
-                    aria-label="Reviews pagination"
-                    className="mt-6 justify-center"
-                  >
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          href="#"
-                          text="Prev"
-                          aria-disabled={safePage === 0}
-                          className={cn(
-                            safePage === 0 && "pointer-events-none opacity-40"
-                          )}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setPage(Math.max(0, safePage - 1));
-                          }}
-                        />
-                      </PaginationItem>
-                      {Array.from({ length: pageCount }).map((_, i) => (
-                        <PaginationItem key={i}>
-                          <PaginationLink
-                            href="#"
-                            isActive={i === safePage}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setPage(i);
-                            }}
-                          >
-                            {i + 1}
-                          </PaginationLink>
-                        </PaginationItem>
-                      ))}
-                      <PaginationItem>
-                        <PaginationNext
-                          href="#"
-                          aria-disabled={safePage === pageCount - 1}
-                          className={cn(
-                            safePage === pageCount - 1 &&
-                              "pointer-events-none opacity-40"
-                          )}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setPage(Math.min(pageCount - 1, safePage + 1));
-                          }}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
-              </>
-            )}
-          </div>
+          {/* Reviews — first page server-rendered, further pages client-side. */}
+          <Reviews reviews={reviews} owner={owner} ownerKey={listing.owner} />
         </div>
 
         {/* Sticky booking card (tablet / desktop) */}
@@ -288,24 +170,11 @@ export function DetailView({
               <span className="text-muted-foreground">/ month</span>
             </div>
             <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-primary">
-              <Clock size={16} /> {availLabel(listing)}
+              <Clock size={16} /> <AvailabilityLabel listing={listing} />
             </p>
             <div className="mt-5 flex flex-col gap-2.5">
-              <Button
-                size="lg"
-                className="h-12 gap-2"
-                onClick={() => setTourOpen(true)}
-              >
-                <Calendar size={18} /> Book tour
-              </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                className="h-12 gap-2"
-                onClick={() => toggleSave(listing.id)}
-              >
-                <Heart size={18} /> {saved ? "Saved" : "Save home"}
-              </Button>
+              <BookTourButton listing={listing} mode="full" />
+              <SaveHomeButton id={listing.id} mode="full" />
             </div>
             {renderOwner("mt-6 pt-6")}
           </div>
@@ -329,29 +198,13 @@ export function DetailView({
               <span className="text-sm text-muted-foreground">/mo</span>
             </div>
             <p className="flex items-center gap-1 text-xs font-medium text-primary truncate">
-              <Clock size={13} /> {availLabel(listing)}
+              <Clock size={13} /> <AvailabilityLabel listing={listing} />
             </p>
           </div>
-          <Button
-            variant={saved ? "default" : "secondary"}
-            size="icon"
-            className="size-11"
-            aria-label={saved ? "Saved" : "Save home"}
-            onClick={() => toggleSave(listing.id)}
-          >
-            <Heart size={20} />
-          </Button>
-          <Button className="h-11 gap-2" onClick={() => setTourOpen(true)}>
-            <Calendar size={18} /> Book tour
-          </Button>
+          <SaveHomeButton id={listing.id} mode="icon" />
+          <BookTourButton listing={listing} mode="compact" />
         </div>
       </div>
-
-      <BookTourDialog
-        open={tourOpen}
-        onClose={() => setTourOpen(false)}
-        listing={listing}
-      />
     </div>
   );
 }
