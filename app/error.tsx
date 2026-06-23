@@ -3,19 +3,24 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ErrorShell } from "@/components/error-shell";
-import { GlyphTile } from "@/components/glyph-tile";
 import { Home } from "lucide-react";
 
 export default function Error({ reset }: { error: Error; reset: () => void }) {
   return (
     <ErrorShell>
       <div className="flex items-center justify-center" aria-hidden="true">
-        <GlyphTile
-          glyph="!"
-          size={104}
-          box="var(--destructive)"
-          ink="var(--destructive-foreground)"
-        />
+        <div className="grid size-26 place-items-center overflow-hidden rounded-2xl bg-destructive p-2">
+          {/* Animated WebP (optimized from a 401 KB GIF → 126 KB); served as a
+              plain <img> since next/image does not optimize animated images. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/error-dog.webp"
+            alt=""
+            width={88}
+            height={88}
+            className="size-full object-contain"
+          />
+        </div>
       </div>
 
       <h1 className="mt-10 text-[2rem] font-semibold tracking-tight text-balance">
