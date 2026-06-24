@@ -28,7 +28,13 @@ import { PhotoUploader } from "./photo-uploader";
 import { AmenityPicker } from "./amenity-picker";
 import { useListings } from "@/hooks/use-listings";
 import { TYPES } from "@/schemas/listing";
-import { DISTRICTS, BED_OPTIONS, BATH_OPTIONS } from "../constants/listing-form";
+import {
+  DISTRICTS,
+  DISTRICT_LABELS,
+  District,
+  BED_OPTIONS,
+  BATH_OPTIONS,
+} from "../constants/listing-form";
 import {
   listingFormSchema,
   blankListingForm,
@@ -239,7 +245,7 @@ export function ListingForm({
               <SelectContent>
                 {districtOptions.map((d) => (
                   <SelectItem key={d} value={d}>
-                    {d}
+                    {DISTRICT_LABELS[d as District] ?? d}
                   </SelectItem>
                 ))}
               </SelectContent>

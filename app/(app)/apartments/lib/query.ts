@@ -1,4 +1,4 @@
-import { type Listing } from "@/schemas/listing";
+import { districtLabel, type Listing } from "@/schemas/listing";
 import {
   DEFAULT_FILTERS,
   type Filters,
@@ -48,7 +48,9 @@ export function filterListings(
   const q = filters.q.trim().toLowerCase();
   if (q)
     r = r.filter((l) =>
-      (l.title + l.district + l.city + l.type).toLowerCase().includes(q)
+      (l.title + l.district + districtLabel(l.district) + l.city + l.type)
+        .toLowerCase()
+        .includes(q)
     );
   if (filters.type !== "All") r = r.filter((l) => l.type === filters.type);
   if (filters.district !== "All")
@@ -73,7 +75,7 @@ export function getDistricts(listings: Listing[]): string[] {
     ...new Set(
       listings.filter((l) => l.status === "active").map((l) => l.district)
     ),
-  ].sort();
+  ].sort((a, b) => districtLabel(a).localeCompare(districtLabel(b)));
 }
 
 export function activeFilterCount(f: Filters): number {

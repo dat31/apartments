@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { StatusTag } from "@/components/status-tag";
 import { PALETTE } from "@/lib/data/listings";
-import { type Listing } from "@/schemas/listing";
+import { districtLabel, type Listing } from "@/schemas/listing";
 import { type TourRequest } from "@/schemas/tour";
 import {
   tourDateLong,
@@ -75,7 +75,7 @@ export function RenterTourCard({
               {listing ? listing.title : "Listing removed"}
             </h3>
             <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
-              <MapPin size={14} /> {listing ? listing.district : ""}
+              <MapPin size={14} /> {listing ? districtLabel(listing.district) : ""}
             </p>
           </div>
           <div className="flex items-center gap-2 bg-secondary text-secondary-foreground px-3 py-2 text-sm font-medium">

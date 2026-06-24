@@ -8,6 +8,32 @@ import { z } from "zod";
 
 export const TYPES = ["Studio", "Apartment", "Loft", "Townhouse", "House"] as const;
 
+/* Da Nang urban districts. Enum values match the Postgres `district` enum
+   (slugs); DISTRICT_LABELS holds the human-readable name shown in the UI. */
+export enum District {
+  LienChieu = "lien-chieu",
+  HaiChau = "hai-chau",
+  CamLe = "cam-le",
+  NguHanhSon = "ngu-hanh-son",
+  ThanhKhe = "thanh-khe",
+  SonTra = "son-tra",
+}
+
+export const DISTRICT_LABELS: Record<District, string> = {
+  [District.LienChieu]: "Liên Chiểu",
+  [District.HaiChau]: "Hải Châu",
+  [District.CamLe]: "Cẩm Lệ",
+  [District.NguHanhSon]: "Ngũ Hành Sơn",
+  [District.ThanhKhe]: "Thanh Khê",
+  [District.SonTra]: "Sơn Trà",
+};
+
+export const DISTRICTS = Object.values(District);
+
+/** Display label for a district value; falls back to the raw value. */
+export const districtLabel = (d: string): string =>
+  DISTRICT_LABELS[d as District] ?? d;
+
 export const AmenitySchema = z.object({
   id: z.string(),
   label: z.string(),
@@ -23,7 +49,7 @@ export const ListingSchema = z.object({
   beds: z.number(),
   baths: z.number(),
   area: z.number(),
-  district: z.string(),
+  district: z.enum(District),
   city: z.string(),
   palette: z.number(),
   amenities: z.array(z.string()),
@@ -114,7 +140,7 @@ export function formToCore(v: ListingFormValues): ListingCore {
     beds: Number(v.beds),
     baths: Number(v.baths),
     area: Number(v.area) || 40,
-    district: v.district,
+    district: v.district as District,
     city: "Da Nang",
     desc: v.desc,
     amenities: v.amenities,
