@@ -2,7 +2,9 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import { ReviewCard } from "@/components/review-card";
 import { StarRow } from "@/components/star-row";
-import { type Review, type Owner, avgOf } from "@/lib/data/listings";
+import { avgOf } from "@/lib/data/listings";
+import { type Review } from "@/schemas/review";
+import { type Owner } from "@/schemas/owner";
 import { reviewPageCount, reviewsForPage } from "../lib/reviews";
 import { ReviewPager } from "./review-pager";
 

@@ -17,15 +17,10 @@ import {
   User,
 } from "lucide-react";
 import { AMENITY_ICONS } from "@/components/icons";
-import {
-  type Listing,
-  type Review,
-  type Owner,
-  PALETTE,
-  AMENITIES,
-  money,
-  specStr,
-} from "@/lib/data/listings";
+import { PALETTE, AMENITIES, money, specStr } from "@/lib/data/listings";
+import { type Listing } from "@/schemas/listing";
+import { type Review } from "@/schemas/review";
+import { type Owner } from "@/schemas/owner";
 
 export function DetailView({
   listing,
@@ -106,7 +101,7 @@ export function DetailView({
             {listing.title}
           </h1>
           <p className="mt-1.5 flex items-center gap-1.5 text-muted-foreground">
-            <MapPin size={16} /> {listing.neighborhood}, {listing.city}
+            <MapPin size={16} /> {listing.district}, {listing.city}
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">

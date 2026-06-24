@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { FILLED_INPUT } from "@/app/(auth)/components/password-field";
 import { StarPicker } from "./star-picker";
-import { reviewFormSchema, type ReviewFormValues } from "../schemas/review";
+import { reviewFormSchema, type ReviewFormValues } from "@/schemas/review";
 
 export function ReviewModal({
   open,

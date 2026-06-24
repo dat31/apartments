@@ -2,7 +2,7 @@
    Tour scheduling — time/date helpers + per-owner availability.
    Mirrors the handoff prototype (tours.jsx) in real data.
    ============================================================ */
-import type { TourRequest } from "../schemas/tour";
+import type { TourRequest } from "@/schemas/tour";
 
 export const TOUR_TIMES = [
   "09:00",

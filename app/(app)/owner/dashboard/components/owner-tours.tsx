@@ -7,7 +7,7 @@ import { ProposeTimeModal } from "./propose-time-modal";
 import { useListings } from "@/hooks/use-listings";
 import { useTours } from "@/hooks/use-tours";
 import { useAvailability } from "@/hooks/use-availability";
-import { type TourRequest } from "@/app/(app)/apartments/[id]/schemas/tour";
+import { type TourRequest } from "@/schemas/tour";
 import { tourSlot } from "@/app/(app)/apartments/[id]/constants/tours";
 import { Calendar } from "lucide-react";
 

@@ -29,7 +29,7 @@ import {
   type Profile,
   type ManageProfileValues,
   manageProfileSchema,
-} from "@/lib/data/profile";
+} from "@/schemas/profile";
 
 export function ManageProfileDialog({
   open,

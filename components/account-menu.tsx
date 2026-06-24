@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { useTheme } from "next-themes";
-import { type Profile, type Role } from "@/lib/data/profile";
+import { type Profile, type Role } from "@/schemas/profile";
 import { ArrowLeftRight, Building2, ChevronDown, Eye, LayoutGrid, LogOut, MapPin, Moon, Search, Settings, Sun } from "lucide-react";
 
 export function AccountMenu({

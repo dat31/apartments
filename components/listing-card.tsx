@@ -3,13 +3,8 @@ import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bath, BedDouble, Clock, MapPin, Maximize } from "lucide-react";
-import {
-  type Listing,
-  PALETTE,
-  money,
-  specStr,
-  availLabel,
-} from "@/lib/data/listings";
+import { PALETTE, money, specStr, availLabel } from "@/lib/data/listings";
+import { type Listing } from "@/schemas/listing";
 import { SaveButton } from "@/components/save-button";
 import { ViewTransition, type ReactNode } from "react";
 
@@ -72,7 +67,7 @@ export function ListingCard({
           {listing.title}
         </h3>
         <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
-          <MapPin size={14} /> {listing.neighborhood}
+          <MapPin size={14} /> {listing.district}
         </p>
         <p className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-primary">
           <Clock size={14} /> {availLabel(listing)}

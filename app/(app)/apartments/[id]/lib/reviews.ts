@@ -1,4 +1,4 @@
-import { type Review } from "@/lib/data/listings";
+import { type Review } from "@/schemas/review";
 
 /* Pure reviews pagination helpers — shared by the server (first page) and the
    client pager (subsequent pages). No React. */

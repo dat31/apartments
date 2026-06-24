@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { MonthCalendar } from "@/app/(app)/apartments/[id]/components/month-calendar";
 import { TimeSlots } from "@/app/(app)/apartments/[id]/components/time-slots";
-import { type Listing } from "@/lib/data/listings";
-import { type TourRequest } from "@/app/(app)/apartments/[id]/schemas/tour";
+import { type Listing } from "@/schemas/listing";
+import { type TourRequest } from "@/schemas/tour";
 import {
   type WeekTemplate,
   occupiedSet,

@@ -27,7 +27,7 @@ import {
 import { PhotoUploader } from "./photo-uploader";
 import { AmenityPicker } from "./amenity-picker";
 import { useListings } from "@/hooks/use-listings";
-import { TYPES } from "@/lib/data/listings";
+import { TYPES } from "@/schemas/listing";
 import { DISTRICTS, BED_OPTIONS, BATH_OPTIONS } from "../constants/listing-form";
 import {
   listingFormSchema,
@@ -35,7 +35,7 @@ import {
   listingToForm,
   formToCore,
   type ListingFormValues,
-} from "../schemas/listing-form";
+} from "@/schemas/listing";
 import { ArrowLeft, Clock } from "lucide-react";
 
 const DASHBOARD = "/owner/dashboard";
@@ -77,9 +77,9 @@ export function ListingForm({
 
   // Keep the listing's own district selectable even if it predates the list.
   const districtOptions =
-    !values.neighborhood || DISTRICTS.includes(values.neighborhood as never)
+    !values.district || DISTRICTS.includes(values.district as never)
       ? [...DISTRICTS]
-      : [values.neighborhood, ...DISTRICTS];
+      : [values.district, ...DISTRICTS];
 
   const save = (v: ListingFormValues, status: "active" | "draft") => {
     const core = formToCore(v);
@@ -224,15 +224,15 @@ export function ListingForm({
             </Field>
           </div>
 
-          <Field data-invalid={!!errors.neighborhood}>
+          <Field data-invalid={!!errors.district}>
             <FieldLabel>District</FieldLabel>
             <Select
-              value={values.neighborhood}
-              onValueChange={(v) => setField("neighborhood", v)}
+              value={values.district}
+              onValueChange={(v) => setField("district", v)}
             >
               <SelectTrigger
                 className="w-full h-9"
-                aria-invalid={!!errors.neighborhood}
+                aria-invalid={!!errors.district}
               >
                 <SelectValue placeholder="Select a district…" />
               </SelectTrigger>
@@ -245,7 +245,7 @@ export function ListingForm({
               </SelectContent>
             </Select>
             <FieldError
-              errors={errors.neighborhood ? [errors.neighborhood] : undefined}
+              errors={errors.district ? [errors.district] : undefined}
             />
           </Field>
 

@@ -23,16 +23,10 @@ import {
 } from "@/app/(app)/apartments/[id]/lib/reviews";
 import { ReviewModal } from "./review-modal";
 import { Building2, Calendar, Check, ChevronLeft, Clock, Globe, MapPin, MessageSquare, ShieldCheck, Star } from "lucide-react";
-import {
-  type Owner,
-  type Review,
-  type Listing,
-  PALETTE,
-  monthLabel,
-  initialsOf,
-  avgOf,
-} from "@/lib/data/listings";
-import { type ReviewFormValues } from "../schemas/review";
+import { PALETTE, monthLabel, initialsOf, avgOf } from "@/lib/data/listings";
+import { type Listing } from "@/schemas/listing";
+import { type Owner } from "@/schemas/owner";
+import { type Review, type ReviewFormValues } from "@/schemas/review";
 
 export function OwnerProfile({
   owner,

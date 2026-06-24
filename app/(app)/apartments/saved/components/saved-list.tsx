@@ -17,7 +17,7 @@ import { ListingCard } from "@/components/listing-card";
 import { SkeletonGrid } from "@/components/skeleton-listing-card";
 import { useSaved } from "@/hooks/use-saved";
 import { Heart, Search, SlidersHorizontal } from "lucide-react";
-import { type Listing } from "@/lib/data/listings";
+import { type Listing } from "@/schemas/listing";
 import { FiltersPanel } from "@/app/(app)/apartments/components/filters-panel";
 import { SortMenu } from "@/app/(app)/apartments/components/sort-menu";
 import { EmptyResults } from "@/app/(app)/apartments/components/empty-results";

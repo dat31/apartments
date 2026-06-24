@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
-import { type SortKey } from "../schemas/filters";
+import { type SortKey } from "@/schemas/filters";
 import { useFilterNav } from "./use-filter-nav";
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [

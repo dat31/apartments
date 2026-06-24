@@ -14,7 +14,7 @@ import { AuthShell } from "../components/auth-shell";
 import { SocialButton } from "../components/social-button";
 import { AuthDivider } from "../components/auth-divider";
 import { PasswordField, FILLED_INPUT } from "../components/password-field";
-import { signUpSchema, type SignUpValues } from "../schemas/auth";
+import { signUpSchema, type SignUpValues } from "@/schemas/auth";
 
 export default function SignUpPage() {
   const {

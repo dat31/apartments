@@ -7,7 +7,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { ListingCard } from "@/components/listing-card";
-import { type Listing } from "@/lib/data/listings";
+import { type Listing } from "@/schemas/listing";
 
 /* Fixed-width listing scroller built on the shared embla Carousel. A Server
    Component: it renders the client Carousel primitives but the ListingCards it
