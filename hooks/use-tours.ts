@@ -67,6 +67,25 @@ export function useTours() {
     );
   }, []);
 
+  /* Renter accepts the owner's proposed slot — adopt it as the real
+     date/time and confirm the tour. */
+  const acceptReschedule = useCallback((id: string) => {
+    setTours((ts) =>
+      ts.map((t) =>
+        t.id === id && t.status === "reschedule" && t.proposedDate && t.proposedTime
+          ? {
+              ...t,
+              status: "confirmed",
+              date: t.proposedDate,
+              time: t.proposedTime,
+              proposedDate: undefined,
+              proposedTime: undefined,
+            }
+          : t
+      )
+    );
+  }, []);
+
   const proposeTime = useCallback(
     (id: string, date: string, time: string) => {
       setTours((ts) =>
@@ -80,5 +99,13 @@ export function useTours() {
     []
   );
 
-  return { tours, addTour, acceptTour, declineTour, proposeTime, ready };
+  return {
+    tours,
+    addTour,
+    acceptTour,
+    acceptReschedule,
+    declineTour,
+    proposeTime,
+    ready,
+  };
 }

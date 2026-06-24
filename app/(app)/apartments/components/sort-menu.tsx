@@ -26,7 +26,7 @@ export function SortMenu({ value }: { value: SortKey }) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="secondary"
-          className="h-11 gap-2 bg-input border-transparent font-normal"
+          className="gap-2 h-9 bg-input border-transparent font-normal"
         >
           {SORT_OPTIONS.find((o) => o.value === value)?.label}
           <ChevronDown size={16} className="text-muted-foreground" />

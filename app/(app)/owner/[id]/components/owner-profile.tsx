@@ -2,11 +2,25 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/components/ui/pagination";
 import { ListingCard } from "@/components/listing-card";
 import { ReviewCard } from "@/components/review-card";
 import { StarRow } from "@/components/star-row";
+import {
+  reviewPageCount,
+  reviewsForPage,
+} from "@/app/(app)/apartments/[id]/lib/reviews";
 import { ReviewModal } from "./review-modal";
 import { Building2, Calendar, Check, ChevronLeft, Clock, Globe, MapPin, MessageSquare, ShieldCheck, Star } from "lucide-react";
 import {
@@ -32,6 +46,11 @@ export function OwnerProfile({
   const router = useRouter();
   const [reviewOpen, setReviewOpen] = React.useState(false);
   const [reviews, setReviews] = React.useState<Review[]>(initialReviews);
+  const [page, setPage] = React.useState(1);
+
+  const pageCount = reviewPageCount(reviews);
+  const safePage = Math.min(page, pageCount);
+  const pageReviews = reviewsForPage(reviews, safePage);
 
   const isYou = owner.key === "you";
   const displayName = isYou ? "You" : owner.name;
@@ -61,6 +80,10 @@ export function OwnerProfile({
         .toUpperCase(),
     };
     setReviews((rs) => [r, ...rs]);
+    setPage(1); // jump back so the new review is visible at the top
+    toast.success("Review posted", {
+      description: `Thanks for sharing your experience with ${firstName}.`,
+    });
   };
 
   const stats = [
@@ -205,10 +228,64 @@ export function OwnerProfile({
                 ))}
               </div>
             </div>
-            <div className="grid sm:grid-cols-2 gap-4 stagger">
-              {reviews.map((r) => (
-                <ReviewCard key={r.id} r={r} />
-              ))}
+            <div>
+              <div key={safePage} className="grid sm:grid-cols-2 gap-4 stagger">
+                {pageReviews.map((r) => (
+                  <ReviewCard key={r.id} r={r} />
+                ))}
+              </div>
+
+              {pageCount > 1 && (
+                <Pagination
+                  aria-label="Reviews pagination"
+                  className="mt-6 justify-center"
+                >
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        text="Prev"
+                        aria-disabled={safePage <= 1}
+                        className={cn(
+                          safePage <= 1 && "pointer-events-none opacity-40"
+                        )}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPage((p) => Math.max(1, p - 1));
+                        }}
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: pageCount }).map((_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          href="#"
+                          isActive={i + 1 === safePage}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setPage(i + 1);
+                          }}
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        aria-disabled={safePage >= pageCount}
+                        className={cn(
+                          safePage >= pageCount &&
+                            "pointer-events-none opacity-40"
+                        )}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPage((p) => Math.min(pageCount, p + 1));
+                        }}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
             </div>
           </div>
         )}

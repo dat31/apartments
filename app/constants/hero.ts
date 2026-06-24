@@ -9,7 +9,7 @@ export const HERO_STEPS: HeroStep[] = [
   {
     id: 0,
     label: "Browse",
-    pill: { dot: "bg-primary", title: "47 listings", sub: "My Khe · Son Tra" },
+    pill: { dot: "bg-primary", title: "47 listings", sub: "Mỹ Khê · Sơn Trà" },
   },
   {
     id: 1,

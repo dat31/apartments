@@ -3,12 +3,20 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProfile } from "@/hooks/use-profile";
 import { useTours } from "@/hooks/use-tours";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import {
   Dialog,
@@ -31,15 +39,22 @@ import { Calendar, ChevronLeft, ChevronRight, CircleCheck, Clock, ShieldCheck } 
 import { GoogleMark } from "@/components/icons";
 import { type Listing, PALETTE, money } from "@/lib/data/listings";
 import { acctInitials } from "@/lib/data/profile";
-import { type TourSignInValues, tourSignInSchema } from "../schemas/tour";
+import {
+  type TourBookingValues,
+  type TourSignInValues,
+  tourBookingSchema,
+  tourSignInSchema,
+} from "../schemas/tour";
 import {
   availabilityFor,
   occupiedSet,
   openSlotsFor,
+  todayYmd,
   tourDateLong,
   tourDateMed,
   tourTimeLabel,
 } from "../constants/tours";
+import { DatePicker } from "@/components/ui/date-picker";
 import { MonthCalendar } from "./month-calendar";
 import { TimeSlots } from "./time-slots";
 import { RecaptchaCheck } from "./recaptcha-check";
@@ -68,11 +83,15 @@ export function BookTourDialog({
   const colors = PALETTE[listing.palette];
 
   const [step, setStep] = React.useState<Step>("pick");
-  const [date, setDate] = React.useState("");
-  const [time, setTime] = React.useState("");
-  const [note, setNote] = React.useState("");
   const [authed, setAuthed] = React.useState(false);
   const [robot, setRobot] = React.useState(false);
+
+  const booking = useForm<TourBookingValues>({
+    resolver: zodResolver(tourBookingSchema),
+    defaultValues: { date: "", time: "", moveIn: "", people: "", note: "" },
+  });
+  const date = booking.watch("date");
+  const time = booking.watch("time");
 
   const form = useForm<TourSignInValues>({
     resolver: zodResolver(tourSignInSchema),
@@ -82,10 +101,8 @@ export function BookTourDialog({
   // Reset the whole flow each time the dialog opens.
   React.useEffect(() => {
     if (!open) return;
+    booking.reset({ date: "", time: "", moveIn: "", people: "", note: "" });
     setStep("pick");
-    setDate("");
-    setTime("");
-    setNote("");
     setRobot(false);
     const signedIn = !!(profile.name.trim() && profile.email.trim());
     setAuthed(signedIn);
@@ -94,7 +111,7 @@ export function BookTourDialog({
       email: profile.email,
       password: "",
     });
-  }, [open, profile.name, profile.email, form]);
+  }, [open, profile.name, profile.email, form, booking]);
 
   const slots = date ? openSlotsFor(template, date, occupied) : [];
 
@@ -113,17 +130,26 @@ export function BookTourDialog({
   };
 
   const confirm = () => {
+    const values = booking.getValues();
     addTour({
       listingId: listing.id,
       ownerKey,
-      date,
-      time,
-      note: note.trim(),
+      date: values.date,
+      time: values.time,
+      moveIn: values.moveIn || undefined,
+      people: values.people || undefined,
+      note: (values.note ?? "").trim(),
       renterName: form.getValues("name").trim() || profile.name,
       renterEmail: form.getValues("email").trim() || profile.email,
     });
+    toast.success("Tour requested", {
+      description: `${tourDateMed(values.date)} at ${tourTimeLabel(values.time)} — the owner will confirm shortly.`,
+    });
     setStep("done");
   };
+
+  // Validate the date/time selection before moving to the verify step.
+  const goVerify = booking.handleSubmit(() => setStep("verify"));
 
   const title =
     step === "done" ? "Tour requested" : step === "pick" ? "Book a tour" : "Confirm your tour";
@@ -172,8 +198,8 @@ export function BookTourDialog({
               occupied={occupied}
               selected={date}
               onSelect={(d) => {
-                setDate(d);
-                setTime("");
+                booking.setValue("date", d, { shouldValidate: true });
+                booking.setValue("time", "");
               }}
             />
           </div>
@@ -182,23 +208,68 @@ export function BookTourDialog({
               <Clock size={14} /> {date ? tourDateMed(date) : "Available times"}
             </h4>
             {date ? (
-              <TimeSlots slots={slots} value={time} onPick={setTime} />
+              <TimeSlots
+                slots={slots}
+                value={time}
+                onPick={(t) =>
+                  booking.setValue("time", t, { shouldValidate: true })
+                }
+              />
             ) : (
               <div className="bg-card p-6 text-sm text-muted-foreground text-center">
                 Select a highlighted day to see open tour times.
               </div>
             )}
             {date && time && (
-              <div className="mt-4">
+              <div className="mt-4 flex flex-col gap-4 anim-fade">
+                <div className="grid grid-cols-2 gap-3">
+                  <Field>
+                    <FieldLabel htmlFor="tour-movein">
+                      Move-in date (optional)
+                    </FieldLabel>
+                    <DatePicker
+                      id="tour-movein"
+                      value={booking.watch("moveIn") || undefined}
+                      onChange={(v) =>
+                        booking.setValue("moveIn", v ?? "")
+                      }
+                      min={todayYmd()}
+                      placeholder="Pick a date"
+                      className="w-full"
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="tour-people">
+                      People (optional)
+                    </FieldLabel>
+                    <Select
+                      value={booking.watch("people")}
+                      onValueChange={(v) => booking.setValue("people", v)}
+                    >
+                      <SelectTrigger
+                        id="tour-people"
+                        className="w-full bg-input border-transparent h-10"
+                      >
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 person</SelectItem>
+                        <SelectItem value="2">2 people</SelectItem>
+                        <SelectItem value="3">3 people</SelectItem>
+                        <SelectItem value="4">4 people</SelectItem>
+                        <SelectItem value="5+">5 or more</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </div>
                 <Field>
                   <FieldLabel htmlFor="tour-note">Add a note (optional)</FieldLabel>
                   <Textarea
                     id="tour-note"
                     rows={2}
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
                     placeholder="Anything you'd like the owner to know?"
                     className="bg-input border-transparent text-[15px] resize-none focus-ring"
+                    {...booking.register("note")}
                   />
                 </Field>
               </div>
@@ -212,7 +283,7 @@ export function BookTourDialog({
           <Button
             className="gap-1.5"
             disabled={!date || !time}
-            onClick={() => setStep("verify")}
+            onClick={goVerify}
           >
             Continue <ChevronRight size={18} />
           </Button>
@@ -339,7 +410,7 @@ export function BookTourDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-2xl p-0 gap-0 max-h-[88vh] flex flex-col">
+      <DialogContent className="max-w-3xl p-0 gap-0 max-h-[88vh] flex flex-col">
         <DialogHeader className="px-6 pt-6 pb-0">
           <DialogTitle className="text-xl font-semibold tracking-tight">
             {title}

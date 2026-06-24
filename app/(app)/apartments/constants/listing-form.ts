@@ -2,13 +2,12 @@
 
 /* Da Nang urban districts — the district selector's options. */
 export const DISTRICTS = [
+  "Liên Chiểu",
   "Hải Châu",
+  "Cẩm Lệ",
+  "Ngũ Hành Sơn",
   "Thanh Khê",
   "Sơn Trà",
-  "Ngũ Hành Sơn",
-  "Liên Chiểu",
-  "Cẩm Lệ",
-  "Hòa Vang",
 ] as const;
 
 export const BED_OPTIONS = [0, 1, 2, 3, 4, 5] as const;

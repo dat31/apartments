@@ -132,7 +132,7 @@ export function ListingForm({
             <FieldLabel htmlFor="title">Title</FieldLabel>
             <Input
               id="title"
-              placeholder="e.g. Sunlit studio off Alberta"
+              placeholder="e.g. Sunlit studio near Mỹ Khê"
               aria-invalid={!!errors.title}
               {...register("title")}
             />
@@ -253,6 +253,7 @@ export function ListingForm({
             <FieldLabel>Available from</FieldLabel>
             <div className="flex flex-wrap items-center gap-3">
               <Chip
+                className="h-8"
                 active={values.available === "now"}
                 onClick={() => setField("available", "now")}
               >

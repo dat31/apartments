@@ -10,7 +10,7 @@ import { AccountMenu } from "@/components/account-menu";
 import { ManageProfileDialog } from "@/components/manage-profile-dialog";
 import { useSaved } from "@/hooks/use-saved";
 import { useProfile } from "@/hooks/use-profile";
-import { Building2, Heart, Search } from "lucide-react";
+import { Building2, Calendar, Heart, Search } from "lucide-react";
 
 export function SiteHeader() {
   const { saved } = useSaved();
@@ -18,6 +18,7 @@ export function SiteHeader() {
   const [manageOpen, setManageOpen] = React.useState(false);
   const pathname = usePathname();
   const savedActive = pathname === "/apartments/saved";
+  const toursActive = pathname === "/tour";
   const isOwner = profile.role === "owner";
 
   return (
@@ -28,6 +29,20 @@ export function SiteHeader() {
         </Link>
 
         <div className="ml-auto flex items-center gap-2">
+          {!isOwner && (
+            <Button
+              asChild
+              variant={toursActive ? "default" : "ghost"}
+              size="default"
+              className="h-9 gap-1.5 px-3"
+            >
+              <Link href="/tour">
+                <Calendar size={16} />
+                <span className="hidden sm:inline">Tours</span>
+              </Link>
+            </Button>
+          )}
+
           <Button
             asChild
             variant={savedActive ? "default" : "ghost"}
