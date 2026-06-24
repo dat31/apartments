@@ -54,7 +54,7 @@ export function ProposeTimeModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-xl p-0 gap-0 max-h-[88vh] flex flex-col">
+      <DialogContent className="max-w-3xl p-0 gap-0 max-h-[88vh] flex flex-col">
         <DialogHeader className="px-6 pt-6 pb-0">
           <DialogTitle className="text-xl font-semibold tracking-tight">
             Suggest another time

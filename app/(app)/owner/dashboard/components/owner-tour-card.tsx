@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { StatusTag } from "./status-tag";
+import { StatusTag } from "@/components/status-tag";
 import { type Listing, PALETTE } from "@/lib/data/listings";
 import { type TourRequest } from "@/app/(app)/apartments/[id]/schemas/tour";
 import {
@@ -10,7 +10,15 @@ import {
   tourSlot,
   tourTimeLabel,
 } from "@/app/(app)/apartments/[id]/constants/tours";
-import { Calendar, Check, Clock, MessageSquare, User } from "lucide-react";
+import {
+  Calendar,
+  CalendarClock,
+  Check,
+  Clock,
+  MessageSquare,
+  User,
+  Users,
+} from "lucide-react";
 
 /* One incoming tour request with the owner's available actions. */
 export function OwnerTourCard({
@@ -69,6 +77,22 @@ export function OwnerTourCard({
           </div>
         </div>
 
+        {(tour.moveIn || tour.people) && (
+          <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+            {tour.moveIn && (
+              <span className="inline-flex items-center gap-1.5 bg-muted px-2.5 py-1.5">
+                <CalendarClock size={14} className="text-primary" /> Move-in{" "}
+                {tourDateMed(tour.moveIn)}
+              </span>
+            )}
+            {tour.people && (
+              <span className="inline-flex items-center gap-1.5 bg-muted px-2.5 py-1.5">
+                <Users size={14} className="text-primary" /> {tour.people}{" "}
+                {tour.people === "1" ? "person" : "people"}
+              </span>
+            )}
+          </div>
+        )}
         {tour.note && (
           <p className="text-sm text-muted-foreground bg-muted px-3 py-2 text-pretty">
             <MessageSquare

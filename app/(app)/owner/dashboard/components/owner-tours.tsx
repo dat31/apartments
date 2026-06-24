@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { toast } from "sonner";
 import { OwnerTourCard } from "./owner-tour-card";
 import { ProposeTimeModal } from "./propose-time-modal";
 import { useListings } from "@/hooks/use-listings";
@@ -53,13 +54,25 @@ export function OwnerTours() {
     .sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
   const past = mine.filter((t) => t.status === "declined");
 
+  const handleAccept = (id: string) => {
+    acceptTour(id);
+    toast.success("Tour confirmed", {
+      description: "We let the renter know it's on.",
+    });
+  };
+
+  const handleDecline = (id: string) => {
+    declineTour(id);
+    toast("Tour declined");
+  };
+
   const renderCard = (t: TourRequest) => (
     <OwnerTourCard
       key={t.id}
       tour={t}
       listing={getById(t.listingId) ?? null}
-      onAccept={acceptTour}
-      onDecline={declineTour}
+      onAccept={handleAccept}
+      onDecline={handleDecline}
       onPropose={setProposeFor}
     />
   );
@@ -96,6 +109,9 @@ export function OwnerTours() {
         onSubmit={(id, date, time) => {
           proposeTime(id, date, time);
           setProposeFor(null);
+          toast.success("New time proposed", {
+            description: "The renter can accept or decline your suggestion.",
+          });
         }}
       />
     </div>

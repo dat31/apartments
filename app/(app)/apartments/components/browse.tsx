@@ -36,15 +36,23 @@ export function Browse({ searchParams }: { searchParams: SearchParams }) {
   const suspenseKey = JSON.stringify(searchParams);
 
   return (
-    <div className="max-w-[1400px] mx-auto px-5 sm:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Homes in Portland
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          {results.length} place{results.length !== 1 ? "s" : ""} available to
-          rent
-        </p>
+    <div className="container mx-auto px-5 sm:px-8 py-8">
+      <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Homes in Da Nang
+          </h1>
+          <p className="mt-1 text-muted-foreground">
+            {results.length} place{results.length !== 1 ? "s" : ""} available to
+            rent
+          </p>
+        </div>
+        <div className="hidden lg:flex items-center gap-2">
+          <span className="text-sm text-muted-foreground hidden sm:inline">
+            Sort
+          </span>
+          <SortMenu value={sort} />
+        </div>
       </div>
 
       <div className="flex gap-8">
@@ -58,13 +66,13 @@ export function Browse({ searchParams }: { searchParams: SearchParams }) {
         </aside>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-3 mb-5">
+          <div className="flex items-center justify-between gap-3 mb-5 lg:hidden">
             <Drawer>
               <DrawerTrigger asChild>
                 <Button
                   variant="secondary"
                   size="default"
-                  className="lg:hidden h-9 gap-1.5 px-3"
+                  className="h-9 gap-1.5 px-3"
                 >
                   <SlidersHorizontal size={16} /> Filters
                   {activeCount > 0 && (
