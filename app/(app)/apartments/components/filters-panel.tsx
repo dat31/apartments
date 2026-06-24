@@ -8,7 +8,7 @@ import { Chip } from "@/components/chip";
 import { Check, Search } from "lucide-react";
 import { AMENITY_ICONS } from "@/components/icons";
 import { AMENITIES } from "@/lib/data/listings";
-import { TYPES } from "@/schemas/listing";
+import { TYPES, districtLabel } from "@/schemas/listing";
 import { FILLED_INPUT } from "@/app/(auth)/components/password-field";
 import { parseFilters } from "../lib/query";
 import { useFilterNav } from "./use-filter-nav";
@@ -108,7 +108,7 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
               active={filters.district === d}
               onClick={() => setParams({ district: d === "All" ? null : d })}
             >
-              {d}
+              {d === "All" ? d : districtLabel(d)}
             </Chip>
           ))}
         </div>

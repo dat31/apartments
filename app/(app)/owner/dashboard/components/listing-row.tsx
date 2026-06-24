@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PALETTE, money, specStr } from "@/lib/data/listings";
-import { type Listing } from "@/schemas/listing";
+import { districtLabel, type Listing } from "@/schemas/listing";
 import { BedDouble, Eye, MapPin, Pencil, Trash2 } from "lucide-react";
 import { ViewTransition } from "react";
 
@@ -59,7 +59,7 @@ export function ListingRow({
             {listing.title}
           </h3>
           <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
-            <MapPin size={14} /> {listing.district}
+            <MapPin size={14} /> {districtLabel(listing.district)}
           </p>
           <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
             <span className="font-medium text-foreground">

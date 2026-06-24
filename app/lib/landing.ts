@@ -1,11 +1,12 @@
 import { PALETTE } from "@/lib/data/listings";
-import { type Listing } from "@/schemas/listing";
+import { districtLabel, type Listing } from "@/schemas/listing";
 
 /* Pure, server-side derivations for the landing showcase. No React. The seed
    data is the single source of truth; these mirror the curation the design
    applies (district counts, newest by id, trending by views). */
 
 export type DistrictTile = {
+  slug: string;
   name: string;
   count: number;
   from: number;
@@ -23,7 +24,8 @@ export function getDistrictTiles(listings: Listing[]): DistrictTile[] {
       existing.from = Math.min(existing.from, l.price);
     } else {
       byDist.set(l.district, {
-        name: l.district,
+        slug: l.district,
+        name: districtLabel(l.district),
         count: 1,
         from: l.price,
         color: PALETTE[l.palette][0],
