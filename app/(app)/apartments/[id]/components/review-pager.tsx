@@ -11,7 +11,7 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import { ReviewCard } from "@/components/review-card";
-import { type Review } from "@/lib/data/listings";
+import { type Review } from "@/schemas/review";
 import { reviewsForPage } from "../lib/reviews";
 
 /* Reviews pager. Page 1 is the server-rendered `firstPage` (in the static

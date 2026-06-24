@@ -1,9 +1,9 @@
-import { type Listing } from "@/lib/data/listings";
+import { type Listing } from "@/schemas/listing";
 import {
   DEFAULT_FILTERS,
   type Filters,
   type SortKey,
-} from "../schemas/filters";
+} from "@/schemas/filters";
 
 /* Server-side reading of the listing query from the URL. The URL search
    params are the single source of truth for filter/sort/page state. */
@@ -48,11 +48,11 @@ export function filterListings(
   const q = filters.q.trim().toLowerCase();
   if (q)
     r = r.filter((l) =>
-      (l.title + l.neighborhood + l.city + l.type).toLowerCase().includes(q)
+      (l.title + l.district + l.city + l.type).toLowerCase().includes(q)
     );
   if (filters.type !== "All") r = r.filter((l) => l.type === filters.type);
   if (filters.district !== "All")
-    r = r.filter((l) => l.neighborhood === filters.district);
+    r = r.filter((l) => l.district === filters.district);
   if (filters.minPrice) r = r.filter((l) => l.price >= +filters.minPrice);
   if (filters.maxPrice) r = r.filter((l) => l.price <= +filters.maxPrice);
   if (filters.beds !== "Any") {
@@ -71,7 +71,7 @@ export function filterListings(
 export function getDistricts(listings: Listing[]): string[] {
   return [
     ...new Set(
-      listings.filter((l) => l.status === "active").map((l) => l.neighborhood)
+      listings.filter((l) => l.status === "active").map((l) => l.district)
     ),
   ].sort();
 }

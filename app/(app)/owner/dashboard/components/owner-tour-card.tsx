@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { StatusTag } from "@/components/status-tag";
-import { type Listing, PALETTE } from "@/lib/data/listings";
-import { type TourRequest } from "@/app/(app)/apartments/[id]/schemas/tour";
+import { PALETTE } from "@/lib/data/listings";
+import { type Listing } from "@/schemas/listing";
+import { type TourRequest } from "@/schemas/tour";
 import {
   tourDateMed,
   tourSlot,

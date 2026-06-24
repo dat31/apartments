@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { type Listing } from "@/lib/data/listings";
+import { type Listing } from "@/schemas/listing";
 import { BookTourDialog } from "./book-tour-dialog";
 
 /* Self-contained tour trigger — owns the dialog open state so the booking

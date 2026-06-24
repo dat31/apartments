@@ -1,5 +1,6 @@
 import * as React from "react";
-import { type Review, monthLabel } from "@/lib/data/listings";
+import { monthLabel } from "@/lib/data/listings";
+import { type Review } from "@/schemas/review";
 import { StarRow } from "@/components/star-row";
 
 export function ReviewCard({ r }: { r: Review }) {

@@ -2,10 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
-import {
-  type TourRequest,
-  tourRequestSchema,
-} from "@/app/(app)/apartments/[id]/schemas/tour";
+import { type TourRequest, tourRequestSchema } from "@/schemas/tour";
 import { seedTours } from "@/app/(app)/apartments/[id]/constants/tours";
 
 const KEY = "danapa-tours";

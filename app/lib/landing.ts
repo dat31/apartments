@@ -1,4 +1,5 @@
-import { PALETTE, type Listing } from "@/lib/data/listings";
+import { PALETTE } from "@/lib/data/listings";
+import { type Listing } from "@/schemas/listing";
 
 /* Pure, server-side derivations for the landing showcase. No React. The seed
    data is the single source of truth; these mirror the curation the design
@@ -11,18 +12,18 @@ export type DistrictTile = {
   color: string;
 };
 
-/** Active listings grouped by neighborhood, ranked by availability. */
+/** Active listings grouped by district, ranked by availability. */
 export function getDistrictTiles(listings: Listing[]): DistrictTile[] {
   const byDist = new Map<string, DistrictTile>();
   for (const l of listings) {
     if (l.status !== "active") continue;
-    const existing = byDist.get(l.neighborhood);
+    const existing = byDist.get(l.district);
     if (existing) {
       existing.count++;
       existing.from = Math.min(existing.from, l.price);
     } else {
-      byDist.set(l.neighborhood, {
-        name: l.neighborhood,
+      byDist.set(l.district, {
+        name: l.district,
         count: 1,
         from: l.price,
         color: PALETTE[l.palette][0],

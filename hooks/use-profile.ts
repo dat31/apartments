@@ -6,7 +6,7 @@ import {
   type Role,
   DEFAULT_PROFILE,
   profileSchema,
-} from "@/lib/data/profile";
+} from "@/schemas/profile";
 
 const KEY = "danapa-profile";
 

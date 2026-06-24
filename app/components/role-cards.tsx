@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Building2, ChevronRight, Search, type LucideIcon } from "lucide-react";
 import { useProfile } from "@/hooks/use-profile";
-import { type Role } from "@/lib/data/profile";
+import { type Role } from "@/schemas/profile";
 
 const ROLES: {
   id: Role;

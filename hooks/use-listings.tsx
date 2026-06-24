@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { SEED_LISTINGS, PALETTE, type Listing } from "@/lib/data/listings";
+import { SEED_LISTINGS, PALETTE } from "@/lib/data/listings";
+import { type Listing, type ListingCore } from "@/schemas/listing";
 
 /* In-memory listings store for the owner flows (dashboard / create / edit).
    Seeded deterministically from SEED_LISTINGS so server + client render match.
@@ -9,22 +10,6 @@ import { SEED_LISTINGS, PALETTE, type Listing } from "@/lib/data/listings";
    URLs and would quickly blow past the localStorage quota. State survives
    client-side navigation between the owner pages while the provider stays
    mounted in the (app) layout. */
-
-export type ListingCore = Pick<
-  Listing,
-  | "title"
-  | "type"
-  | "price"
-  | "beds"
-  | "baths"
-  | "area"
-  | "neighborhood"
-  | "city"
-  | "desc"
-  | "amenities"
-  | "images"
-  | "available"
->;
 
 type ListingsContextValue = {
   listings: Listing[];

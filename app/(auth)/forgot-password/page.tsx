@@ -10,7 +10,7 @@ import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { ArrowLeft, ChevronRight, Lock, Mail } from "lucide-react";
 import { AuthShell } from "../components/auth-shell";
 import { FILLED_INPUT } from "../components/password-field";
-import { forgotSchema, type ForgotValues } from "../schemas/auth";
+import { forgotSchema, type ForgotValues } from "@/schemas/auth";
 
 export default function ForgotPasswordPage() {
   const [sentTo, setSentTo] = React.useState<string | null>(null);

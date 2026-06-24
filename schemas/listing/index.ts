@@ -1,6 +1,59 @@
 import { z } from "zod";
-import { type Listing } from "@/lib/data/listings";
-import { type ListingCore } from "@/hooks/use-listings";
+
+/* ============================================================
+   Listing domain schemas + types.
+   Reusable types are derived from the zod schemas (z.infer).
+   Seed data and helpers live in @/lib/data/listings.
+   ============================================================ */
+
+export const TYPES = ["Studio", "Apartment", "Loft", "Townhouse", "House"] as const;
+
+export const AmenitySchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  icon: z.string(),
+});
+export type Amenity = z.infer<typeof AmenitySchema>;
+
+export const ListingSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  type: z.string(),
+  price: z.number(),
+  beds: z.number(),
+  baths: z.number(),
+  area: z.number(),
+  district: z.string(),
+  city: z.string(),
+  palette: z.number(),
+  amenities: z.array(z.string()),
+  owner: z.string(),
+  status: z.enum(["active", "draft"]),
+  views: z.number(),
+  available: z.string(),
+  desc: z.string(),
+  images: z.array(z.string()).optional(),
+});
+export type Listing = z.infer<typeof ListingSchema>;
+
+/* The editable core of a listing — everything except the server-owned
+   fields (id, owner, views, palette, status). Shared by the create/edit
+   flows and the in-memory listings store. */
+export type ListingCore = Pick<
+  Listing,
+  | "title"
+  | "type"
+  | "price"
+  | "beds"
+  | "baths"
+  | "area"
+  | "district"
+  | "city"
+  | "desc"
+  | "amenities"
+  | "images"
+  | "available"
+>;
 
 /* Listing form schema — shared by the create and edit pages.
    Numeric fields are kept as strings while editing (native inputs/selects
@@ -12,7 +65,7 @@ export const listingFormSchema = z.object({
   beds: z.string(),
   baths: z.string(),
   area: z.string(),
-  neighborhood: z.string().min(1, "Choose a district."),
+  district: z.string().min(1, "Choose a district."),
   desc: z.string(),
   amenities: z.array(z.string()),
   images: z.array(z.string()),
@@ -28,7 +81,7 @@ export const blankListingForm: ListingFormValues = {
   beds: "1",
   baths: "1",
   area: "",
-  neighborhood: "",
+  district: "",
   desc: "",
   amenities: [],
   images: [],
@@ -44,7 +97,7 @@ export function listingToForm(l: Listing): ListingFormValues {
     beds: String(l.beds),
     baths: String(l.baths),
     area: l.area ? String(l.area) : "",
-    neighborhood: l.neighborhood,
+    district: l.district,
     desc: l.desc,
     amenities: l.amenities ?? [],
     images: l.images ?? [],
@@ -61,7 +114,7 @@ export function formToCore(v: ListingFormValues): ListingCore {
     beds: Number(v.beds),
     baths: Number(v.baths),
     area: Number(v.area) || 40,
-    neighborhood: v.neighborhood,
+    district: v.district,
     city: "Da Nang",
     desc: v.desc,
     amenities: v.amenities,

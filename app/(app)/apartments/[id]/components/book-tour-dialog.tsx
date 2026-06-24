@@ -37,14 +37,15 @@ import { AuthDivider } from "@/app/(auth)/components/auth-divider";
 import { FILLED_INPUT } from "@/app/(auth)/components/password-field";
 import { Calendar, ChevronLeft, ChevronRight, CircleCheck, Clock, ShieldCheck } from "lucide-react";
 import { GoogleMark } from "@/components/icons";
-import { type Listing, PALETTE, money } from "@/lib/data/listings";
+import { PALETTE, money } from "@/lib/data/listings";
+import { type Listing } from "@/schemas/listing";
 import { acctInitials } from "@/lib/data/profile";
 import {
   type TourBookingValues,
   type TourSignInValues,
   tourBookingSchema,
   tourSignInSchema,
-} from "../schemas/tour";
+} from "@/schemas/tour";
 import {
   availabilityFor,
   occupiedSet,
@@ -160,7 +161,7 @@ export function BookTourDialog({
       <div className="min-w-0">
         <p className="font-medium truncate">{listing.title}</p>
         <p className="text-sm text-muted-foreground">
-          {listing.neighborhood} · {money(listing.price)}/mo
+          {listing.district} · {money(listing.price)}/mo
         </p>
       </div>
     </div>

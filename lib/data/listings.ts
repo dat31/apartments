@@ -1,8 +1,11 @@
-import { z } from "zod";
+import { type Amenity, type Listing } from "@/schemas/listing";
+import { type Owner } from "@/schemas/owner";
+import { type Review } from "@/schemas/review";
 
 /* ============================================================
-   Danapa sample data + schemas.
-   Reusable types are derived from zod schemas (z.infer).
+   Danapa sample data + helpers.
+   Domain schemas/types now live in @/schemas/*; this file keeps the
+   seed data and presentation helpers.
    ============================================================ */
 
 /* Cover-color palettes (solid blocks stand in for photos). */
@@ -17,13 +20,6 @@ export const PALETTE: string[][] = [
   ["oklch(0.79 0.05 320)", "oklch(0.73 0.05 320)", "oklch(0.86 0.03 315)"], // muted plum
 ];
 
-export const AmenitySchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  icon: z.string(),
-});
-export type Amenity = z.infer<typeof AmenitySchema>;
-
 export const AMENITIES: Amenity[] = [
   { id: "wifi", label: "Fast Wi-Fi", icon: "wifi" },
   { id: "parking", label: "Parking", icon: "car" },
@@ -33,67 +29,17 @@ export const AMENITIES: Amenity[] = [
   { id: "laundry", label: "In-unit laundry", icon: "check-circle" },
 ];
 
-export const TYPES = ["Studio", "Apartment", "Loft", "Townhouse", "House"] as const;
-
-export const ListingSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  type: z.string(),
-  price: z.number(),
-  beds: z.number(),
-  baths: z.number(),
-  area: z.number(),
-  neighborhood: z.string(),
-  city: z.string(),
-  palette: z.number(),
-  amenities: z.array(z.string()),
-  owner: z.string(),
-  status: z.enum(["active", "draft"]),
-  views: z.number(),
-  available: z.string(),
-  desc: z.string(),
-  images: z.array(z.string()).optional(),
-});
-export type Listing = z.infer<typeof ListingSchema>;
-
-export const OwnerSchema = z.object({
-  key: z.string(),
-  name: z.string(),
-  palette: z.number(),
-  joined: z.string(),
-  location: z.string(),
-  verified: z.boolean(),
-  superhost: z.boolean(),
-  responseRate: z.number(),
-  responseTime: z.string(),
-  languages: z.array(z.string()),
-  bio: z.string(),
-});
-export type Owner = z.infer<typeof OwnerSchema>;
-
-export const ReviewSchema = z.object({
-  id: z.string(),
-  owner: z.string(),
-  author: z.string(),
-  initials: z.string(),
-  rating: z.number(),
-  date: z.string(),
-  stay: z.string().optional(),
-  text: z.string(),
-});
-export type Review = z.infer<typeof ReviewSchema>;
-
 export const SEED_LISTINGS: Listing[] = [
-  { id: "l1", title: "Sunlit studio near Mỹ Khê", type: "Studio", price: 1450, beds: 0, baths: 1, area: 38, neighborhood: "Sơn Trà", city: "Da Nang", palette: 0, amenities: ["wifi", "laundry", "ac"], owner: "you", status: "active", views: 312, available: "now", desc: "A bright, efficient studio a short walk from Mỹ Khê Beach and the An Thượng cafe strip. East-facing windows catch the morning sun off the sea." },
-  { id: "l2", title: "Garden loft by the Hàn River", type: "Loft", price: 2380, beds: 1, baths: 1, area: 71, neighborhood: "Hải Châu", city: "Da Nang", palette: 1, amenities: ["wifi", "parking", "garden", "ac"], owner: "you", status: "active", views: 521, available: "2026-07-01", desc: "Open-plan loft with high ceilings and a private planted terrace. Walk to the Dragon Bridge, the riverside promenade, and Hàn Market." },
-  { id: "l3", title: "Quiet 2-bed near Thanh Khê Beach", type: "Apartment", price: 1990, beds: 2, baths: 1, area: 84, neighborhood: "Thanh Khê", city: "Da Nang", palette: 6, amenities: ["wifi", "pets", "garden", "laundry"], owner: "you", status: "active", views: 244, available: "now", desc: "Calm tree-lined block, a few minutes' stroll to Thanh Khê Beach. Tiled floors, a sunny breakfast nook, and a shared back garden." },
-  { id: "l4", title: "Marble Mountains townhouse with yard", type: "Townhouse", price: 2750, beds: 3, baths: 2, area: 122, neighborhood: "Ngũ Hành Sơn", city: "Da Nang", palette: 4, amenities: ["wifi", "parking", "pets", "garden", "ac", "laundry"], owner: "you", status: "draft", views: 0, available: "2026-08-15", desc: "Three-story townhouse minutes from the Marble Mountains and Non Nước Beach. Fenced backyard, covered parking, and a roof deck with mountain views." },
-  { id: "l5", title: "Cozy room in Cẩm Lệ", type: "Studio", price: 1180, beds: 0, baths: 1, area: 30, neighborhood: "Cẩm Lệ", city: "Da Nang", palette: 2, amenities: ["wifi", "ac"], owner: "maya", status: "active", views: 188, available: "now", desc: "Snug studio on a quiet riverside lane in Cẩm Lệ. The Cẩm Lệ Bridge, local markets, and the riverfront path are all within walking distance." },
-  { id: "l6", title: "Modern 1-bed by the river", type: "Apartment", price: 1875, beds: 1, baths: 1, area: 58, neighborhood: "Hải Châu", city: "Da Nang", palette: 3, amenities: ["wifi", "parking", "ac", "laundry"], owner: "maya", status: "active", views: 402, available: "2026-06-20", desc: "Floor-to-ceiling windows over the Hàn River, with the Love Bridge and the riverfront path at your door. Bright, minimal, move-in ready." },
-  { id: "l7", title: "Beachside house in Nam Ô", type: "House", price: 3200, beds: 4, baths: 2, area: 168, neighborhood: "Liên Chiểu", city: "Da Nang", palette: 5, amenities: ["wifi", "parking", "pets", "garden", "laundry"], owner: "leo", status: "active", views: 276, available: "now", desc: "Restored house near Nam Ô Beach with original built-ins and a wraparound porch. Big kitchen, mature garden, and easy reach to Liên Chiểu's seafood spots." },
-  { id: "l8", title: "Top-floor loft in An Thượng", type: "Loft", price: 2150, beds: 1, baths: 1, area: 76, neighborhood: "Sơn Trà", city: "Da Nang", palette: 7, amenities: ["wifi", "parking", "ac"], owner: "leo", status: "active", views: 159, available: "2026-07-15", desc: "Converted loft with exposed timber, polished concrete, and rooftop sea views. Cafes, bars, and surf shops fill the An Thượng block below." },
-  { id: "l9", title: "Bright 2-bed in Thanh Khê", type: "Apartment", price: 2040, beds: 2, baths: 2, area: 92, neighborhood: "Thanh Khê", city: "Da Nang", palette: 0, amenities: ["wifi", "garden", "ac", "laundry"], owner: "maya", status: "active", views: 221, available: "now", desc: "Spacious corner unit with morning light in both bedrooms. Friendly Thanh Khê streets below and the beach promenade just down the road." },
-  { id: "l10", title: "Compact studio near Non Nước", type: "Studio", price: 1320, beds: 0, baths: 1, area: 33, neighborhood: "Ngũ Hành Sơn", city: "Da Nang", palette: 6, amenities: ["wifi", "ac"], owner: "leo", status: "active", views: 134, available: "now", desc: "Smart, well-laid-out studio near Non Nước Beach and the Marble Mountains. Everything you need, nothing you don't." },
+  { id: "l1", title: "Sunlit studio near Mỹ Khê", type: "Studio", price: 1450, beds: 0, baths: 1, area: 38, district: "Sơn Trà", city: "Da Nang", palette: 0, amenities: ["wifi", "laundry", "ac"], owner: "you", status: "active", views: 312, available: "now", desc: "A bright, efficient studio a short walk from Mỹ Khê Beach and the An Thượng cafe strip. East-facing windows catch the morning sun off the sea." },
+  { id: "l2", title: "Garden loft by the Hàn River", type: "Loft", price: 2380, beds: 1, baths: 1, area: 71, district: "Hải Châu", city: "Da Nang", palette: 1, amenities: ["wifi", "parking", "garden", "ac"], owner: "you", status: "active", views: 521, available: "2026-07-01", desc: "Open-plan loft with high ceilings and a private planted terrace. Walk to the Dragon Bridge, the riverside promenade, and Hàn Market." },
+  { id: "l3", title: "Quiet 2-bed near Thanh Khê Beach", type: "Apartment", price: 1990, beds: 2, baths: 1, area: 84, district: "Thanh Khê", city: "Da Nang", palette: 6, amenities: ["wifi", "pets", "garden", "laundry"], owner: "you", status: "active", views: 244, available: "now", desc: "Calm tree-lined block, a few minutes' stroll to Thanh Khê Beach. Tiled floors, a sunny breakfast nook, and a shared back garden." },
+  { id: "l4", title: "Marble Mountains townhouse with yard", type: "Townhouse", price: 2750, beds: 3, baths: 2, area: 122, district: "Ngũ Hành Sơn", city: "Da Nang", palette: 4, amenities: ["wifi", "parking", "pets", "garden", "ac", "laundry"], owner: "you", status: "draft", views: 0, available: "2026-08-15", desc: "Three-story townhouse minutes from the Marble Mountains and Non Nước Beach. Fenced backyard, covered parking, and a roof deck with mountain views." },
+  { id: "l5", title: "Cozy room in Cẩm Lệ", type: "Studio", price: 1180, beds: 0, baths: 1, area: 30, district: "Cẩm Lệ", city: "Da Nang", palette: 2, amenities: ["wifi", "ac"], owner: "maya", status: "active", views: 188, available: "now", desc: "Snug studio on a quiet riverside lane in Cẩm Lệ. The Cẩm Lệ Bridge, local markets, and the riverfront path are all within walking distance." },
+  { id: "l6", title: "Modern 1-bed by the river", type: "Apartment", price: 1875, beds: 1, baths: 1, area: 58, district: "Hải Châu", city: "Da Nang", palette: 3, amenities: ["wifi", "parking", "ac", "laundry"], owner: "maya", status: "active", views: 402, available: "2026-06-20", desc: "Floor-to-ceiling windows over the Hàn River, with the Love Bridge and the riverfront path at your door. Bright, minimal, move-in ready." },
+  { id: "l7", title: "Beachside house in Nam Ô", type: "House", price: 3200, beds: 4, baths: 2, area: 168, district: "Liên Chiểu", city: "Da Nang", palette: 5, amenities: ["wifi", "parking", "pets", "garden", "laundry"], owner: "leo", status: "active", views: 276, available: "now", desc: "Restored house near Nam Ô Beach with original built-ins and a wraparound porch. Big kitchen, mature garden, and easy reach to Liên Chiểu's seafood spots." },
+  { id: "l8", title: "Top-floor loft in An Thượng", type: "Loft", price: 2150, beds: 1, baths: 1, area: 76, district: "Sơn Trà", city: "Da Nang", palette: 7, amenities: ["wifi", "parking", "ac"], owner: "leo", status: "active", views: 159, available: "2026-07-15", desc: "Converted loft with exposed timber, polished concrete, and rooftop sea views. Cafes, bars, and surf shops fill the An Thượng block below." },
+  { id: "l9", title: "Bright 2-bed in Thanh Khê", type: "Apartment", price: 2040, beds: 2, baths: 2, area: 92, district: "Thanh Khê", city: "Da Nang", palette: 0, amenities: ["wifi", "garden", "ac", "laundry"], owner: "maya", status: "active", views: 221, available: "now", desc: "Spacious corner unit with morning light in both bedrooms. Friendly Thanh Khê streets below and the beach promenade just down the road." },
+  { id: "l10", title: "Compact studio near Non Nước", type: "Studio", price: 1320, beds: 0, baths: 1, area: 33, district: "Ngũ Hành Sơn", city: "Da Nang", palette: 6, amenities: ["wifi", "ac"], owner: "leo", status: "active", views: 134, available: "now", desc: "Smart, well-laid-out studio near Non Nước Beach and the Marble Mountains. Everything you need, nothing you don't." },
 ];
 
 /* Real photography — curated Unsplash interiors/exteriors themed per home

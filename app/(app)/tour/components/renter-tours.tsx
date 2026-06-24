@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTours } from "@/hooks/use-tours";
 import { useProfile } from "@/hooks/use-profile";
 import { useListings } from "@/hooks/use-listings";
-import { type TourRequest } from "@/app/(app)/apartments/[id]/schemas/tour";
+import { type TourRequest } from "@/schemas/tour";
 import { Calendar, Search } from "lucide-react";
 import { RenterTourCard } from "./renter-tour-card";
 

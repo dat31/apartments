@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Calendar, CircleCheck, Clock, X, type LucideIcon } from "lucide-react";
-import { type TourRequest } from "@/app/(app)/apartments/[id]/schemas/tour";
+import { type TourRequest } from "@/schemas/tour";
 
 const STATUS: Record<
   TourRequest["status"],
