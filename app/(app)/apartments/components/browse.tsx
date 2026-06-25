@@ -1,5 +1,4 @@
-import { Suspense } from "react";
-import { SEED_LISTINGS } from "@/lib/data/listings";
+import { getActiveListings } from "@/lib/services/listings";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -10,7 +9,6 @@ import {
   DrawerTrigger,
   DrawerClose,
 } from "@/components/ui/drawer";
-import { SkeletonGrid } from "@/components/skeleton-listing-card";
 import { SlidersHorizontal } from "lucide-react";
 import { FiltersPanel } from "./filters-panel";
 import { SortMenu } from "./sort-menu";
@@ -24,16 +22,13 @@ import {
   type SearchParams,
 } from "../lib/query";
 
-export function Browse({ searchParams }: { searchParams: SearchParams }) {
+export async function Browse({ searchParams }: { searchParams: SearchParams }) {
+  const listings = await getActiveListings();
   const filters = parseFilters(searchParams);
   const sort = parseSort(searchParams);
-  const results = filterListings(SEED_LISTINGS, filters, sort);
-  const districts = getDistricts(SEED_LISTINGS);
+  const results = filterListings(listings, filters, sort);
+  const districts = getDistricts(listings);
   const activeCount = activeFilterCount(filters);
-
-  // Re-key the Suspense boundary on every query change so the skeleton
-  // re-shows while the new result set streams in.
-  const suspenseKey = JSON.stringify(searchParams);
 
   return (
     <div className="container mx-auto px-5 sm:px-8 py-8">
@@ -109,9 +104,7 @@ export function Browse({ searchParams }: { searchParams: SearchParams }) {
             </div>
           </div>
 
-          <Suspense key={suspenseKey} fallback={<SkeletonGrid count={6} />}>
-            <Listing searchParams={searchParams} />
-          </Suspense>
+          <Listing results={results} searchParams={searchParams} />
         </div>
       </div>
     </div>

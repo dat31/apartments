@@ -1,28 +1,19 @@
-import { SEED_LISTINGS } from "@/lib/data/listings";
+import { type Listing as ListingType } from "@/schemas/listing";
 import { ListingCard } from "@/components/listing-card";
 import { EmptyResults } from "./empty-results";
 import { ListingPagination } from "./listing-pagination";
-import {
-  filterListings,
-  parseFilters,
-  parsePage,
-  parseSort,
-  PAGE_SIZE,
-  type SearchParams,
-} from "../lib/query";
+import { parsePage, PAGE_SIZE, type SearchParams } from "../lib/query";
 
-/* Server-rendered result list. Reads the query straight off the URL, so the
-   whole grid (and each card) renders on the server. Marked async so the
-   wrapping <Suspense> shows its skeleton while results resolve. */
-export async function Listing({
+/* Server-rendered result grid. Receives the already-filtered results from
+   <Browse> and handles pagination off the URL, so the whole grid (and each
+   card) renders on the server. */
+export function Listing({
+  results,
   searchParams,
 }: {
+  results: ListingType[];
   searchParams: SearchParams;
 }) {
-  const filters = parseFilters(searchParams);
-  const sort = parseSort(searchParams);
-  const results = filterListings(SEED_LISTINGS, filters, sort);
-
   if (results.length === 0) return <EmptyResults />;
 
   const totalPages = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
