@@ -1,16 +1,12 @@
 import { notFound } from "next/navigation";
 import { DetailView } from "./components/detail-view";
+import { getListingById } from "@/lib/services/listings";
 import {
   getListing,
   getOwner,
   reviewsFor,
   SEED_REVIEWS,
-  SEED_LISTINGS,
 } from "@/lib/data/listings";
-
-export function generateStaticParams() {
-  return SEED_LISTINGS.map((l) => ({ id: l.id }));
-}
 
 export default async function ApartmentDetailPage({
   params,
@@ -18,7 +14,9 @@ export default async function ApartmentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const listing = getListing(id);
+  // Live listings come from Supabase; legacy seed ids (e.g. links from the
+  // landing/saved pages) fall back to the in-memory seed data.
+  const listing = (await getListingById(id)) ?? getListing(id);
   if (!listing) notFound();
 
   const owner = getOwner(listing.owner) ?? null;
