@@ -10,7 +10,6 @@ import {
   Bath,
   BedDouble,
   Check,
-  ChevronLeft,
   Clock,
   MapPin,
   Maximize,
@@ -75,14 +74,7 @@ export function DetailView({
   );
 
   return (
-    <div className="max-w-[1100px] mx-auto px-5 sm:px-8 pt-6 pb-28 md:pb-6 anim-up">
-      <Link
-        href="/apartments"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-5 focus-ring"
-      >
-        <ChevronLeft size={18} /> Back to results
-      </Link>
-
+    <div className="anim-up">
       {/* Gallery */}
       <Gallery id={listing.id} images={listing.images} colors={colors} label={listing.title} />
 

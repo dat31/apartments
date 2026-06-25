@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { type SortKey } from "@/schemas/filters";
+import { parseSort } from "../lib/query";
 import { useFilterNav } from "./use-filter-nav";
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
@@ -19,8 +20,11 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "area", label: "Largest area" },
 ];
 
-export function SortMenu({ value }: { value: SortKey }) {
-  const { setParams } = useFilterNav();
+/* Reads the active sort from the URL itself so the server shell that renders it
+   stays static (no searchParams access above the Suspense boundary). */
+export function SortMenu() {
+  const { searchParams, setParams } = useFilterNav();
+  const value = parseSort(Object.fromEntries(searchParams.entries()));
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
