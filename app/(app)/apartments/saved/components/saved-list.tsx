@@ -135,7 +135,7 @@ export function SavedList({ listings }: { listings: Listing[] }) {
                 <span className="text-sm text-muted-foreground hidden sm:inline">
                   Sort
                 </span>
-                <SortMenu value={sort} />
+                <SortMenu />
               </div>
             </div>
 

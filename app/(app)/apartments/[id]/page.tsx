@@ -1,26 +1,23 @@
-import { notFound } from "next/navigation";
-import { DetailView } from "./components/detail-view";
-import { getListingById } from "@/lib/services/listings";
-import {
-  getListing,
-  getOwner,
-  reviewsFor,
-  SEED_REVIEWS,
-} from "@/lib/data/listings";
+import { Suspense } from "react";
+import { BackToResults } from "./components/back-to-results";
+import { DetailContent } from "./components/detail-content";
+import { DetailSkeleton } from "./components/detail-skeleton";
 
-export default async function ApartmentDetailPage({
+export default function ApartmentDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  // Live listings come from Supabase; legacy seed ids (e.g. links from the
-  // landing/saved pages) fall back to the in-memory seed data.
-  const listing = (await getListingById(id)) ?? getListing(id);
-  if (!listing) notFound();
-
-  const owner = getOwner(listing.owner) ?? null;
-  const reviews = reviewsFor(SEED_REVIEWS, listing.owner);
-
-  return <DetailView listing={listing} reviews={reviews} owner={owner} />;
+  // Static shell: the container and back link never read `params`, so they
+  // prerender and paint instantly on navigation. Only the params-dependent
+  // content streams in below the Suspense boundary, replacing the old
+  // full-screen loader flash with a layout-shaped skeleton.
+  return (
+    <div className="max-w-[1100px] mx-auto px-5 sm:px-8 pt-6 pb-28 md:pb-6">
+      <BackToResults />
+      <Suspense fallback={<DetailSkeleton />}>
+        <DetailContent params={params} />
+      </Suspense>
+    </div>
+  );
 }
