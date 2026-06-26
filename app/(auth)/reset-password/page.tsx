@@ -13,7 +13,7 @@ import {
   resetPasswordSchema,
   type ResetPasswordValues,
 } from "@/schemas/auth";
-import { useUpdatePassword } from "@/hooks/use-auth";
+import { useUpdatePassword } from "@/hooks/auth";
 
 export default function ResetPasswordPage() {
   const router = useRouter();

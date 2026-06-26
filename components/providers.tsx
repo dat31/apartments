@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { authKeys } from "@/hooks/use-auth";
+import { authKeys } from "@/hooks/auth";
 
 function makeQueryClient() {
   return new QueryClient({

@@ -20,7 +20,7 @@ import { SocialButton } from "../components/social-button";
 import { AuthDivider } from "../components/auth-divider";
 import { PasswordField, FILLED_INPUT } from "../components/password-field";
 import { signInSchema, type SignInValues } from "@/schemas/auth";
-import { useSignIn } from "@/hooks/use-auth";
+import { useSignIn } from "@/hooks/auth";
 
 export default function SignInPage() {
   const router = useRouter();

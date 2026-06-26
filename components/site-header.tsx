@@ -10,7 +10,7 @@ import { AccountMenu } from "@/components/account-menu";
 import { ManageProfileDialog } from "@/components/manage-profile-dialog";
 import { useSaved } from "@/hooks/use-saved";
 import { useProfile } from "@/hooks/use-profile";
-import { useUser, useSignOut } from "@/hooks/use-auth";
+import { useUser, useSignOut } from "@/hooks/auth";
 import { Building2, Calendar, Heart, Search } from "lucide-react";
 
 export function SiteHeader() {

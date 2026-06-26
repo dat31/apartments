@@ -17,7 +17,7 @@ import { SocialButton } from "../components/social-button";
 import { AuthDivider } from "../components/auth-divider";
 import { PasswordField, FILLED_INPUT } from "../components/password-field";
 import { signUpSchema, type SignUpValues } from "@/schemas/auth";
-import { useSignUp } from "@/hooks/use-auth";
+import { useSignUp } from "@/hooks/auth";
 
 export default function SignUpPage() {
   const router = useRouter();

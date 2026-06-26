@@ -12,7 +12,7 @@ import { ArrowLeft, ChevronRight, Lock, Mail } from "lucide-react";
 import { AuthShell } from "../components/auth-shell";
 import { FILLED_INPUT } from "../components/password-field";
 import { forgotSchema, type ForgotValues } from "@/schemas/auth";
-import { useResetPassword } from "@/hooks/use-auth";
+import { useResetPassword } from "@/hooks/auth";
 
 export default function ForgotPasswordPage() {
   const [sentTo, setSentTo] = React.useState<string | null>(null);
