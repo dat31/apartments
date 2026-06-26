@@ -19,10 +19,12 @@ export function AccountMenu({
   profile,
   onManage,
   onSwitchRole,
+  onSignOut,
 }: {
   profile: Profile;
   onManage: () => void;
   onSwitchRole: (role: Role) => void;
+  onSignOut: () => void;
 }) {
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
@@ -138,7 +140,7 @@ export function AccountMenu({
           <DropdownMenuItem
             variant="destructive"
             className="px-4 h-11 text-[15px] rounded-none"
-            onSelect={() => router.push("/signin")}
+            onSelect={onSignOut}
           >
             <LogOut size={18} /> Sign out
           </DropdownMenuItem>

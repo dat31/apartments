@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
@@ -11,9 +12,11 @@ import { ArrowLeft, ChevronRight, Lock, Mail } from "lucide-react";
 import { AuthShell } from "../components/auth-shell";
 import { FILLED_INPUT } from "../components/password-field";
 import { forgotSchema, type ForgotValues } from "@/schemas/auth";
+import { useResetPassword } from "@/hooks/use-auth";
 
 export default function ForgotPasswordPage() {
   const [sentTo, setSentTo] = React.useState<string | null>(null);
+  const resetPassword = useResetPassword();
   const {
     register,
     handleSubmit,
@@ -23,6 +26,17 @@ export default function ForgotPasswordPage() {
     resolver: zodResolver(forgotSchema),
     defaultValues: { email: "" },
   });
+
+  const sendLink = async (email: string) => {
+    try {
+      await resetPassword.mutateAsync(email);
+      setSentTo(email);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not send reset link."
+      );
+    }
+  };
 
   return (
     <AuthShell>
@@ -48,7 +62,7 @@ export default function ForgotPasswordPage() {
 
           <form
             className="grid gap-4 mt-8"
-            onSubmit={handleSubmit((v) => setSentTo(v.email))}
+            onSubmit={handleSubmit((v) => sendLink(v.email))}
             noValidate
           >
             <Field data-invalid={!!errors.email}>
@@ -68,9 +82,11 @@ export default function ForgotPasswordPage() {
             <Button
               size="lg"
               type="submit"
+              disabled={resetPassword.isPending}
               className="w-full mt-1 h-14 text-base gap-2"
             >
-              Send reset link <ChevronRight size={18} />
+              {resetPassword.isPending ? "Sending…" : "Send reset link"}
+              <ChevronRight size={18} />
             </Button>
           </form>
 
@@ -122,7 +138,7 @@ export default function ForgotPasswordPage() {
             Didn&apos;t get it? Check spam, or{" "}
             <button
               type="button"
-              onClick={() => setSentTo(getValues("email"))}
+              onClick={() => sendLink(getValues("email"))}
               className="text-primary font-medium hover:underline"
             >
               resend

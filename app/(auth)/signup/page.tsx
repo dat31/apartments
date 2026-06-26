@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,8 +17,11 @@ import { SocialButton } from "../components/social-button";
 import { AuthDivider } from "../components/auth-divider";
 import { PasswordField, FILLED_INPUT } from "../components/password-field";
 import { signUpSchema, type SignUpValues } from "@/schemas/auth";
+import { useSignUp } from "@/hooks/use-auth";
 
 export default function SignUpPage() {
+  const router = useRouter();
+  const signUp = useSignUp();
   const {
     register,
     handleSubmit,
@@ -37,6 +42,25 @@ export default function SignUpPage() {
   const role = watch("role");
   const agree = watch("agree");
 
+  const onSubmit = handleSubmit(async (values) => {
+    try {
+      const { needsConfirmation } = await signUp.mutateAsync(values);
+      if (needsConfirmation) {
+        toast.success("Account created — check your email to confirm.");
+        router.push("/signin");
+      } else {
+        router.push("/apartments");
+        router.refresh();
+      }
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not create account."
+      );
+    }
+  });
+
+  const soon = () => toast("Social sign-up is coming soon.");
+
   return (
     <AuthShell>
       <h1 className="text-[1.85rem] font-semibold tracking-tight">
@@ -47,13 +71,17 @@ export default function SignUpPage() {
       </p>
 
       <div className="mt-8 grid gap-3">
-        <SocialButton icon={<AppleMark />}>Sign up with Apple</SocialButton>
-        <SocialButton icon={<GoogleMark />}>Sign up with Google</SocialButton>
+        <SocialButton icon={<AppleMark />} onClick={soon}>
+          Sign up with Apple
+        </SocialButton>
+        <SocialButton icon={<GoogleMark />} onClick={soon}>
+          Sign up with Google
+        </SocialButton>
       </div>
 
       <AuthDivider>or with email</AuthDivider>
 
-      <form className="grid gap-4" onSubmit={handleSubmit(() => {})} noValidate>
+      <form className="grid gap-4" onSubmit={onSubmit} noValidate>
         <div>
           <span className="block mb-1.5 text-sm font-medium text-foreground">
             I&apos;m here to…
@@ -115,7 +143,7 @@ export default function SignUpPage() {
           <PasswordField
             label="Password"
             autoComplete="new-password"
-            placeholder="At least 8 characters"
+            placeholder="8+ chars, mixed case, number, symbol"
             aria-invalid={!!errors.password}
             {...register("password")}
           />
@@ -151,9 +179,11 @@ export default function SignUpPage() {
         <Button
           size="lg"
           type="submit"
+          disabled={signUp.isPending}
           className="w-full mt-1 h-14 text-base gap-2"
         >
-          Create account <ChevronRight size={18} />
+          {signUp.isPending ? "Creating account…" : "Create account"}
+          <ChevronRight size={18} />
         </Button>
       </form>
 
