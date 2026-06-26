@@ -88,7 +88,7 @@ export function OwnerProfile({
   ];
 
   return (
-    <div className="max-w-[1100px] mx-auto px-5 sm:px-8 py-6 anim-up">
+    <div className="container mx-auto px-5 sm:px-8 py-6 anim-up">
       <button
         onClick={() => router.push("/apartments")}
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-5 focus-ring"

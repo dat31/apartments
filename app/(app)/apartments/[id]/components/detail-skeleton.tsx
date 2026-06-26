@@ -7,13 +7,13 @@ export function DetailSkeleton() {
   return (
     <div aria-busy="true" aria-label="Loading home">
       {/* Gallery — desktop mosaic */}
-      <div className="hidden sm:grid grid-cols-4 grid-rows-2 gap-2 h-[300px] md:h-[420px]">
+      <div className="hidden sm:grid grid-cols-4 grid-rows-2 gap-2 aspect-[16/9]">
         <Skeleton className="skeleton col-span-3 row-span-2" />
         <Skeleton className="skeleton col-span-1 row-span-1" />
         <Skeleton className="skeleton col-span-1 row-span-1" />
       </div>
       {/* Gallery — mobile hero */}
-      <Skeleton className="skeleton sm:hidden w-full aspect-4/3" />
+      <Skeleton className="skeleton sm:hidden w-full aspect-[16/9]" />
 
       <div className="mt-8 grid lg:grid-cols-[1fr_340px] gap-10">
         {/* Main column */}

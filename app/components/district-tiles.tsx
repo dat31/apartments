@@ -12,7 +12,7 @@ export function DistrictTiles({ tiles }: { tiles: DistrictTile[] }) {
           href={`/apartments?district=${encodeURIComponent(d.slug)}`}
           className="focus-ring anim-up rounded-xl"
         >
-          <Card className="h-full min-h-40 gap-0 px-6 py-6 text-left transition-colors hover:bg-accent">
+          <Card className="aspect-[16/9] gap-0 px-6 py-6 text-left transition-colors hover:bg-accent">
             <span className="flex items-center gap-2">
               <span
                 className="w-1.5 h-1.5 rounded-full shrink-0"

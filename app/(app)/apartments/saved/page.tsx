@@ -7,7 +7,7 @@ export default function SavedPage() {
   return (
     <Suspense
       fallback={
-        <div className="max-w-[1400px] mx-auto px-5 sm:px-8 py-8">
+        <div className="container mx-auto px-5 sm:px-8 py-8">
           <SkeletonGrid count={3} />
         </div>
       }

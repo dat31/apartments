@@ -41,14 +41,14 @@ export function OwnerTourCard({
 
   return (
     <div className="bg-card flex flex-col sm:flex-row anim-up">
-      <div className="sm:w-32 shrink-0">
-        <div className="relative h-24 sm:h-full overflow-hidden">
+      <div className="sm:w-[360px] shrink-0 overflow-hidden">
+        <div className="relative aspect-[16/9]">
           {cover ? (
             <Image
               src={cover}
               alt={listing?.title ?? ""}
               fill
-              sizes="(min-width: 640px) 8rem, 100vw"
+              sizes="(min-width: 640px) 360px, 100vw"
               className="object-cover"
               unoptimized={cover.startsWith("data:")}
             />

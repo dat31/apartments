@@ -98,7 +98,7 @@ export function ListingForm({
     setValue(name, value as never, { shouldValidate: true, shouldDirty: true });
 
   return (
-    <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8 anim-up">
+    <div className="container mx-auto px-5 sm:px-8 py-8 anim-up">
       <button
         type="button"
         onClick={() => router.push(DASHBOARD)}
@@ -116,7 +116,8 @@ export function ListingForm({
           : "Add the details of your place. You can save it as a draft."}
       </p>
 
-      <form className="mt-8 flex flex-col gap-6">
+      <form className="mt-8 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] gap-6 lg:gap-8 items-start">
+        <div className="flex flex-col gap-6 min-w-0">
         {/* Photos */}
         <section className="bg-card p-6">
           <h2 className="font-semibold mb-1">Photos</h2>
@@ -300,29 +301,50 @@ export function ListingForm({
             onChange={(next) => setField("amenities", next)}
           />
         </section>
-
-        {/* Actions */}
-        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => router.push(DASHBOARD)}
-          >
-            Cancel
-          </Button>
-          {!isEdit && (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleSubmit((v) => save(v, "draft"))}
-            >
-              Save as draft
-            </Button>
-          )}
-          <Button type="button" onClick={handleSubmit((v) => save(v, "active"))}>
-            {isEdit ? "Save changes" : "Publish listing"}
-          </Button>
         </div>
+
+        {/* Publish / actions */}
+        <aside className="lg:sticky lg:top-24">
+          <div className="bg-card p-6 flex flex-col gap-4">
+            <div>
+              <h2 className="font-semibold">
+                {isEdit ? "Save changes" : "Ready to publish?"}
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {isEdit
+                  ? "Your edits go live as soon as you save."
+                  : "Publish to list it now, or keep it as a draft to finish later."}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                className="w-full justify-center"
+                onClick={handleSubmit((v) => save(v, "active"))}
+              >
+                {isEdit ? "Save changes" : "Publish listing"}
+              </Button>
+              {!isEdit && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-full justify-center"
+                  onClick={handleSubmit((v) => save(v, "draft"))}
+                >
+                  Save as draft
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full justify-center"
+                onClick={() => router.push(DASHBOARD)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </aside>
       </form>
     </div>
   );

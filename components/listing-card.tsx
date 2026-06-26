@@ -26,7 +26,7 @@ export function ListingCard({
         aria-label={listing.title}
         className="absolute inset-0 z-10 focus-ring"
       />
-      <div className="card-media relative aspect-4/3 overflow-hidden">
+      <div className="card-media relative aspect-[16/9] overflow-hidden">
         <div className="absolute inset-0">
           {listing.images?.length ? (
             <ViewTransition name={`photo-${listing.id}`}>

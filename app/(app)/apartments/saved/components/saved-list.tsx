@@ -57,7 +57,7 @@ export function SavedList({ listings }: { listings: Listing[] }) {
   // No saved homes at all — welcoming empty state, no filter chrome.
   if (ready && savedListings.length === 0) {
     return (
-      <div className="max-w-[1400px] mx-auto px-5 sm:px-8 py-8">
+      <div className="container mx-auto px-5 sm:px-8 py-8">
         <Header count={0} />
         <div className="bg-card p-16 text-center anim-fade">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
@@ -79,7 +79,7 @@ export function SavedList({ listings }: { listings: Listing[] }) {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto px-5 sm:px-8 py-8">
+    <div className="container mx-auto px-5 sm:px-8 py-8">
       <Header count={savedListings.length} showBrowse />
 
       {!ready ? (

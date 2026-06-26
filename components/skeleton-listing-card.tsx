@@ -7,7 +7,7 @@ export function SkeletonListingCard() {
       className="bg-card text-card-foreground flex flex-col"
       aria-hidden="true"
     >
-      <div className="relative aspect-4/3">
+      <div className="relative aspect-[16/9]">
         <Skeleton className="skeleton skeleton-media absolute inset-0" />
         <div className="absolute top-3 right-3 w-9 h-9 bg-background/80" />
         <div className="absolute bottom-3 left-3 w-20 h-6 bg-background/80" />

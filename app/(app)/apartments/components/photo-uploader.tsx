@@ -64,7 +64,7 @@ export function PhotoUploader({
 
       {value.length > 0 ? (
         <DndProvider backend={HTML5Backend}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {value.map((src, i) => (
               <PhotoCard
                 key={src.slice(0, 32) + i}

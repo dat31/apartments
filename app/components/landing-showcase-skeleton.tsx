@@ -14,7 +14,7 @@ export function LandingShowcaseSkeleton() {
         <Skeleton className="skeleton h-8 w-56 mb-4" />
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="skeleton min-h-[160px] w-full" />
+            <Skeleton key={i} className="skeleton aspect-[16/9] w-full" />
           ))}
         </div>
       </section>

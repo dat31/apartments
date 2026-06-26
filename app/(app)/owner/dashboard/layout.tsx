@@ -8,7 +8,7 @@ export default function OwnerDashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="max-w-[1400px] mx-auto px-5 sm:px-8 py-8">
+    <div className="container mx-auto px-5 sm:px-8 py-8">
       <DashboardHeader />
       <DashboardStats />
 
