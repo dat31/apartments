@@ -23,7 +23,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 bg-background">
-      <div className="max-w-[1400px] mx-auto px-5 sm:px-8 h-20 flex items-center gap-4">
+      <div className="container mx-auto px-5 sm:px-8 h-20 flex items-center gap-4">
         <Link href="/apartments" className="focus-ring shrink-0" aria-label="Home">
           <Logo size={24} />
         </Link>

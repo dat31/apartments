@@ -51,7 +51,7 @@ export function RenterTours() {
   };
 
   return (
-    <div className="max-w-[1100px] mx-auto px-5 sm:px-8 py-8">
+    <div className="container mx-auto px-5 sm:px-8 py-8">
       <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2.5">
@@ -73,7 +73,23 @@ export function RenterTours() {
       {!ready || !profileReady ? (
         <div className="flex flex-col gap-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 w-full" />
+            <div key={i} className="bg-card flex flex-col sm:flex-row">
+              <div className="sm:w-52 shrink-0 overflow-hidden sm:self-stretch">
+                <Skeleton className="aspect-[16/9] sm:aspect-auto sm:h-full w-full" />
+              </div>
+              <div className="flex-1 p-5 flex flex-col gap-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex flex-col gap-1.5">
+                    <Skeleton className="h-6 w-20" />
+                    <Skeleton className="h-5 w-40" />
+                    <Skeleton className="h-4 w-28" />
+                  </div>
+                  <Skeleton className="h-9 w-36" />
+                </div>
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="mt-auto h-8 w-24" />
+              </div>
+            </div>
           ))}
         </div>
       ) : mine.length === 0 ? (

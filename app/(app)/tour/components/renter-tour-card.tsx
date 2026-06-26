@@ -48,14 +48,14 @@ export function RenterTourCard({
         />
       )}
 
-      <div className="sm:w-36 shrink-0">
-        <div className="relative h-28 sm:h-full overflow-hidden">
+      <div className="sm:w-52 shrink-0 overflow-hidden sm:self-stretch">
+        <div className="relative aspect-[16/9] sm:aspect-auto sm:h-full">
           {cover ? (
             <Image
               src={cover}
               alt={listing?.title ?? ""}
               fill
-              sizes="(min-width: 640px) 9rem, 100vw"
+              sizes="(min-width: 640px) 13rem, 100vw"
               className="object-cover"
               unoptimized={cover.startsWith("data:")}
             />

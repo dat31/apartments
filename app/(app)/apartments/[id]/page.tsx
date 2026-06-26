@@ -13,7 +13,7 @@ export default function ApartmentDetailPage({
   // content streams in below the Suspense boundary, replacing the old
   // full-screen loader flash with a layout-shaped skeleton.
   return (
-    <div className="max-w-[1100px] mx-auto px-5 sm:px-8 pt-6 pb-28 md:pb-6">
+    <div className="container mx-auto px-5 sm:px-8 pt-6 pb-28 md:pb-6">
       <BackToResults />
       <Suspense fallback={<DetailSkeleton />}>
         <DetailContent params={params} />

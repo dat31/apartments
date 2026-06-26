@@ -4,7 +4,7 @@ import { SlidersHorizontal } from "lucide-react";
 
 export default function Loading() {
   return (
-    <div className="max-w-[1400px] mx-auto px-5 sm:px-8 py-8">
+    <div className="container mx-auto px-5 sm:px-8 py-8">
       <div className="mb-8">
         <Skeleton className="skeleton h-8 w-60" />
         <Skeleton className="skeleton mt-2 h-4 w-44" />

@@ -76,7 +76,7 @@ export function Gallery({
     <>
       {/* Desktop: editorial mosaic */}
       <div className="relative hidden sm:block">
-        <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[300px] md:h-[420px]">
+        <div className="grid grid-cols-4 grid-rows-2 gap-2 aspect-[16/9]">
           {Array.from({ length: tileCount }).map((_, i) => (
             <button
               key={i}
@@ -108,7 +108,7 @@ export function Gallery({
       {/* Mobile: single hero + counter */}
       <button
         onClick={() => openAt(0)}
-        className="sm:hidden relative block w-full aspect-4/3 overflow-hidden bg-secondary focus-ring"
+        className="sm:hidden relative block w-full aspect-[16/9] overflow-hidden bg-secondary focus-ring"
       >
         {fill(0, "100vw")}
         {n > 1 && (
