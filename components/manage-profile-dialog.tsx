@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { ProfileAvatar } from "@/components/profile-avatar";
-import { FILLED_INPUT } from "@/app/(auth)/components/password-field";
+import { FILLED_INPUT } from "@/app/[lang]/(auth)/components/password-field";
 import { Check } from "lucide-react";
 import { PALETTE } from "@/lib/data/listings";
 import {
