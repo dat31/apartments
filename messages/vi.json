@@ -2,7 +2,8 @@
   "common": {
     "appName": "Danapa",
     "signIn": "Đăng nhập",
-    "home": "Trang chủ"
+    "home": "Trang chủ",
+    "toggleTheme": "Đổi giao diện"
   },
   "header": {
     "tours": "Lịch xem nhà",
@@ -27,7 +28,75 @@
       "submit": "Đăng nhập",
       "submitting": "Đang đăng nhập…",
       "noAccount": "Bạn mới biết đến Danapa?",
-      "createAccount": "Tạo tài khoản"
+      "createAccount": "Tạo tài khoản",
+      "errorToast": "Không thể đăng nhập. Vui lòng thử lại.",
+      "soonToast": "Đăng nhập bằng mạng xã hội sẽ sớm có mặt."
+    },
+    "signup": {
+      "title": "Tạo tài khoản",
+      "subtitle": "Tham gia Danapa chỉ trong một phút — bạn có thể đổi vai trò bất cứ lúc nào.",
+      "withApple": "Đăng ký với Apple",
+      "withGoogle": "Đăng ký với Google",
+      "dividerEmail": "hoặc bằng email",
+      "hereTo": "Tôi muốn…",
+      "roleRent": "Thuê",
+      "roleList": "Cho thuê",
+      "fullName": "Họ và tên",
+      "fullNamePlaceholder": "Nguyễn Văn A",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "password": "Mật khẩu",
+      "passwordPlaceholder": "8+ ký tự, có hoa thường, số, ký hiệu",
+      "agree": "Tôi đồng ý với <terms>Điều khoản</terms> và <privacy>Chính sách bảo mật</privacy> của Danapa.",
+      "submit": "Tạo tài khoản",
+      "submitting": "Đang tạo tài khoản…",
+      "haveAccount": "Đã có tài khoản?",
+      "signin": "Đăng nhập",
+      "confirmToast": "Đã tạo tài khoản — kiểm tra email để xác nhận.",
+      "errorToast": "Không thể tạo tài khoản.",
+      "soonToast": "Đăng ký bằng mạng xã hội sẽ sớm có mặt."
+    },
+    "forgot": {
+      "back": "Quay lại đăng nhập",
+      "title": "Đặt lại mật khẩu",
+      "subtitle": "Nhập email gắn với tài khoản của bạn, chúng tôi sẽ gửi liên kết để đặt mật khẩu mới.",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "submit": "Gửi liên kết đặt lại",
+      "submitting": "Đang gửi…",
+      "remembered": "Đã nhớ ra?",
+      "signin": "Đăng nhập",
+      "errorToast": "Không thể gửi liên kết đặt lại.",
+      "sentTitle": "Kiểm tra email của bạn",
+      "sentLead": "Chúng tôi đã gửi liên kết đặt lại tới <b>{email}</b>. Liên kết hết hạn sau 30 phút.",
+      "backToSignin": "Quay lại đăng nhập",
+      "differentEmail": "Dùng email khác",
+      "didntGet": "Chưa nhận được? Kiểm tra hộp thư rác, hoặc <resend>gửi lại</resend>."
+    },
+    "reset": {
+      "title": "Đặt mật khẩu mới",
+      "subtitle": "Chọn mật khẩu mới cho tài khoản của bạn. Bạn vẫn sẽ đăng nhập.",
+      "newPassword": "Mật khẩu mới",
+      "newPasswordPlaceholder": "8+ ký tự, có hoa thường, số, ký hiệu",
+      "confirmPassword": "Xác nhận mật khẩu",
+      "submit": "Cập nhật mật khẩu",
+      "submitting": "Đang cập nhật…",
+      "updatedToast": "Đã cập nhật mật khẩu.",
+      "errorToast": "Không thể cập nhật mật khẩu."
+    },
+    "field": {
+      "password": "Mật khẩu",
+      "showPassword": "Hiện mật khẩu",
+      "hidePassword": "Ẩn mật khẩu"
+    },
+    "brand": {
+      "eyebrow": "Danapa · Đà Nẵng",
+      "headline": "Tìm chỗ ở, hoặc lấp đầy chỗ trống.",
+      "lead": "Một cách thuê nhà nhẹ nhàng và minh bạch tại Đà Nẵng — cho người đang tìm, và cho người đang cho thuê.",
+      "point1": "Xem những tin đăng gọn gàng, dễ nhìn",
+      "point2": "Chi tiết phòng, tiện nghi & chi phí thực",
+      "point3": "Nhắn trực tiếp với chủ nhà — không qua trung gian",
+      "copyright": "© 2026 Danapa — bản mẫu demo."
     }
   }
 }
