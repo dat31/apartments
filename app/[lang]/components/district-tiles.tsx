@@ -1,9 +1,11 @@
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { money } from "@/lib/data/listings";
 import { Card } from "@/components/ui/card";
 import { type DistrictTile } from "../lib/landing";
 
 export function DistrictTiles({ tiles }: { tiles: DistrictTile[] }) {
+  const t = useTranslations("landing.districts");
   return (
     <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
       {tiles.map((d) => (
@@ -27,11 +29,11 @@ export function DistrictTiles({ tiles }: { tiles: DistrictTile[] }) {
                 {d.count}
               </span>
               <span className="text-xs text-muted-foreground">
-                {d.count === 1 ? "home" : "homes"}
+                {t("homes", { count: d.count })}
               </span>
             </span>
             <span className="mt-2 block text-muted-foreground tabular-nums text-sm">
-              {money(d.from)}/mo from
+              {t("priceFrom", { price: money(d.from) })}
             </span>
           </Card>
         </Link>
