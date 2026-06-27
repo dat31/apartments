@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,7 @@ export function ManageProfileDialog({
   profile: Profile;
   onSave: (data: ManageProfileValues) => void;
 }) {
+  const t = useTranslations("profile");
   const {
     register,
     handleSubmit,
@@ -74,7 +76,7 @@ export function ManageProfileDialog({
   const name = watch("name");
   const location = watch("location");
   const palette = watch("palette");
-  const roleLabel = profile.role === "owner" ? "Owner" : "Renter";
+  const roleLabel = profile.role === "owner" ? t("owner") : t("renter");
   const isMobile = useIsMobile();
 
   const body = (
@@ -91,7 +93,7 @@ export function ManageProfileDialog({
             <ProfileAvatar name={name} palette={palette} size={56} />
             <div className="min-w-0">
               <p className="font-semibold leading-tight truncate">
-                {name?.trim() || "Your name"}
+                {name?.trim() || t("yourName")}
               </p>
               <p className="text-xs text-muted-foreground truncate mt-0.5">
                 {roleLabel}
@@ -101,7 +103,7 @@ export function ManageProfileDialog({
           </div>
 
           <Field>
-            <FieldLabel>Avatar color</FieldLabel>
+            <FieldLabel>{t("avatarColor")}</FieldLabel>
             <Controller
               control={control}
               name="palette"
@@ -114,7 +116,7 @@ export function ManageProfileDialog({
                         key={i}
                         type="button"
                         onClick={() => field.onChange(i)}
-                        aria-label={`Color ${i + 1}`}
+                        aria-label={t("colorAria", { n: i + 1 })}
                         aria-pressed={sel}
                         className={cn(
                           "w-9 h-9 grid place-items-center transition-transform focus-ring active:scale-90",
@@ -134,10 +136,10 @@ export function ManageProfileDialog({
 
           <div className="grid sm:grid-cols-2 gap-4">
             <Field data-invalid={!!errors.name}>
-              <FieldLabel htmlFor="name">Full name</FieldLabel>
+              <FieldLabel htmlFor="name">{t("fullName")}</FieldLabel>
               <Input
                 id="name"
-                placeholder="e.g. Jordan Rivera"
+                placeholder={t("fullNamePlaceholder")}
                 className={FILLED_INPUT}
                 aria-invalid={!!errors.name}
                 {...register("name")}
@@ -145,11 +147,11 @@ export function ManageProfileDialog({
               <FieldError errors={[errors.name]} />
             </Field>
             <Field data-invalid={!!errors.email}>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t("emailPlaceholder")}
                 className={FILLED_INPUT}
                 aria-invalid={!!errors.email}
                 {...register("email")}
@@ -159,21 +161,21 @@ export function ManageProfileDialog({
           </div>
 
           <Field>
-            <FieldLabel htmlFor="location">Location</FieldLabel>
+            <FieldLabel htmlFor="location">{t("location")}</FieldLabel>
             <Input
               id="location"
-              placeholder="e.g. Da Nang"
+              placeholder={t("locationPlaceholder")}
               className={FILLED_INPUT}
               {...register("location")}
             />
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="bio">About you</FieldLabel>
+            <FieldLabel htmlFor="bio">{t("about")}</FieldLabel>
             <Textarea
               id="bio"
               rows={4}
-              placeholder="A sentence or two about who you are and what you're looking for."
+              placeholder={t("aboutPlaceholder")}
               className="bg-input border-transparent text-[15px] resize-none focus-ring"
               {...register("bio")}
             />
@@ -186,10 +188,10 @@ export function ManageProfileDialog({
               className="h-11"
               onClick={onClose}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="submit" className="h-11 gap-2">
-              <Check size={18} /> Save changes
+              <Check size={18} /> {t("save")}
             </Button>
           </div>
         </form>
@@ -201,7 +203,7 @@ export function ManageProfileDialog({
         <DrawerContent className="max-h-[90vh]">
           <DrawerHeader className="px-6 pt-2 pb-4 text-left">
             <DrawerTitle className="text-xl font-semibold tracking-tight">
-              Manage profile
+              {t("title")}
             </DrawerTitle>
           </DrawerHeader>
           {body}
@@ -215,7 +217,7 @@ export function ManageProfileDialog({
       <DialogContent className="max-w-lg p-0 gap-0 max-h-[85vh] flex flex-col">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="text-xl font-semibold tracking-tight">
-            Manage profile
+            {t("title")}
           </DialogTitle>
         </DialogHeader>
         {body}

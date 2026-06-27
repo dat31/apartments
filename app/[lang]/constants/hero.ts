@@ -1,26 +1,14 @@
 export type HeroStep = {
   id: number;
-  label: string;
-  pill: { dot: string; title: string; sub: string };
+  dot: string;
 };
 
-/** The three stages of the renter journey shown in the animated phone mockup. */
+/** The three stages of the renter journey shown in the animated phone mockup.
+ *  Display text lives in messages under `landing.hero`. */
 export const HERO_STEPS: HeroStep[] = [
-  {
-    id: 0,
-    label: "Browse",
-    pill: { dot: "bg-primary", title: "47 listings", sub: "Mỹ Khê · Sơn Trà" },
-  },
-  {
-    id: 1,
-    label: "View details",
-    pill: { dot: "bg-chart-2", title: "4.8 ★", sub: "₫ 8.5M / month" },
-  },
-  {
-    id: 2,
-    label: "Book tour",
-    pill: { dot: "bg-chart-3", title: "Tour confirmed", sub: "Thu, Jun 26 · 10AM" },
-  },
+  { id: 0, dot: "bg-primary" },
+  { id: 1, dot: "bg-chart-2" },
+  { id: 2, dot: "bg-chart-3" },
 ];
 
 /** Time each step stays on screen before auto-advancing (ms). Keep in sync with `.hero-progress` in globals.css. */

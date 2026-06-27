@@ -13,7 +13,44 @@
     "signIn": "Sign in"
   },
   "landing": {
-    "footer": "Danapa — a demo prototype. No account required."
+    "footer": "Danapa — a demo prototype. No account required.",
+    "chooser": {
+      "eyebrow": "Welcome to Danapa",
+      "headline": "Find a place, or fill one.",
+      "sub": "A calm, simple way to rent in Da Nang. Pick how you'd like to start — switch anytime."
+    },
+    "roles": {
+      "rentTitle": "I'm renting",
+      "rentBlurb": "Browse homes, find your next place.",
+      "listTitle": "I'm listing",
+      "listBlurb": "Post and manage your place."
+    },
+    "hero": {
+      "browseLabel": "Browse",
+      "browseTitle": "47 listings",
+      "browseSub": "Mỹ Khê · Sơn Trà",
+      "detailsLabel": "View details",
+      "detailsTitle": "4.8 ★",
+      "detailsSub": "₫ 8.5M / month",
+      "tourLabel": "Book tour",
+      "tourTitle": "Tour confirmed",
+      "tourSub": "Thu, Jun 26 · 10AM"
+    },
+    "showcase": {
+      "districtsTitle": "Browse by district",
+      "districtsSub": "Jump straight to the neighborhoods you're eyeing",
+      "newestTitle": "Newest homes",
+      "newestSub": "Fresh listings, just added",
+      "trendingTitle": "Trending now",
+      "trendingSub": "The homes renters are watching most",
+      "seeAll": "See all",
+      "badgeNew": "New",
+      "badgeViews": "{views, number} views"
+    },
+    "districts": {
+      "homes": "{count, plural, one {home} other {homes}}",
+      "priceFrom": "{price}/mo from"
+    }
   },
   "auth": {
     "signin": {
@@ -98,5 +135,54 @@
       "point3": "Message owners — no middlemen",
       "copyright": "© 2026 Danapa — a demo prototype."
     }
+  },
+  "errors": {
+    "signIn": "Sign in",
+    "homeAria": "Danapa home",
+    "shellFooter": "Danapa — apartment renting in Da Nang",
+    "errorTitle": "Something went wrong",
+    "errorBody": "An unexpected error stopped this page from loading. It's on our side — trying again usually fixes it.",
+    "tryAgain": "Try again",
+    "goHome": "Go home",
+    "stillStuck": "Still stuck? Write to <email>support@danapa.vn</email>",
+    "notFoundAria": "Error 404: page not found",
+    "notFoundTitle": "This place isn't on the map",
+    "notFoundBody": "The page you're looking for may have moved, or the address has a typo. Either way, there's nothing listed here.",
+    "browse": "Browse apartments",
+    "goBack": "Go back"
+  },
+  "account": {
+    "fallbackName": "there",
+    "yourAccount": "Your account",
+    "hosting": "Hosting on Danapa",
+    "renting": "Renting on Danapa",
+    "owner": "Owner",
+    "renter": "Renter",
+    "manageProfile": "Manage profile",
+    "ownerDashboard": "Owner dashboard",
+    "viewPublic": "View public profile",
+    "switchToRenting": "Switch to renting",
+    "switchToListing": "Switch to listing",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "signOut": "Sign out"
+  },
+  "profile": {
+    "title": "Manage profile",
+    "owner": "Owner",
+    "renter": "Renter",
+    "yourName": "Your name",
+    "avatarColor": "Avatar color",
+    "colorAria": "Color {n}",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "e.g. Jordan Rivera",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "location": "Location",
+    "locationPlaceholder": "e.g. Da Nang",
+    "about": "About you",
+    "aboutPlaceholder": "A sentence or two about who you are and what you're looking for.",
+    "cancel": "Cancel",
+    "save": "Save changes"
   }
 }

@@ -1,8 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { HERO_STEPS, HERO_STEP_DURATION } from "@/app/[lang]/constants/hero";
+
+// Message-key prefix per step (order matches HERO_STEPS).
+const STEP_KEYS = ["browse", "details", "tour"] as const;
 
 // ─── Wireframe slides (flat blocks driven by theme tokens) ───────────────────
 
@@ -121,7 +125,7 @@ export function HeroSection() {
     return () => clearTimeout(t);
   }, [step]);
 
-  const pill = HERO_STEPS[step].pill;
+  const t = useTranslations("landing.hero");
 
   return (
     <div className="relative isolate overflow-hidden flex flex-col justify-center w-full px-6 py-10 sm:px-10 sm:py-12 lg:py-16">
@@ -140,12 +144,14 @@ export function HeroSection() {
               PILL_POS[step]
             )}
           >
-            <span className={cn("size-[7px] shrink-0", pill.dot)} />
+            <span className={cn("size-[7px] shrink-0", HERO_STEPS[step].dot)} />
             <span className="leading-tight">
               <strong className="block font-medium text-foreground">
-                {pill.title}
+                {t(`${STEP_KEYS[step]}Title`)}
               </strong>
-              <span className="text-muted-foreground">{pill.sub}</span>
+              <span className="text-muted-foreground">
+                {t(`${STEP_KEYS[step]}Sub`)}
+              </span>
             </span>
           </div>
 
@@ -212,7 +218,7 @@ export function HeroSection() {
                   step === i ? "font-medium" : "font-normal"
                 )}
               >
-                {s.label}
+                {t(`${STEP_KEYS[i]}Label`)}
               </span>
             </button>
           </React.Fragment>

@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { Eye, Flame, MapPin, Sparkles } from "lucide-react";
 import { SEED_LISTINGS } from "@/lib/data/listings";
 import { SectionHeader } from "./section-header";
@@ -14,6 +15,7 @@ import { getDistrictTiles, getNewest, getTrending } from "../lib/landing";
 export async function LandingShowcase() {
   await connection();
 
+  const t = await getTranslations("landing.showcase");
   const districts = getDistrictTiles(SEED_LISTINGS);
   const newest = getNewest(SEED_LISTINGS);
   // Keep trending disjoint from newest so no home appears in both rows.
@@ -28,8 +30,8 @@ export async function LandingShowcase() {
       <section>
         <SectionHeader
           icon={<MapPin size={18} />}
-          title="Browse by district"
-          sub="Jump straight to the neighborhoods you're eyeing"
+          title={t("districtsTitle")}
+          sub={t("districtsSub")}
         />
         <DistrictTiles tiles={districts} />
       </section>
@@ -37,28 +39,28 @@ export async function LandingShowcase() {
       <section>
         <SectionHeader
           icon={<Sparkles size={18} />}
-          title="Newest homes"
-          sub="Fresh listings, just added"
-          action={{ label: "See all", href: "/apartments" }}
+          title={t("newestTitle")}
+          sub={t("newestSub")}
+          action={{ label: t("seeAll"), href: "/apartments" }}
         />
         <ListingCarousel
           listings={newest}
-          badgeFor={() => ({ icon: <Sparkles size={13} />, label: "New" })}
+          badgeFor={() => ({ icon: <Sparkles size={13} />, label: t("badgeNew") })}
         />
       </section>
 
       <section>
         <SectionHeader
           icon={<Flame size={18} />}
-          title="Trending now"
-          sub="The homes renters are watching most"
-          action={{ label: "See all", href: "/apartments" }}
+          title={t("trendingTitle")}
+          sub={t("trendingSub")}
+          action={{ label: t("seeAll"), href: "/apartments" }}
         />
         <ListingCarousel
           listings={trending}
           badgeFor={(l) => ({
             icon: <Eye size={13} />,
-            label: `${l.views.toLocaleString()} views`,
+            label: t("badgeViews", { views: l.views }),
           })}
         />
       </section>
