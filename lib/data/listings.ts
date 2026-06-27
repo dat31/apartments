@@ -101,14 +101,28 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 export const money = (n: number) => "$" + n.toLocaleString();
 export const specStr = (l: Listing) => (l.beds === 0 ? "Studio" : `${l.beds} bed`);
 
-export const availLabel = (l: Listing) => {
-  if (!l.available || l.available === "now") return "Available now";
+/* Availability as structured data so callers can localize it. Returns either
+   "available now" or a concrete future date. */
+export type AvailInfo = { kind: "now" } | { kind: "date"; date: Date };
+
+export const availInfo = (l: Listing): AvailInfo => {
+  if (!l.available || l.available === "now") return { kind: "now" };
   const d = new Date(l.available + "T00:00:00");
-  if (isNaN(d.getTime())) return "Available now";
+  if (isNaN(d.getTime())) return { kind: "now" };
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  if (d <= today) return "Available now";
-  return "Available " + d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (d <= today) return { kind: "now" };
+  return { kind: "date", date: d };
+};
+
+// Deprecated English label — being migrated to availInfo + i18n at call sites.
+export const availLabel = (l: Listing) => {
+  const info = availInfo(l);
+  if (info.kind === "now") return "Available now";
+  return (
+    "Available " +
+    info.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+  );
 };
 
 export const monthLabel = (key: string) => {

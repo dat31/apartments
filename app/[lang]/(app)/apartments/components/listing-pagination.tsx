@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
   Pagination,
@@ -21,6 +22,7 @@ export function ListingPagination({
   totalPages: number;
   total: number;
 }) {
+  const t = useTranslations("apartments.pagination");
   const { searchParams, setParams } = useFilterNav();
 
   // Real hrefs so links are crawlable / middle-clickable; onClick adds the
@@ -48,7 +50,7 @@ export function ListingPagination({
           <PaginationItem>
             <PaginationPrevious
               href={hrefFor(page - 1)}
-              text="Prev"
+              text={t("prev")}
               aria-disabled={page <= 1}
               className={cn(page <= 1 && "pointer-events-none opacity-40")}
               onClick={(e) => {
@@ -74,6 +76,7 @@ export function ListingPagination({
           <PaginationItem>
             <PaginationNext
               href={hrefFor(page + 1)}
+              text={t("next")}
               aria-disabled={page >= totalPages}
               className={cn(
                 page >= totalPages && "pointer-events-none opacity-40"
@@ -87,7 +90,11 @@ export function ListingPagination({
         </PaginationContent>
       </Pagination>
       <p className="text-sm text-muted-foreground tabular-nums">
-        Showing {start + 1}–{Math.min(start + PAGE_SIZE, total)} of {total}
+        {t("showing", {
+          from: start + 1,
+          to: Math.min(start + PAGE_SIZE, total),
+          total,
+        })}
       </p>
     </div>
   );

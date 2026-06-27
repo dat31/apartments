@@ -184,5 +184,66 @@
     "aboutPlaceholder": "A sentence or two about who you are and what you're looking for.",
     "cancel": "Cancel",
     "save": "Save changes"
+  },
+  "apartments": {
+    "heading": "Homes in Da Nang",
+    "summary": "{count, plural, =0 {No places available to rent} one {# place available to rent} other {# places available to rent}}",
+    "sort": "Sort",
+    "filters": "Filters",
+    "showHomes": "{count, plural, other {Show # homes}}",
+    "showHomesShort": "Show homes",
+    "sortOptions": {
+      "featured": "Featured",
+      "low": "Price: low to high",
+      "high": "Price: high to low",
+      "area": "Largest area"
+    },
+    "filtersPanel": {
+      "search": "Search",
+      "searchPlaceholder": "Area, type, or name…",
+      "homeType": "Home type",
+      "all": "All",
+      "district": "District",
+      "monthlyPrice": "Monthly price",
+      "min": "Min",
+      "max": "Max",
+      "bedrooms": "Bedrooms",
+      "any": "Any",
+      "studio": "Studio",
+      "amenities": "Amenities",
+      "reset": "Reset filters"
+    },
+    "types": {
+      "Studio": "Studio",
+      "Apartment": "Apartment",
+      "Loft": "Loft",
+      "Townhouse": "Townhouse",
+      "House": "House"
+    },
+    "amenities": {
+      "wifi": "Fast Wi-Fi",
+      "parking": "Parking",
+      "pets": "Pet friendly",
+      "garden": "Garden / yard",
+      "ac": "Air conditioning",
+      "laundry": "In-unit laundry"
+    },
+    "card": {
+      "perMonth": "/mo",
+      "availableNow": "Available now",
+      "availableOn": "Available {date}",
+      "studio": "Studio",
+      "beds": "{count, plural, one {# bed} other {# beds}}"
+    },
+    "empty": {
+      "title": "No homes match those filters",
+      "body": "Try widening your price range or clearing a filter.",
+      "reset": "Reset filters"
+    },
+    "pagination": {
+      "prev": "Prev",
+      "next": "Next",
+      "showing": "Showing {from}–{to} of {total}"
+    }
   }
 }
