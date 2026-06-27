@@ -1,7 +1,7 @@
 "use client";
 
-import { Link } from "@/lib/i18n/link";
-import { useLocalizedRouter } from "@/lib/i18n/navigation";
+import { useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -21,12 +21,11 @@ import { AuthDivider } from "../components/auth-divider";
 import { PasswordField, FILLED_INPUT } from "../components/password-field";
 import { signInSchema, type SignInValues } from "@/schemas/auth";
 import { useSignIn } from "@/hooks/auth";
-import { useDictionary } from "@/lib/i18n/dictionary-provider";
 
 export default function SignInPage() {
-  const router = useLocalizedRouter();
+  const router = useRouter();
   const signIn = useSignIn();
-  const t = useDictionary().auth.signin;
+  const t = useTranslations("auth.signin");
   const {
     register,
     handleSubmit,
@@ -56,26 +55,26 @@ export default function SignInPage() {
   return (
     <AuthShell>
       <h1 className="text-[1.85rem] font-semibold tracking-tight">
-        {t.title}
+        {t('title')}
       </h1>
       <p className="mt-2 text-muted-foreground text-pretty">
-        {t.subtitle}
+        {t('subtitle')}
       </p>
 
       <div className="mt-8 grid gap-3">
         <SocialButton icon={<AppleMark />} onClick={soon}>
-          {t.continueApple}
+          {t('continueApple')}
         </SocialButton>
         <SocialButton icon={<GoogleMark />} onClick={soon}>
-          {t.continueGoogle}
+          {t('continueGoogle')}
         </SocialButton>
       </div>
 
-      <AuthDivider>{t.dividerEmail}</AuthDivider>
+      <AuthDivider>{t('dividerEmail')}</AuthDivider>
 
       <form className="grid gap-4" onSubmit={onSubmit} noValidate>
         <Field data-invalid={!!errors.email}>
-          <FieldLabel htmlFor="email">{t.email}</FieldLabel>
+          <FieldLabel htmlFor="email">{t('email')}</FieldLabel>
           <Input
             id="email"
             type="email"
@@ -97,7 +96,7 @@ export default function SignInPage() {
                 href="/forgot-password"
                 className="text-sm text-primary font-medium hover:underline"
               >
-                {t.forgot}
+                {t('forgot')}
               </Link>
             }
             {...register("password")}
@@ -111,7 +110,7 @@ export default function SignInPage() {
             onCheckedChange={(v) => setValue("remember", v === true)}
             className="mt-px"
           />
-          <span>{t.keepSignedIn}</span>
+          <span>{t('keepSignedIn')}</span>
         </label>
 
         <Button
@@ -120,18 +119,18 @@ export default function SignInPage() {
           disabled={signIn.isPending}
           className="w-full mt-1 h-14 text-base gap-2"
         >
-          {signIn.isPending ? t.submitting : t.submit}
+          {signIn.isPending ? t('submitting') : t('submit')}
           <ChevronRight size={18} />
         </Button>
       </form>
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
-        {t.noAccount}{" "}
+        {t('noAccount')}{" "}
         <Link
           href="/signup"
           className="text-primary font-medium hover:underline"
         >
-          {t.createAccount}
+          {t('createAccount')}
         </Link>
       </p>
     </AuthShell>

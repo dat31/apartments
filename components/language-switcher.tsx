@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,26 +9,22 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { locales, localeNames, LOCALE_COOKIE } from "@/lib/i18n/config";
-import { useLocale, stripLocale } from "@/lib/i18n/navigation";
+import { routing, localeNames, type Locale } from "@/i18n/routing";
+import { usePathname, getPathname } from "@/i18n/navigation";
 
 export function LanguageSwitcher() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const current = useLocale();
+  const pathname = usePathname();
 
-  const switchTo = (locale: string) => {
+  const switchTo = (locale: Locale) => {
     if (locale === current) return;
-    // Remember the choice so the proxy honors it on unprefixed visits.
-    document.cookie = `${LOCALE_COOKIE}=${locale};path=/;max-age=31536000;samesite=lax`;
-    const rest = stripLocale(pathname);
-    const query = searchParams.toString();
-    // Full-page navigation: switching the [lang] segment re-renders the root
-    // layout (<html lang> + theme script), which can't happen on a soft client
-    // navigation. A hard load resets the document cleanly.
-    window.location.assign(
-      `/${locale}${rest === "/" ? "" : rest}${query ? `?${query}` : ""}`
-    );
+    // Remember the choice so the middleware honors it on unprefixed visits.
+    document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=31536000;samesite=lax`;
+    const target = getPathname({ href: pathname, locale });
+    // Full-page navigation: switching the locale segment re-renders the root
+    // layout (<html lang> + next-themes script), which can't happen on a soft
+    // client navigation. A hard load resets the document cleanly.
+    window.location.assign(`${target}${window.location.search}`);
   };
 
   return (
@@ -45,7 +41,7 @@ export function LanguageSwitcher() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {locales.map((locale) => (
+        {routing.locales.map((locale) => (
           <DropdownMenuItem
             key={locale}
             onSelect={() => switchTo(locale)}

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Link } from "@/lib/i18n/link";
+import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { StatusTag } from "@/components/status-tag";
 import { PALETTE } from "@/lib/data/listings";

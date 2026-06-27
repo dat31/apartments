@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocalizedRouter } from "@/lib/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { Building2, ChevronRight, Search, type LucideIcon } from "lucide-react";
 import { useProfile } from "@/hooks/use-profile";
 import { type Role } from "@/schemas/profile";
@@ -32,7 +32,7 @@ const ROLES: {
 ];
 
 export function RoleCards() {
-  const router = useLocalizedRouter();
+  const router = useRouter();
   const { profile, updateProfile } = useProfile();
 
   const enter = (role: Role, href: string, fallbackName: string) => {

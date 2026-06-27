@@ -1,7 +1,6 @@
 "use client";
 
-import { Link } from "@/lib/i18n/link";
-import { useStrippedPathname } from "@/lib/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { Chip } from "@/components/chip";
 import { useListings } from "@/hooks/use-listings";
@@ -56,7 +55,7 @@ function useNavItems(): NavItem[] {
 }
 
 export function DashboardNav({ variant }: { variant: "sidebar" | "chips" }) {
-  const pathname = useStrippedPathname();
+  const pathname = usePathname();
   const items = useNavItems();
   const isActive = (href: string) => pathname === href;
 

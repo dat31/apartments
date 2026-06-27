@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useLocalizedRouter } from "@/lib/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ export function OwnerProfile({
   homes: Listing[];
   reviews: Review[];
 }) {
-  const router = useLocalizedRouter();
+  const router = useRouter();
   const [reviewOpen, setReviewOpen] = React.useState(false);
   const [reviews, setReviews] = React.useState<Review[]>(initialReviews);
   const [page, setPage] = React.useState(1);

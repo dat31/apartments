@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocalizedRouter } from "@/lib/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ import {
 import { useUpdatePassword } from "@/hooks/auth";
 
 export default function ResetPasswordPage() {
-  const router = useLocalizedRouter();
+  const router = useRouter();
   const updatePassword = useUpdatePassword();
   const {
     register,

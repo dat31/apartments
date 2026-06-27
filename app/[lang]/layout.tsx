@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { Lexend } from "next/font/google";
 import { notFound } from "next/navigation";
+import { hasLocale, NextIntlClientProvider } from "next-intl";
+import { setRequestLocale } from "next-intl/server";
 import "../globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
-import { locales, isLocale } from "@/lib/i18n/config";
-import { getDictionary } from "@/lib/i18n/dictionaries";
-import { DictionaryProvider } from "@/lib/i18n/dictionary-provider";
+import { routing } from "@/i18n/routing";
 
 const lexend = Lexend({
   variable: "--font-lexend",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 export function generateStaticParams() {
-  return locales.map((lang) => ({ lang }));
+  return routing.locales.map((lang) => ({ lang }));
 }
 
 export default async function RootLayout({
@@ -31,9 +31,10 @@ export default async function RootLayout({
 }: LayoutProps<"/[lang]">) {
   const { lang } = await params;
 
-  if (!isLocale(lang)) notFound();
+  if (!hasLocale(routing.locales, lang)) notFound();
 
-  const dictionary = await getDictionary(lang);
+  // Opt into static rendering for this locale.
+  setRequestLocale(lang);
 
   return (
     <html
@@ -49,9 +50,9 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <Providers>
-            <DictionaryProvider dictionary={dictionary}>
+            <NextIntlClientProvider>
               <TooltipProvider>{children}</TooltipProvider>
-            </DictionaryProvider>
+            </NextIntlClientProvider>
           </Providers>
           <Toaster />
         </ThemeProvider>

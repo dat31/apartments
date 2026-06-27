@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link } from "@/lib/i18n/link";
+import { Link } from "@/i18n/navigation";
 import { ChevronLeft } from "lucide-react";
 import { SEARCH_MEMORY_KEY } from "@/app/[lang]/(app)/apartments/lib/search-memory";
 

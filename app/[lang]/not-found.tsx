@@ -1,4 +1,4 @@
-import { Link } from "@/lib/i18n/link";
+import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { ErrorShell } from "@/components/error-shell";
 import { GlyphTile } from "@/components/glyph-tile";

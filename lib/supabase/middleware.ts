@@ -1,18 +1,30 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/database.types";
-import { defaultLocale, isLocale } from "@/lib/i18n/config";
+import { routing } from "@/i18n/routing";
 
-/* Split a locale prefix off a pathname, e.g. /vi/apartments/saved ->
-   { locale: "vi", rest: "/apartments/saved" }. Falls back to the default
-   locale when no prefix is present. */
+const isLocale = (value: string | undefined): value is (typeof routing.locales)[number] =>
+  !!value && (routing.locales as readonly string[]).includes(value);
+
+/* Split a locale prefix off a pathname, e.g. /en/apartments/saved ->
+   { locale: "en", rest: "/apartments/saved" }. With localePrefix "as-needed"
+   the default locale has no prefix, so an unprefixed path resolves to it. */
 function splitLocale(pathname: string): { locale: string; rest: string } {
   const segments = pathname.split("/");
   if (isLocale(segments[1])) {
     const rest = "/" + segments.slice(2).join("/");
-    return { locale: segments[1], rest: rest === "/" ? "/" : rest.replace(/\/$/, "") };
+    return {
+      locale: segments[1],
+      rest: rest === "/" ? "/" : rest.replace(/\/$/, ""),
+    };
   }
-  return { locale: defaultLocale, rest: pathname };
+  return { locale: routing.defaultLocale, rest: pathname };
+}
+
+/* Build a localized path under the "as-needed" strategy: the default locale is
+   unprefixed, every other locale gets a prefix. */
+function localized(locale: string, path: string): string {
+  return locale === routing.defaultLocale ? path : `/${locale}${path}`;
 }
 
 /* Routes that require a signed-in user. Everything not listed here (landing,
@@ -31,9 +43,11 @@ const PROTECTED: RegExp[] = [
    out on purpose: a recovery link signs the user in, then sends them there. */
 const AUTH_PAGES = ["/signin", "/signup", "/forgot-password"];
 
-export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
-
+/* Refreshes the Supabase auth session onto the given response (produced by the
+   next-intl middleware), then applies the locale-aware route guards. Auth
+   cookies set during the refresh are written onto `response`, and carried over
+   when we issue a redirect. */
+export async function updateSession(request: NextRequest, response: NextResponse) {
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -46,7 +60,6 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          response = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           );
@@ -62,21 +75,22 @@ export async function updateSession(request: NextRequest) {
   const isSignedIn = !!data?.claims;
 
   const { pathname } = request.nextUrl;
-  // Route guards match against the locale-stripped path, but redirects keep the
+  // Guards match against the locale-stripped path, but redirects keep the
   // visitor in their current locale.
   const { locale, rest } = splitLocale(pathname);
 
   if (!isSignedIn && PROTECTED.some((re) => re.test(rest))) {
     const url = request.nextUrl.clone();
-    url.pathname = `/${locale}/signin`;
+    url.pathname = localized(locale, "/signin");
     url.search = "";
-    url.searchParams.set("next", pathname);
+    // Store the unprefixed target; the sign-in page re-localizes it.
+    url.searchParams.set("next", rest);
     return copyCookies(response, NextResponse.redirect(url));
   }
 
   if (isSignedIn && AUTH_PAGES.some((p) => rest === p || rest.startsWith(`${p}/`))) {
     const url = request.nextUrl.clone();
-    url.pathname = `/${locale}/apartments`;
+    url.pathname = localized(locale, "/apartments");
     url.search = "";
     return copyCookies(response, NextResponse.redirect(url));
   }

@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Link } from "@/lib/i18n/link";
-import { useStrippedPathname } from "@/lib/i18n/navigation";
-import { useDictionary } from "@/lib/i18n/dictionary-provider";
+import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/i18n/navigation";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,9 +19,9 @@ export function SiteHeader() {
   const { profile, updateProfile, setRole } = useProfile();
   const { data: user } = useUser();
   const signOut = useSignOut();
-  const { header } = useDictionary();
+  const header = useTranslations("header");
   const [manageOpen, setManageOpen] = React.useState(false);
-  const pathname = useStrippedPathname();
+  const pathname = usePathname();
   const savedActive = pathname === "/apartments/saved";
   const toursActive = pathname === "/tour";
   const isOwner = profile.role === "owner";
@@ -47,7 +46,7 @@ export function SiteHeader() {
                 >
                   <Link href="/tour">
                     <Calendar size={16} />
-                    <span className="hidden sm:inline">{header.tours}</span>
+                    <span className="hidden sm:inline">{header("tours")}</span>
                   </Link>
                 </Button>
               )}
@@ -60,7 +59,7 @@ export function SiteHeader() {
               >
                 <Link href="/apartments/saved">
                   <Heart size={16} />
-                  <span className="hidden sm:inline">{header.saved}</span>
+                  <span className="hidden sm:inline">{header("saved")}</span>
                   {saved.length > 0 && (
                     <span
                       className={cn(
@@ -78,7 +77,7 @@ export function SiteHeader() {
 
               <span className="hidden md:inline-flex items-center gap-2 h-9 px-3 bg-secondary text-secondary-foreground text-sm font-medium">
                 {isOwner ? <Building2 size={16} /> : <Search size={16} />}
-                {isOwner ? header.owner : header.renter}
+                {isOwner ? header("owner") : header("renter")}
               </span>
 
               <LanguageSwitcher />
@@ -94,7 +93,7 @@ export function SiteHeader() {
             <>
               <LanguageSwitcher />
               <Button asChild size="default" className="h-9 px-4">
-                <Link href="/signin">{header.signIn}</Link>
+                <Link href="/signin">{header("signIn")}</Link>
               </Button>
             </>
           )}

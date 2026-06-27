@@ -1,4 +1,4 @@
-import { Link } from "@/lib/i18n/link";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Gallery } from "./gallery";

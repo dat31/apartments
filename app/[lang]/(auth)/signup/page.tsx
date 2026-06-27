@@ -1,7 +1,7 @@
 "use client";
 
-import { Link } from "@/lib/i18n/link";
-import { useLocalizedRouter } from "@/lib/i18n/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -20,7 +20,7 @@ import { signUpSchema, type SignUpValues } from "@/schemas/auth";
 import { useSignUp } from "@/hooks/auth";
 
 export default function SignUpPage() {
-  const router = useLocalizedRouter();
+  const router = useRouter();
   const signUp = useSignUp();
   const {
     register,

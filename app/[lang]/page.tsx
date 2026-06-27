@@ -1,10 +1,8 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Logo } from "@/components/logo";
 import { ToggleThemeButton } from "@/components/toggle-theme-button";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { getDictionary } from "@/lib/i18n/dictionaries";
-import { isLocale } from "@/lib/i18n/config";
 import { RoleChooser } from "./components/role-chooser";
 import { HeroSection } from "./components/hero-section";
 import { LandingShowcase } from "./components/landing-showcase";
@@ -12,8 +10,8 @@ import { LandingShowcaseSkeleton } from "./components/landing-showcase-skeleton"
 
 export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const { lang } = await params;
-  if (!isLocale(lang)) notFound();
-  const dict = await getDictionary(lang);
+  setRequestLocale(lang);
+  const t = await getTranslations("landing");
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -46,7 +44,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
       </main>
 
       <footer className="px-6 sm:px-10 h-16 flex items-center text-sm text-muted-foreground">
-        <span>{dict.landing.footer}</span>
+        <span>{t("footer")}</span>
       </footer>
     </div>
   );

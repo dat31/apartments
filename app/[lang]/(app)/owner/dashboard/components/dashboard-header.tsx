@@ -1,13 +1,13 @@
 "use client";
 
-import { useLocalizedRouter } from "@/lib/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
 import { OWNERS } from "@/lib/data/listings";
 import { Plus } from "lucide-react";
 
 export function DashboardHeader() {
-  const router = useLocalizedRouter();
+  const router = useRouter();
   const { profile } = useProfile();
   const ownerName = profile.name?.trim() || OWNERS.you.name;
   const firstName = ownerName.split(/\s+/)[0];

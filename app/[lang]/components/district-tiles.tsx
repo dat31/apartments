@@ -1,4 +1,4 @@
-import { Link } from "@/lib/i18n/link";
+import { Link } from "@/i18n/navigation";
 import { money } from "@/lib/data/listings";
 import { Card } from "@/components/ui/card";
 import { type DistrictTile } from "../lib/landing";

@@ -1,4 +1,4 @@
-import { Link } from "@/lib/i18n/link";
+import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

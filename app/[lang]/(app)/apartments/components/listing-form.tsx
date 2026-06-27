@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { notFound } from "next/navigation";
-import { useLocalizedRouter } from "@/lib/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
@@ -53,7 +53,7 @@ export function ListingForm({
   mode: "create" | "edit";
   listingId?: string;
 }) {
-  const router = useLocalizedRouter();
+  const router = useRouter();
   const { getById, addListing, updateListing } = useListings();
   const isEdit = mode === "edit";
 

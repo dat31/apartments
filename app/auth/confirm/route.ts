@@ -2,17 +2,18 @@ import { type EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { logAuthError } from "@/lib/auth-log";
-import { defaultLocale, isLocale } from "@/lib/i18n/config";
+import { routing } from "@/i18n/routing";
 
-/* This route lives outside the [lang] tree, so localized destinations are
+/* This route lives outside the localized tree, so localized destinations are
    derived from the `next` param (which already carries a locale) or fall back
-   to the default locale. */
+   to the default locale. With localePrefix "as-needed", the default locale is
+   left unprefixed. */
 function withLocale(path: string, reference: string): string {
-  if (isLocale(reference.split("/")[1])) {
-    const locale = reference.split("/")[1];
-    return `/${locale}${path}`;
-  }
-  return `/${defaultLocale}${path}`;
+  const segment = reference.split("/")[1];
+  const locale = (routing.locales as readonly string[]).includes(segment)
+    ? segment
+    : routing.defaultLocale;
+  return locale === routing.defaultLocale ? path : `/${locale}${path}`;
 }
 
 /* Email-link landing for signup confirmation and password recovery (PKCE).

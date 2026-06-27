@@ -1,39 +1,29 @@
+import createMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
+import { routing } from "@/i18n/routing";
 import { updateSession } from "@/lib/supabase/middleware";
-import { isLocale } from "@/lib/i18n/config";
-import { getLocale } from "@/lib/i18n/get-locale";
 
 // Next.js 16 renamed the `middleware` file convention to `proxy`.
+const handleI18nRouting = createMiddleware(routing);
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // The Supabase email-link callback lives outside the [lang] tree and must
-  // not be locale-prefixed — let it through to the auth session handling.
+  // The Supabase email-link callback lives outside the localized tree and must
+  // not be locale-rewritten — skip next-intl for it and just refresh the
+  // session.
   const isAuthCallback = pathname === "/auth" || pathname.startsWith("/auth/");
 
-  const firstSegment = pathname.split("/")[1];
-  const pathnameHasLocale = isLocale(firstSegment);
+  const response = isAuthCallback
+    ? NextResponse.next({ request })
+    : handleI18nRouting(request);
 
-  // Redirect unprefixed page requests to a locale-prefixed URL.
-  if (!pathnameHasLocale && !isAuthCallback) {
-    const locale = getLocale(request);
-    request.nextUrl.pathname = `/${locale}${pathname}`;
-    return NextResponse.redirect(request.nextUrl);
-  }
-
-  // Locale (or auth callback) is in place — refresh the auth session and run
-  // the protected-route / auth-page guards.
-  return await updateSession(request);
+  return updateSession(request, response);
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Run on every request except static assets and image files so the auth
-     * session is refreshed before Server Components read it, and so unprefixed
-     * paths get redirected to a locale. See
-     * https://nextjs.org/docs/app/api-reference/file-conventions/proxy
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
-  ],
+  // Run on every request except API routes, Next internals, and files with an
+  // extension. This lets next-intl handle locale routing and lets the auth
+  // session refresh before Server Components read it.
+  matcher: "/((?!api|_next|_vercel|.*\\..*).*)",
 };
