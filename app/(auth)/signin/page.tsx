@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,8 +20,11 @@ import { SocialButton } from "../components/social-button";
 import { AuthDivider } from "../components/auth-divider";
 import { PasswordField, FILLED_INPUT } from "../components/password-field";
 import { signInSchema, type SignInValues } from "@/schemas/auth";
+import { useSignIn } from "@/hooks/auth";
 
 export default function SignInPage() {
+  const router = useRouter();
+  const signIn = useSignIn();
   const {
     register,
     handleSubmit,
@@ -31,6 +36,21 @@ export default function SignInPage() {
     defaultValues: { email: "", password: "", remember: true },
   });
 
+  const onSubmit = handleSubmit(async (values) => {
+    try {
+      await signIn.mutateAsync(values);
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.push(next || "/apartments");
+      router.refresh();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not sign in. Try again."
+      );
+    }
+  });
+
+  const soon = () => toast("Social sign-in is coming soon.");
+
   return (
     <AuthShell>
       <h1 className="text-[1.85rem] font-semibold tracking-tight">
@@ -41,17 +61,17 @@ export default function SignInPage() {
       </p>
 
       <div className="mt-8 grid gap-3">
-        <SocialButton icon={<AppleMark />}>Continue with Apple</SocialButton>
-        <SocialButton icon={<GoogleMark />}>Continue with Google</SocialButton>
+        <SocialButton icon={<AppleMark />} onClick={soon}>
+          Continue with Apple
+        </SocialButton>
+        <SocialButton icon={<GoogleMark />} onClick={soon}>
+          Continue with Google
+        </SocialButton>
       </div>
 
       <AuthDivider>or with email</AuthDivider>
 
-      <form
-        className="grid gap-4"
-        onSubmit={handleSubmit(() => {})}
-        noValidate
-      >
+      <form className="grid gap-4" onSubmit={onSubmit} noValidate>
         <Field data-invalid={!!errors.email}>
           <FieldLabel htmlFor="email">Email</FieldLabel>
           <Input
@@ -92,8 +112,14 @@ export default function SignInPage() {
           <span>Keep me signed in</span>
         </label>
 
-        <Button size="lg" type="submit" className="w-full mt-1 h-14 text-base gap-2">
-          Sign in <ChevronRight size={18} />
+        <Button
+          size="lg"
+          type="submit"
+          disabled={signIn.isPending}
+          className="w-full mt-1 h-14 text-base gap-2"
+        >
+          {signIn.isPending ? "Signing in…" : "Sign in"}
+          <ChevronRight size={18} />
         </Button>
       </form>
 

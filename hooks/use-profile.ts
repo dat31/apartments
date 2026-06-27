@@ -1,48 +1,103 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import {
-  type Profile,
-  type Role,
-  DEFAULT_PROFILE,
-  profileSchema,
-} from "@/schemas/profile";
+import { useCallback } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
+import { authKeys, useUser } from "@/hooks/auth";
+import { type Profile, type Role, DEFAULT_PROFILE } from "@/schemas/profile";
 
-const KEY = "danapa-profile";
+/* The signed-in user's profile, sourced from the Supabase `profiles` table and
+   merged with the auth email. Backed by react-query and keyed on the user id,
+   so it refreshes automatically when the auth state changes (the listener in
+   <Providers> invalidates the "profile" key on sign-in / sign-out).
 
-/* Persisted signed-in profile (name, email, location, bio, avatar color, role). */
+   When no user is signed in it resolves to DEFAULT_PROFILE and writes become a
+   no-op — there's no row to update. */
 export function useProfile() {
-  const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
-  const [ready, setReady] = useState(false);
+  const queryClient = useQueryClient();
+  const { data: user, isPending: userPending } = useUser();
+  const userId = user?.id;
 
-  useEffect(() => {
-    try {
-      const s = localStorage.getItem(KEY);
-      if (s) {
-        const parsed = profileSchema.safeParse(JSON.parse(s));
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        if (parsed.success) setProfile(parsed.data);
+  const query = useQuery({
+    queryKey: [...authKeys.profile, userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<Profile> => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("name, location, bio, palette, role")
+        .eq("id", userId!)
+        .maybeSingle();
+      if (error) throw error;
+
+      // Fall back to signup metadata if the trigger hasn't seeded the row yet.
+      const meta = user?.user_metadata ?? {};
+      return {
+        name: data?.name || (meta.name as string) || "",
+        email: user?.email ?? "",
+        location: data?.location ?? DEFAULT_PROFILE.location,
+        bio: data?.bio ?? "",
+        palette: data?.palette ?? DEFAULT_PROFILE.palette,
+        role: data?.role ?? (meta.role as Role) ?? DEFAULT_PROFILE.role,
+      };
+    },
+  });
+
+  const profile: Profile =
+    query.data ?? { ...DEFAULT_PROFILE, email: user?.email ?? "" };
+
+  const updateMutation = useMutation({
+    mutationFn: async (patch: Partial<Profile>) => {
+      if (!userId) return;
+      const supabase = createClient();
+      // Email lives on the auth user, not the profiles row — drop it here.
+      const { email: _email, ...fields } = patch;
+      void _email;
+      const { error } = await supabase
+        .from("profiles")
+        .update(fields)
+        .eq("id", userId);
+      if (error) throw error;
+    },
+    // Optimistic update so role switches / edits feel instant.
+    onMutate: async (patch) => {
+      if (!userId) return;
+      const key = [...authKeys.profile, userId];
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<Profile>(key);
+      if (previous) queryClient.setQueryData<Profile>(key, { ...previous, ...patch });
+      return { previous };
+    },
+    onError: (_err, _patch, context) => {
+      if (userId && context?.previous) {
+        queryClient.setQueryData([...authKeys.profile, userId], context.previous);
       }
-    } catch {}
-    setReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    try {
-      localStorage.setItem(KEY, JSON.stringify(profile));
-    } catch {}
-  }, [profile, ready]);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: authKeys.profile });
+    },
+  });
 
   const updateProfile = useCallback(
-    (patch: Partial<Profile>) => setProfile((p) => ({ ...p, ...patch })),
-    []
+    (patch: Partial<Profile>) => {
+      if (!userId) return;
+      updateMutation.mutate(patch);
+    },
+    [userId, updateMutation]
   );
 
   const setRole = useCallback(
-    (role: Role) => setProfile((p) => ({ ...p, role })),
-    []
+    (role: Role) => {
+      if (!userId) return;
+      updateMutation.mutate({ role });
+    },
+    [userId, updateMutation]
   );
 
-  return { profile, updateProfile, setRole, ready };
+  return {
+    profile,
+    updateProfile,
+    setRole,
+    ready: !userPending && !query.isLoading,
+  };
 }

@@ -33,7 +33,7 @@ export function ReviewPager({
       {page === 1 ? (
         firstPage
       ) : (
-        <div key={page} className="grid sm:grid-cols-2 gap-4 stagger">
+        <div className="grid sm:grid-cols-2 gap-4 stagger">
           {reviewsForPage(reviews, page).map((r) => (
             <ReviewCard key={r.id} r={r} />
           ))}
@@ -46,7 +46,7 @@ export function ReviewPager({
           className="mt-6 justify-center"
         >
           <PaginationContent>
-            <PaginationItem>
+            <PaginationItem key="prev">
               <PaginationPrevious
                 href="#"
                 text="Prev"
@@ -72,7 +72,7 @@ export function ReviewPager({
                 </PaginationLink>
               </PaginationItem>
             ))}
-            <PaginationItem>
+            <PaginationItem key="next">
               <PaginationNext
                 href="#"
                 aria-disabled={page >= pageCount}
