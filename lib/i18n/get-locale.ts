@@ -29,5 +29,19 @@ export function getLocale(request: NextRequest): Locale {
     return defaultLocale;
   }
 
-  return match(languages, locales as readonly string[], defaultLocale) as Locale;
+  // Negotiator yields "*" for an empty/absent header; intl-localematcher's
+  // match() throws a RangeError on "*" or other non-canonical tags, so drop
+  // them and guard the call.
+  const candidates = languages.filter((lang) => lang !== "*");
+  if (candidates.length === 0) return defaultLocale;
+
+  try {
+    return match(
+      candidates,
+      locales as readonly string[],
+      defaultLocale
+    ) as Locale;
+  } catch {
+    return defaultLocale;
+  }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,6 @@ import { locales, localeNames, LOCALE_COOKIE } from "@/lib/i18n/config";
 import { useLocale, stripLocale } from "@/lib/i18n/navigation";
 
 export function LanguageSwitcher() {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const current = useLocale();
@@ -24,8 +23,12 @@ export function LanguageSwitcher() {
     document.cookie = `${LOCALE_COOKIE}=${locale};path=/;max-age=31536000;samesite=lax`;
     const rest = stripLocale(pathname);
     const query = searchParams.toString();
-    router.push(`/${locale}${rest === "/" ? "" : rest}${query ? `?${query}` : ""}`);
-    router.refresh();
+    // Full-page navigation: switching the [lang] segment re-renders the root
+    // layout (<html lang> + theme script), which can't happen on a soft client
+    // navigation. A hard load resets the document cleanly.
+    window.location.assign(
+      `/${locale}${rest === "/" ? "" : rest}${query ? `?${query}` : ""}`
+    );
   };
 
   return (
