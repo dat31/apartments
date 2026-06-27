@@ -1,6 +1,6 @@
 ---
 name: i18n-translation
-description: Translate or add localized UI strings in this Next.js 16 + next-intl v4 repo (vi default + en). Use when asked to translate a page/component, extract hardcoded strings into messages, add a new language string, localize numbers/dates/currency, or wire next-intl into a server or client component. Enforces server-first translation, the messages/ file shape, namespace conventions, and the smallest client message footprint.
+description: Translate or add localized UI strings in this Next.js 16 + next-intl v4 repo (vi default + en). Use when asked to translate a page/component, extract hardcoded strings into messages, add a new language string, localize numbers/dates/currency, or wire next-intl into a server/client component, a Server Action, generateMetadata, an Open Graph image, a Route Handler, or a sitemap/manifest. Enforces server-first translation, the messages/ file shape, namespace conventions, the smallest client message footprint, and passing locale explicitly where context can't infer it.
 ---
 
 # i18n translation (next-intl)
@@ -142,6 +142,94 @@ format.dateTime(date, { dateStyle: "medium" });
 
 Planned currency rule for this app: **VND for `vi`, USD for `en`** — replace `money()` in [lib/data/listings.ts](../../../lib/data/listings.ts). Note this is a *display* concern; the underlying amount (single USD `z.number()` today) still needs a per-currency value or a conversion rate — decide that separately.
 
+## Non-component server contexts (actions · metadata · route handlers · sitemap)
+
+These run outside the component tree. **Always use the awaitable `get*` functions** (`getTranslations`, `getFormatter`, …) — never hooks. The locale is auto-inferred **only in Server Actions**; everywhere else you must pass `locale` explicitly. Note our dynamic param is `lang`, so it's `getTranslations({ locale: lang, namespace })`.
+
+| Context | Locale source | Call |
+| --- | --- | --- |
+| Server Action (`"use server"`) | request context (automatic) | `await getTranslations("ns")` |
+| `generateMetadata` | `params.lang` (explicit) | `await getTranslations({ locale: lang, namespace: "ns" })` |
+| `opengraph-image` / icon files | `params.lang` (explicit) | same as metadata |
+| Route Handler (`app/**/route.ts`) | manual: params / `searchParams` / `accept-language`, then `hasLocale` | `await getTranslations({ locale, namespace: "ns" })` |
+| `manifest.ts` / `sitemap.ts` (outside `[lang]`) | pick a representative locale, or per-locale | `await getTranslations({ locale, namespace: "ns" })` |
+
+Do **not** call `setRequestLocale` in these — it's for pages/layouts.
+
+### Server Action
+
+```tsx
+"use server";
+import { getTranslations } from "next-intl/server";
+
+export async function bookTour(data: FormData) {
+  const t = await getTranslations("tour"); // locale inferred from the request
+  if (!valid) return { error: t("invalidSlot") };
+}
+```
+
+Good fit for server-side zod messages: translate inside the action and map by `issue.path`.
+
+### generateMetadata (per-locale title/description — do this for SEO)
+
+```tsx
+// app/[lang]/.../page.tsx
+import { getTranslations } from "next-intl/server";
+
+export async function generateMetadata({ params }: PageProps<"/[lang]">) {
+  const { lang } = await params;
+  const t = await getTranslations({ locale: lang, namespace: "metadata" });
+  return { title: t("title"), description: t("description") };
+}
+```
+
+### Route Handler — locale is NOT inferred
+
+Get it explicitly and validate. Our [app/auth/confirm/route.ts](../../../app/auth/confirm/route.ts) is a route handler that lives outside `[lang]` and already derives its locale manually — follow that shape; if it ever needs translated output, pass `locale` to `getTranslations`.
+
+```tsx
+import { hasLocale } from "next-intl";
+import { getTranslations } from "next-intl/server";
+import { routing } from "@/i18n/routing";
+
+export async function GET(request: Request) {
+  const locale = new URL(request.url).searchParams.get("locale");
+  if (!hasLocale(routing.locales, locale)) {
+    return Response.json({ error: "Invalid locale" }, { status: 400 });
+  }
+  const t = await getTranslations({ locale, namespace: "api" });
+  return Response.json({ title: t("title") });
+}
+```
+
+### sitemap.ts — emit hreflang alternates (SEO)
+
+Use `getPathname` from [i18n/navigation.ts](../../../i18n/navigation.ts) to build per-locale URLs (respects the as-needed prefix):
+
+```tsx
+import type { MetadataRoute } from "next";
+import { getPathname } from "@/i18n/navigation";
+import { routing } from "@/i18n/routing";
+
+const host = "https://danapa.vn";
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const entry = (href: string) => ({
+    url: host + getPathname({ locale: routing.defaultLocale, href }),
+    alternates: {
+      languages: Object.fromEntries(
+        routing.locales.map((l) => [l, host + getPathname({ locale: l, href })])
+      ),
+    },
+  });
+  return [entry("/"), entry("/apartments")];
+}
+```
+
+### opengraph-image caveat under as-needed
+
+If you add `opengraph-image.tsx`, make sure the proxy matcher doesn't swallow it — exclude `.*/opengraph-image` (alongside `api`, `_next`, files) so the generated route stays reachable.
+
 ## Workflow to translate a page/component
 
 1. **Scan** the file for every hardcoded user-facing string (text, `aria-label`, `placeholder`, `title`, toast messages).
@@ -160,6 +248,8 @@ Planned currency rule for this app: **VND for `vi`, USD for `en`** — replace `
 - ❌ Building plurals/sentences by string concatenation. Use ICU `{count, plural, ...}` / `t.rich`.
 - ❌ Formatting money/dates with `toLocaleString()` ad hoc. Use `useFormatter`/`getFormatter`.
 - ❌ `import Link from "next/link"` in localized UI. Use the `Link` from `@/i18n/navigation`.
+- ❌ Relying on inferred locale in `generateMetadata`, a Route Handler, or `sitemap`/`manifest`. Only Server Actions infer it — everywhere else pass `locale` explicitly (from `params.lang`, query, or `accept-language`, validated with `hasLocale`).
+- ❌ Hooks (`useTranslations`) in actions/metadata/route handlers. Use the awaitable `getTranslations`.
 
 ## Architecture note (don't relitigate)
 
