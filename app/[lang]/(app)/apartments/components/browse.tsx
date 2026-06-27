@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { getTranslations } from "next-intl/server";
 import { getActiveListings } from "@/lib/services/listings";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,6 +48,7 @@ export async function Browse({
 }) {
   // districts come from the cached listings, not the URL, so the shell stays static.
   const districts = getDistricts(await getActiveListings());
+  const t = await getTranslations("apartments");
 
   return (
     <div className="container mx-auto px-5 sm:px-8 py-8">
@@ -54,7 +56,7 @@ export async function Browse({
       <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">
-            Homes in Da Nang
+            {t("heading")}
           </h1>
           <Suspense
             fallback={<Skeleton className="skeleton mt-1 h-5 w-44" />}
@@ -64,7 +66,7 @@ export async function Browse({
         </div>
         <div className="hidden lg:flex items-center gap-2">
           <span className="text-sm text-muted-foreground hidden sm:inline">
-            Sort
+            {t("sort")}
           </span>
           <SortMenu />
         </div>
@@ -74,7 +76,7 @@ export async function Browse({
         <aside className="hidden lg:block w-72 shrink-0">
           <div className="sticky top-24 bg-sidebar text-sidebar-foreground p-6">
             <h3 className="text-base font-semibold mb-5 flex items-center gap-2">
-              <SlidersHorizontal size={18} /> Filters
+              <SlidersHorizontal size={18} /> {t("filters")}
             </h3>
             <FiltersPanel districts={districts} />
           </div>
@@ -89,14 +91,14 @@ export async function Browse({
                   size="default"
                   className="h-9 gap-1.5 px-3"
                 >
-                  <SlidersHorizontal size={16} /> Filters
+                  <SlidersHorizontal size={16} /> {t("filters")}
                   <FilterCountBadge />
                 </Button>
               </DrawerTrigger>
               <DrawerContent className="max-h-[85vh]">
                 <DrawerHeader className="px-6 pt-6 pb-4">
                   <DrawerTitle className="text-xl font-semibold tracking-tight">
-                    Filters
+                    {t("filters")}
                   </DrawerTitle>
                 </DrawerHeader>
                 <div className="px-6 pb-6 overflow-y-auto">
@@ -105,7 +107,7 @@ export async function Browse({
                 <DrawerFooter className="px-6 py-4 bg-muted">
                   <DrawerClose asChild>
                     <Button className="w-full h-11">
-                      <Suspense fallback="Show homes">
+                      <Suspense fallback={t("showHomesShort")}>
                         <ShowCount searchParams={searchParams} />
                       </Suspense>
                     </Button>
@@ -139,9 +141,10 @@ async function ResultsSummary({
   searchParams: Promise<SearchParams>;
 }) {
   const results = await getResults(searchParams);
+  const t = await getTranslations("apartments");
   return (
     <p className="mt-1 text-muted-foreground">
-      {results.length} place{results.length !== 1 ? "s" : ""} available to rent
+      {t("summary", { count: results.length })}
     </p>
   );
 }
@@ -152,7 +155,8 @@ async function ShowCount({
   searchParams: Promise<SearchParams>;
 }) {
   const results = await getResults(searchParams);
-  return <>Show {results.length} homes</>;
+  const t = await getTranslations("apartments");
+  return <>{t("showHomes", { count: results.length })}</>;
 }
 
 async function Results({

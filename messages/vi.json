@@ -184,5 +184,66 @@
     "aboutPlaceholder": "Một hai câu về bạn là ai và bạn đang tìm gì.",
     "cancel": "Hủy",
     "save": "Lưu thay đổi"
+  },
+  "apartments": {
+    "heading": "Nhà ở Đà Nẵng",
+    "summary": "{count, plural, =0 {Không có chỗ nào đang cho thuê} other {# chỗ đang cho thuê}}",
+    "sort": "Sắp xếp",
+    "filters": "Bộ lọc",
+    "showHomes": "{count, plural, other {Xem # căn}}",
+    "showHomesShort": "Xem nhà",
+    "sortOptions": {
+      "featured": "Nổi bật",
+      "low": "Giá: thấp đến cao",
+      "high": "Giá: cao đến thấp",
+      "area": "Diện tích lớn nhất"
+    },
+    "filtersPanel": {
+      "search": "Tìm kiếm",
+      "searchPlaceholder": "Khu vực, loại, hoặc tên…",
+      "homeType": "Loại nhà",
+      "all": "Tất cả",
+      "district": "Quận",
+      "monthlyPrice": "Giá theo tháng",
+      "min": "Tối thiểu",
+      "max": "Tối đa",
+      "bedrooms": "Phòng ngủ",
+      "any": "Bất kỳ",
+      "studio": "Studio",
+      "amenities": "Tiện nghi",
+      "reset": "Đặt lại bộ lọc"
+    },
+    "types": {
+      "Studio": "Căn studio",
+      "Apartment": "Căn hộ",
+      "Loft": "Căn loft",
+      "Townhouse": "Nhà phố",
+      "House": "Nhà riêng"
+    },
+    "amenities": {
+      "wifi": "Wi-Fi tốc độ cao",
+      "parking": "Chỗ đậu xe",
+      "pets": "Cho nuôi thú cưng",
+      "garden": "Sân / vườn",
+      "ac": "Máy lạnh",
+      "laundry": "Máy giặt trong nhà"
+    },
+    "card": {
+      "perMonth": "/tháng",
+      "availableNow": "Còn trống ngay",
+      "availableOn": "Trống từ {date}",
+      "studio": "Studio",
+      "beds": "{count, plural, other {# phòng ngủ}}"
+    },
+    "empty": {
+      "title": "Không có nhà nào khớp bộ lọc",
+      "body": "Thử mở rộng khoảng giá hoặc bỏ bớt một bộ lọc.",
+      "reset": "Đặt lại bộ lọc"
+    },
+    "pagination": {
+      "prev": "Trước",
+      "next": "Sau",
+      "showing": "Hiển thị {from}–{to} trong {total}"
+    }
   }
 }
