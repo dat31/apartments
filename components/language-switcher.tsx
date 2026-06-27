@@ -9,23 +9,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { routing, localeNames, type Locale } from "@/i18n/routing";
-import { usePathname, getPathname } from "@/i18n/navigation";
+import { routing, localeNames } from "@/i18n/routing";
+import { Link, usePathname } from "@/i18n/navigation";
 
 export function LanguageSwitcher() {
   const current = useLocale();
   const pathname = usePathname();
-
-  const switchTo = (locale: Locale) => {
-    if (locale === current) return;
-    // Remember the choice so the middleware honors it on unprefixed visits.
-    document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=31536000;samesite=lax`;
-    const target = getPathname({ href: pathname, locale });
-    // Full-page navigation: switching the locale segment re-renders the root
-    // layout (<html lang> + next-themes script), which can't happen on a soft
-    // client navigation. A hard load resets the document cleanly.
-    window.location.assign(`${target}${window.location.search}`);
-  };
 
   return (
     <DropdownMenu>
@@ -44,11 +33,16 @@ export function LanguageSwitcher() {
         {routing.locales.map((locale) => (
           <DropdownMenuItem
             key={locale}
-            onSelect={() => switchTo(locale)}
+            asChild
             data-active={locale === current}
             className="data-[active=true]:font-semibold"
           >
-            {localeNames[locale]}
+            {/* next-intl <Link> with a `locale` prop keeps the same path and
+                switches the locale via a soft navigation (it also updates the
+                NEXT_LOCALE cookie). */}
+            <Link href={pathname} locale={locale}>
+              {localeNames[locale]}
+            </Link>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
