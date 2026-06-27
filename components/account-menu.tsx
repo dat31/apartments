@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useLocalizedRouter } from "@/lib/i18n/navigation";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -26,7 +26,7 @@ export function AccountMenu({
   onSwitchRole: (role: Role) => void;
   onSignOut: () => void;
 }) {
-  const router = useRouter();
+  const router = useLocalizedRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const [open, setOpen] = React.useState(false);

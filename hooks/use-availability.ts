@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {
   availabilityFor,
   type WeekTemplate,
-} from "@/app/(app)/apartments/[id]/constants/tours";
+} from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 
 const KEY = "danapa-availability";
 

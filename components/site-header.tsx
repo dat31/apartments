@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link } from "@/lib/i18n/link";
+import { useStrippedPathname } from "@/lib/i18n/navigation";
+import { useDictionary } from "@/lib/i18n/dictionary-provider";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
@@ -18,8 +20,9 @@ export function SiteHeader() {
   const { profile, updateProfile, setRole } = useProfile();
   const { data: user } = useUser();
   const signOut = useSignOut();
+  const { header } = useDictionary();
   const [manageOpen, setManageOpen] = React.useState(false);
-  const pathname = usePathname();
+  const pathname = useStrippedPathname();
   const savedActive = pathname === "/apartments/saved";
   const toursActive = pathname === "/tour";
   const isOwner = profile.role === "owner";
@@ -44,7 +47,7 @@ export function SiteHeader() {
                 >
                   <Link href="/tour">
                     <Calendar size={16} />
-                    <span className="hidden sm:inline">Tours</span>
+                    <span className="hidden sm:inline">{header.tours}</span>
                   </Link>
                 </Button>
               )}
@@ -57,7 +60,7 @@ export function SiteHeader() {
               >
                 <Link href="/apartments/saved">
                   <Heart size={16} />
-                  <span className="hidden sm:inline">Saved</span>
+                  <span className="hidden sm:inline">{header.saved}</span>
                   {saved.length > 0 && (
                     <span
                       className={cn(
@@ -75,8 +78,10 @@ export function SiteHeader() {
 
               <span className="hidden md:inline-flex items-center gap-2 h-9 px-3 bg-secondary text-secondary-foreground text-sm font-medium">
                 {isOwner ? <Building2 size={16} /> : <Search size={16} />}
-                {isOwner ? "Owner" : "Renter"}
+                {isOwner ? header.owner : header.renter}
               </span>
+
+              <LanguageSwitcher />
 
               <AccountMenu
                 profile={profile}
@@ -86,9 +91,12 @@ export function SiteHeader() {
               />
             </>
           ) : (
-            <Button asChild size="default" className="h-9 px-4">
-              <Link href="/signin">Sign in</Link>
-            </Button>
+            <>
+              <LanguageSwitcher />
+              <Button asChild size="default" className="h-9 px-4">
+                <Link href="/signin">{header.signIn}</Link>
+              </Button>
+            </>
           )}
         </div>
       </div>

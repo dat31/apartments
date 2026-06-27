@@ -1,0 +1,33 @@
+{
+  "common": {
+    "appName": "Danapa",
+    "signIn": "Sign in",
+    "home": "Home"
+  },
+  "header": {
+    "tours": "Tours",
+    "saved": "Saved",
+    "owner": "Owner",
+    "renter": "Renter",
+    "signIn": "Sign in"
+  },
+  "landing": {
+    "footer": "Danapa — a demo prototype. No account required."
+  },
+  "auth": {
+    "signin": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to manage your search and your listings.",
+      "continueApple": "Continue with Apple",
+      "continueGoogle": "Continue with Google",
+      "dividerEmail": "or with email",
+      "email": "Email",
+      "forgot": "Forgot?",
+      "keepSignedIn": "Keep me signed in",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "noAccount": "New to Danapa?",
+      "createAccount": "Create an account"
+    }
+  }
+}

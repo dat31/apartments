@@ -1,0 +1,33 @@
+{
+  "common": {
+    "appName": "Danapa",
+    "signIn": "Đăng nhập",
+    "home": "Trang chủ"
+  },
+  "header": {
+    "tours": "Lịch xem nhà",
+    "saved": "Đã lưu",
+    "owner": "Chủ nhà",
+    "renter": "Người thuê",
+    "signIn": "Đăng nhập"
+  },
+  "landing": {
+    "footer": "Danapa — bản mẫu demo. Không cần tài khoản."
+  },
+  "auth": {
+    "signin": {
+      "title": "Chào mừng trở lại",
+      "subtitle": "Đăng nhập để quản lý tìm kiếm và tin đăng của bạn.",
+      "continueApple": "Tiếp tục với Apple",
+      "continueGoogle": "Tiếp tục với Google",
+      "dividerEmail": "hoặc bằng email",
+      "email": "Email",
+      "forgot": "Quên mật khẩu?",
+      "keepSignedIn": "Duy trì đăng nhập",
+      "submit": "Đăng nhập",
+      "submitting": "Đang đăng nhập…",
+      "noAccount": "Bạn mới biết đến Danapa?",
+      "createAccount": "Tạo tài khoản"
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import * as React from "react";
-import Link from "next/link";
+import { Link } from "@/lib/i18n/link";
 import { Logo } from "@/components/logo";
 
 /* Shared shell for the 404 / error pages. */

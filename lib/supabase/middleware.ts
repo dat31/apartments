@@ -1,6 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/database.types";
+import { defaultLocale, isLocale } from "@/lib/i18n/config";
+
+/* Split a locale prefix off a pathname, e.g. /vi/apartments/saved ->
+   { locale: "vi", rest: "/apartments/saved" }. Falls back to the default
+   locale when no prefix is present. */
+function splitLocale(pathname: string): { locale: string; rest: string } {
+  const segments = pathname.split("/");
+  if (isLocale(segments[1])) {
+    const rest = "/" + segments.slice(2).join("/");
+    return { locale: segments[1], rest: rest === "/" ? "/" : rest.replace(/\/$/, "") };
+  }
+  return { locale: defaultLocale, rest: pathname };
+}
 
 /* Routes that require a signed-in user. Everything not listed here (landing,
    public apartment browsing, public owner profiles, the auth pages) stays
@@ -49,18 +62,21 @@ export async function updateSession(request: NextRequest) {
   const isSignedIn = !!data?.claims;
 
   const { pathname } = request.nextUrl;
+  // Route guards match against the locale-stripped path, but redirects keep the
+  // visitor in their current locale.
+  const { locale, rest } = splitLocale(pathname);
 
-  if (!isSignedIn && PROTECTED.some((re) => re.test(pathname))) {
+  if (!isSignedIn && PROTECTED.some((re) => re.test(rest))) {
     const url = request.nextUrl.clone();
-    url.pathname = "/signin";
+    url.pathname = `/${locale}/signin`;
     url.search = "";
     url.searchParams.set("next", pathname);
     return copyCookies(response, NextResponse.redirect(url));
   }
 
-  if (isSignedIn && AUTH_PAGES.some((p) => pathname.startsWith(p))) {
+  if (isSignedIn && AUTH_PAGES.some((p) => rest === p || rest.startsWith(`${p}/`))) {
     const url = request.nextUrl.clone();
-    url.pathname = "/apartments";
+    url.pathname = `/${locale}/apartments`;
     url.search = "";
     return copyCookies(response, NextResponse.redirect(url));
   }

@@ -2,6 +2,18 @@ import { type EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { logAuthError } from "@/lib/auth-log";
+import { defaultLocale, isLocale } from "@/lib/i18n/config";
+
+/* This route lives outside the [lang] tree, so localized destinations are
+   derived from the `next` param (which already carries a locale) or fall back
+   to the default locale. */
+function withLocale(path: string, reference: string): string {
+  if (isLocale(reference.split("/")[1])) {
+    const locale = reference.split("/")[1];
+    return `/${locale}${path}`;
+  }
+  return `/${defaultLocale}${path}`;
+}
 
 /* Email-link landing for signup confirmation and password recovery (PKCE).
    Verifies the one-time token, which sets the session cookie, then forwards
@@ -10,7 +22,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/apartments";
+  const next = searchParams.get("next") ?? withLocale("/apartments", "");
 
   if (token_hash && type) {
     const supabase = await createClient();
@@ -29,6 +41,6 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.redirect(
-    new URL("/signin?error=link-expired", request.url)
+    new URL(`${withLocale("/signin", next)}?error=link-expired`, request.url)
   );
 }
