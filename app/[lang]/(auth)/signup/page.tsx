@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
@@ -22,6 +23,7 @@ import { useSignUp } from "@/hooks/auth";
 export default function SignUpPage() {
   const router = useRouter();
   const signUp = useSignUp();
+  const t = useTranslations("auth.signup");
   const {
     register,
     handleSubmit,
@@ -46,7 +48,7 @@ export default function SignUpPage() {
     try {
       const { needsConfirmation } = await signUp.mutateAsync(values);
       if (needsConfirmation) {
-        toast.success("Account created — check your email to confirm.");
+        toast.success(t("confirmToast"));
         router.push("/signin");
       } else {
         router.push("/apartments");
@@ -54,44 +56,44 @@ export default function SignUpPage() {
       }
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Could not create account."
+        err instanceof Error ? err.message : t("errorToast")
       );
     }
   });
 
-  const soon = () => toast("Social sign-up is coming soon.");
+  const soon = () => toast(t("soonToast"));
 
   return (
     <AuthShell>
       <h1 className="text-[1.85rem] font-semibold tracking-tight">
-        Create your account
+        {t("title")}
       </h1>
       <p className="mt-2 text-muted-foreground text-pretty">
-        Join Danapa in a minute — you can switch roles anytime.
+        {t("subtitle")}
       </p>
 
       <div className="mt-8 grid gap-3">
         <SocialButton icon={<AppleMark />} onClick={soon}>
-          Sign up with Apple
+          {t("withApple")}
         </SocialButton>
         <SocialButton icon={<GoogleMark />} onClick={soon}>
-          Sign up with Google
+          {t("withGoogle")}
         </SocialButton>
       </div>
 
-      <AuthDivider>or with email</AuthDivider>
+      <AuthDivider>{t("dividerEmail")}</AuthDivider>
 
       <form className="grid gap-4" onSubmit={onSubmit} noValidate>
         <div>
           <span className="block mb-1.5 text-sm font-medium text-foreground">
-            I&apos;m here to…
+            {t("hereTo")}
           </span>
           <div className="grid grid-cols-2 gap-2">
             {(
               [
-                { id: "renter", label: "Rent", icon: Search },
-                { id: "owner", label: "List", icon: Building2 },
-              ] as const
+                { id: "renter" as const, label: t("roleRent"), icon: Search },
+                { id: "owner" as const, label: t("roleList"), icon: Building2 },
+              ]
             ).map(({ id, label, icon: I }) => (
               <button
                 key={id}
@@ -113,10 +115,10 @@ export default function SignUpPage() {
         </div>
 
         <Field data-invalid={!!errors.name}>
-          <FieldLabel htmlFor="name">Full name</FieldLabel>
+          <FieldLabel htmlFor="name">{t("fullName")}</FieldLabel>
           <Input
             id="name"
-            placeholder="Jordan Rivera"
+            placeholder={t("fullNamePlaceholder")}
             autoComplete="name"
             className={FILLED_INPUT}
             aria-invalid={!!errors.name}
@@ -126,11 +128,11 @@ export default function SignUpPage() {
         </Field>
 
         <Field data-invalid={!!errors.email}>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
           <Input
             id="email"
             type="email"
-            placeholder="you@email.com"
+            placeholder={t("emailPlaceholder")}
             autoComplete="email"
             className={FILLED_INPUT}
             aria-invalid={!!errors.email}
@@ -141,9 +143,9 @@ export default function SignUpPage() {
 
         <div>
           <PasswordField
-            label="Password"
+            label={t("password")}
             autoComplete="new-password"
-            placeholder="8+ chars, mixed case, number, symbol"
+            placeholder={t("passwordPlaceholder")}
             aria-invalid={!!errors.password}
             {...register("password")}
           />
@@ -162,15 +164,18 @@ export default function SignUpPage() {
               className="mt-px"
             />
             <span>
-              I agree to Danapa&apos;s{" "}
-              <a href="#" className="text-primary hover:underline">
-                Terms
-              </a>{" "}
-              and{" "}
-              <a href="#" className="text-primary hover:underline">
-                Privacy Policy
-              </a>
-              .
+              {t.rich("agree", {
+                terms: (chunks) => (
+                  <a href="#" className="text-primary hover:underline">
+                    {chunks}
+                  </a>
+                ),
+                privacy: (chunks) => (
+                  <a href="#" className="text-primary hover:underline">
+                    {chunks}
+                  </a>
+                ),
+              })}
             </span>
           </label>
           <FieldError className="mt-1.5" errors={[errors.agree]} />
@@ -182,15 +187,15 @@ export default function SignUpPage() {
           disabled={signUp.isPending}
           className="w-full mt-1 h-14 text-base gap-2"
         >
-          {signUp.isPending ? "Creating account…" : "Create account"}
+          {signUp.isPending ? t("submitting") : t("submit")}
           <ChevronRight size={18} />
         </Button>
       </form>
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        {t("haveAccount")}{" "}
         <Link href="/signin" className="text-primary font-medium hover:underline">
-          Sign in
+          {t("signin")}
         </Link>
       </p>
     </AuthShell>

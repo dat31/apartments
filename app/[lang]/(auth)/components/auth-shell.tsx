@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { useTheme } from "next-themes";
@@ -9,6 +10,7 @@ import { BrandPanel } from "./brand-panel";
 
 /* Brand panel + centered form column. */
 export function AuthShell({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("common");
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   return (
@@ -24,7 +26,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
             size="icon"
             className="size-9 ml-auto"
             onClick={() => setTheme(isDark ? "light" : "dark")}
-            aria-label="Toggle theme"
+            aria-label={t("toggleTheme")}
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </Button>

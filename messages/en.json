@@ -2,7 +2,8 @@
   "common": {
     "appName": "Danapa",
     "signIn": "Sign in",
-    "home": "Home"
+    "home": "Home",
+    "toggleTheme": "Toggle theme"
   },
   "header": {
     "tours": "Tours",
@@ -27,7 +28,75 @@
       "submit": "Sign in",
       "submitting": "Signing in…",
       "noAccount": "New to Danapa?",
-      "createAccount": "Create an account"
+      "createAccount": "Create an account",
+      "errorToast": "Could not sign in. Try again.",
+      "soonToast": "Social sign-in is coming soon."
+    },
+    "signup": {
+      "title": "Create your account",
+      "subtitle": "Join Danapa in a minute — you can switch roles anytime.",
+      "withApple": "Sign up with Apple",
+      "withGoogle": "Sign up with Google",
+      "dividerEmail": "or with email",
+      "hereTo": "I'm here to…",
+      "roleRent": "Rent",
+      "roleList": "List",
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Jordan Rivera",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "password": "Password",
+      "passwordPlaceholder": "8+ chars, mixed case, number, symbol",
+      "agree": "I agree to Danapa's <terms>Terms</terms> and <privacy>Privacy Policy</privacy>.",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "haveAccount": "Already have an account?",
+      "signin": "Sign in",
+      "confirmToast": "Account created — check your email to confirm.",
+      "errorToast": "Could not create account.",
+      "soonToast": "Social sign-up is coming soon."
+    },
+    "forgot": {
+      "back": "Back to sign in",
+      "title": "Reset your password",
+      "subtitle": "Enter the email tied to your account and we'll send you a link to set a new password.",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "submit": "Send reset link",
+      "submitting": "Sending…",
+      "remembered": "Remembered it?",
+      "signin": "Sign in",
+      "errorToast": "Could not send reset link.",
+      "sentTitle": "Check your email",
+      "sentLead": "We sent a reset link to <b>{email}</b>. It expires in 30 minutes.",
+      "backToSignin": "Back to sign in",
+      "differentEmail": "Use a different email",
+      "didntGet": "Didn't get it? Check spam, or <resend>resend</resend>."
+    },
+    "reset": {
+      "title": "Set a new password",
+      "subtitle": "Choose a new password for your account. You'll stay signed in.",
+      "newPassword": "New password",
+      "newPasswordPlaceholder": "8+ chars, mixed case, number, symbol",
+      "confirmPassword": "Confirm password",
+      "submit": "Update password",
+      "submitting": "Updating…",
+      "updatedToast": "Password updated.",
+      "errorToast": "Could not update password."
+    },
+    "field": {
+      "password": "Password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    },
+    "brand": {
+      "eyebrow": "Danapa · Da Nang",
+      "headline": "Find a place, or fill one.",
+      "lead": "A quiet, honest way to rent in Da Nang — for the people looking, and the people listing.",
+      "point1": "Browse calm, clutter-free listings",
+      "point2": "Tour details, amenities & true costs",
+      "point3": "Message owners — no middlemen",
+      "copyright": "© 2026 Danapa — a demo prototype."
     }
   }
 }

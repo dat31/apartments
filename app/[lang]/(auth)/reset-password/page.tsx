@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +19,7 @@ import { useUpdatePassword } from "@/hooks/auth";
 export default function ResetPasswordPage() {
   const router = useRouter();
   const updatePassword = useUpdatePassword();
+  const t = useTranslations("auth.reset");
   const {
     register,
     handleSubmit,
@@ -30,12 +32,12 @@ export default function ResetPasswordPage() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       await updatePassword.mutateAsync(values.password);
-      toast.success("Password updated.");
+      toast.success(t("updatedToast"));
       router.push("/apartments");
       router.refresh();
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Could not update password."
+        err instanceof Error ? err.message : t("errorToast")
       );
     }
   });
@@ -46,18 +48,18 @@ export default function ResetPasswordPage() {
         <Lock size={22} />
       </span>
       <h1 className="text-[1.85rem] font-semibold tracking-tight">
-        Set a new password
+        {t("title")}
       </h1>
       <p className="mt-2 text-muted-foreground text-pretty">
-        Choose a new password for your account. You&apos;ll stay signed in.
+        {t("subtitle")}
       </p>
 
       <form className="grid gap-4 mt-8" onSubmit={onSubmit} noValidate>
         <div>
           <PasswordField
-            label="New password"
+            label={t("newPassword")}
             autoComplete="new-password"
-            placeholder="8+ chars, mixed case, number, symbol"
+            placeholder={t("newPasswordPlaceholder")}
             aria-invalid={!!errors.password}
             {...register("password")}
           />
@@ -66,7 +68,7 @@ export default function ResetPasswordPage() {
 
         <div>
           <PasswordField
-            label="Confirm password"
+            label={t("confirmPassword")}
             autoComplete="new-password"
             aria-invalid={!!errors.confirm}
             {...register("confirm")}
@@ -80,7 +82,7 @@ export default function ResetPasswordPage() {
           disabled={updatePassword.isPending}
           className="w-full mt-1 h-14 text-base gap-2"
         >
-          {updatePassword.isPending ? "Updating…" : "Update password"}
+          {updatePassword.isPending ? t("submitting") : t("submit")}
           <ChevronRight size={18} />
         </Button>
       </form>
