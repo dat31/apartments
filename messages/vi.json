@@ -2,7 +2,8 @@
   "common": {
     "appName": "Danapa",
     "signIn": "Đăng nhập",
-    "home": "Trang chủ"
+    "home": "Trang chủ",
+    "toggleTheme": "Đổi giao diện"
   },
   "header": {
     "tours": "Lịch xem nhà",
@@ -12,7 +13,44 @@
     "signIn": "Đăng nhập"
   },
   "landing": {
-    "footer": "Danapa — bản mẫu demo. Không cần tài khoản."
+    "footer": "Danapa — bản mẫu demo. Không cần tài khoản.",
+    "chooser": {
+      "eyebrow": "Chào mừng đến Danapa",
+      "headline": "Tìm chỗ ở, hoặc lấp đầy chỗ trống.",
+      "sub": "Một cách thuê nhà nhẹ nhàng, đơn giản tại Đà Nẵng. Chọn cách bạn muốn bắt đầu — đổi bất cứ lúc nào."
+    },
+    "roles": {
+      "rentTitle": "Tôi đang thuê",
+      "rentBlurb": "Xem nhà, tìm chỗ ở tiếp theo của bạn.",
+      "listTitle": "Tôi đang cho thuê",
+      "listBlurb": "Đăng và quản lý chỗ của bạn."
+    },
+    "hero": {
+      "browseLabel": "Tìm nhà",
+      "browseTitle": "47 tin đăng",
+      "browseSub": "Mỹ Khê · Sơn Trà",
+      "detailsLabel": "Xem chi tiết",
+      "detailsTitle": "4.8 ★",
+      "detailsSub": "₫ 8.5tr / tháng",
+      "tourLabel": "Đặt lịch xem",
+      "tourTitle": "Đã xác nhận lịch",
+      "tourSub": "Th 5, 26/6 · 10:00"
+    },
+    "showcase": {
+      "districtsTitle": "Xem theo quận",
+      "districtsSub": "Đến thẳng những khu vực bạn đang để ý",
+      "newestTitle": "Nhà mới nhất",
+      "newestSub": "Tin đăng mới, vừa thêm",
+      "trendingTitle": "Đang nổi bật",
+      "trendingSub": "Những căn được người thuê quan tâm nhất",
+      "seeAll": "Xem tất cả",
+      "badgeNew": "Mới",
+      "badgeViews": "{views, number} lượt xem"
+    },
+    "districts": {
+      "homes": "{count, plural, other {# căn}}",
+      "priceFrom": "từ {price}/tháng"
+    }
   },
   "auth": {
     "signin": {
@@ -27,7 +65,185 @@
       "submit": "Đăng nhập",
       "submitting": "Đang đăng nhập…",
       "noAccount": "Bạn mới biết đến Danapa?",
-      "createAccount": "Tạo tài khoản"
+      "createAccount": "Tạo tài khoản",
+      "errorToast": "Không thể đăng nhập. Vui lòng thử lại.",
+      "soonToast": "Đăng nhập bằng mạng xã hội sẽ sớm có mặt."
+    },
+    "signup": {
+      "title": "Tạo tài khoản",
+      "subtitle": "Tham gia Danapa chỉ trong một phút — bạn có thể đổi vai trò bất cứ lúc nào.",
+      "withApple": "Đăng ký với Apple",
+      "withGoogle": "Đăng ký với Google",
+      "dividerEmail": "hoặc bằng email",
+      "hereTo": "Tôi muốn…",
+      "roleRent": "Thuê",
+      "roleList": "Cho thuê",
+      "fullName": "Họ và tên",
+      "fullNamePlaceholder": "Nguyễn Văn A",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "password": "Mật khẩu",
+      "passwordPlaceholder": "8+ ký tự, có hoa thường, số, ký hiệu",
+      "agree": "Tôi đồng ý với <terms>Điều khoản</terms> và <privacy>Chính sách bảo mật</privacy> của Danapa.",
+      "submit": "Tạo tài khoản",
+      "submitting": "Đang tạo tài khoản…",
+      "haveAccount": "Đã có tài khoản?",
+      "signin": "Đăng nhập",
+      "confirmToast": "Đã tạo tài khoản — kiểm tra email để xác nhận.",
+      "errorToast": "Không thể tạo tài khoản.",
+      "soonToast": "Đăng ký bằng mạng xã hội sẽ sớm có mặt."
+    },
+    "forgot": {
+      "back": "Quay lại đăng nhập",
+      "title": "Đặt lại mật khẩu",
+      "subtitle": "Nhập email gắn với tài khoản của bạn, chúng tôi sẽ gửi liên kết để đặt mật khẩu mới.",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "submit": "Gửi liên kết đặt lại",
+      "submitting": "Đang gửi…",
+      "remembered": "Đã nhớ ra?",
+      "signin": "Đăng nhập",
+      "errorToast": "Không thể gửi liên kết đặt lại.",
+      "sentTitle": "Kiểm tra email của bạn",
+      "sentLead": "Chúng tôi đã gửi liên kết đặt lại tới <b>{email}</b>. Liên kết hết hạn sau 30 phút.",
+      "backToSignin": "Quay lại đăng nhập",
+      "differentEmail": "Dùng email khác",
+      "didntGet": "Chưa nhận được? Kiểm tra hộp thư rác, hoặc <resend>gửi lại</resend>."
+    },
+    "reset": {
+      "title": "Đặt mật khẩu mới",
+      "subtitle": "Chọn mật khẩu mới cho tài khoản của bạn. Bạn vẫn sẽ đăng nhập.",
+      "newPassword": "Mật khẩu mới",
+      "newPasswordPlaceholder": "8+ ký tự, có hoa thường, số, ký hiệu",
+      "confirmPassword": "Xác nhận mật khẩu",
+      "submit": "Cập nhật mật khẩu",
+      "submitting": "Đang cập nhật…",
+      "updatedToast": "Đã cập nhật mật khẩu.",
+      "errorToast": "Không thể cập nhật mật khẩu."
+    },
+    "field": {
+      "password": "Mật khẩu",
+      "showPassword": "Hiện mật khẩu",
+      "hidePassword": "Ẩn mật khẩu"
+    },
+    "brand": {
+      "eyebrow": "Danapa · Đà Nẵng",
+      "headline": "Tìm chỗ ở, hoặc lấp đầy chỗ trống.",
+      "lead": "Một cách thuê nhà nhẹ nhàng và minh bạch tại Đà Nẵng — cho người đang tìm, và cho người đang cho thuê.",
+      "point1": "Xem những tin đăng gọn gàng, dễ nhìn",
+      "point2": "Chi tiết phòng, tiện nghi & chi phí thực",
+      "point3": "Nhắn trực tiếp với chủ nhà — không qua trung gian",
+      "copyright": "© 2026 Danapa — bản mẫu demo."
+    }
+  },
+  "errors": {
+    "signIn": "Đăng nhập",
+    "homeAria": "Trang chủ Danapa",
+    "shellFooter": "Danapa — thuê căn hộ tại Đà Nẵng",
+    "errorTitle": "Đã xảy ra lỗi",
+    "errorBody": "Một lỗi không mong muốn khiến trang không tải được. Lỗi từ phía chúng tôi — thử lại thường sẽ khắc phục.",
+    "tryAgain": "Thử lại",
+    "goHome": "Về trang chủ",
+    "stillStuck": "Vẫn gặp trục trặc? Hãy viết cho <email>support@danapa.vn</email>",
+    "notFoundAria": "Lỗi 404: không tìm thấy trang",
+    "notFoundTitle": "Không tìm thấy chỗ này trên bản đồ",
+    "notFoundBody": "Trang bạn tìm có thể đã được chuyển đi, hoặc địa chỉ bị gõ nhầm. Dù sao thì ở đây cũng không có gì.",
+    "browse": "Xem căn hộ",
+    "goBack": "Quay lại"
+  },
+  "account": {
+    "fallbackName": "bạn",
+    "yourAccount": "Tài khoản của bạn",
+    "hosting": "Đang cho thuê trên Danapa",
+    "renting": "Đang thuê trên Danapa",
+    "owner": "Chủ nhà",
+    "renter": "Người thuê",
+    "manageProfile": "Quản lý hồ sơ",
+    "ownerDashboard": "Bảng điều khiển chủ nhà",
+    "viewPublic": "Xem hồ sơ công khai",
+    "switchToRenting": "Chuyển sang thuê",
+    "switchToListing": "Chuyển sang cho thuê",
+    "lightMode": "Giao diện sáng",
+    "darkMode": "Giao diện tối",
+    "signOut": "Đăng xuất"
+  },
+  "profile": {
+    "title": "Quản lý hồ sơ",
+    "owner": "Chủ nhà",
+    "renter": "Người thuê",
+    "yourName": "Tên của bạn",
+    "avatarColor": "Màu ảnh đại diện",
+    "colorAria": "Màu {n}",
+    "fullName": "Họ và tên",
+    "fullNamePlaceholder": "vd: Nguyễn Văn A",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "location": "Khu vực",
+    "locationPlaceholder": "vd: Đà Nẵng",
+    "about": "Giới thiệu bản thân",
+    "aboutPlaceholder": "Một hai câu về bạn là ai và bạn đang tìm gì.",
+    "cancel": "Hủy",
+    "save": "Lưu thay đổi"
+  },
+  "apartments": {
+    "heading": "Nhà ở Đà Nẵng",
+    "summary": "{count, plural, =0 {Không có chỗ nào đang cho thuê} other {# chỗ đang cho thuê}}",
+    "sort": "Sắp xếp",
+    "filters": "Bộ lọc",
+    "showHomes": "{count, plural, other {Xem # căn}}",
+    "showHomesShort": "Xem nhà",
+    "sortOptions": {
+      "featured": "Nổi bật",
+      "low": "Giá: thấp đến cao",
+      "high": "Giá: cao đến thấp",
+      "area": "Diện tích lớn nhất"
+    },
+    "filtersPanel": {
+      "search": "Tìm kiếm",
+      "searchPlaceholder": "Khu vực, loại, hoặc tên…",
+      "homeType": "Loại nhà",
+      "all": "Tất cả",
+      "district": "Quận",
+      "monthlyPrice": "Giá theo tháng",
+      "min": "Tối thiểu",
+      "max": "Tối đa",
+      "bedrooms": "Phòng ngủ",
+      "any": "Bất kỳ",
+      "studio": "Studio",
+      "amenities": "Tiện nghi",
+      "reset": "Đặt lại bộ lọc"
+    },
+    "types": {
+      "Studio": "Căn studio",
+      "Apartment": "Căn hộ",
+      "Loft": "Căn loft",
+      "Townhouse": "Nhà phố",
+      "House": "Nhà riêng"
+    },
+    "amenities": {
+      "wifi": "Wi-Fi tốc độ cao",
+      "parking": "Chỗ đậu xe",
+      "pets": "Cho nuôi thú cưng",
+      "garden": "Sân / vườn",
+      "ac": "Máy lạnh",
+      "laundry": "Máy giặt trong nhà"
+    },
+    "card": {
+      "perMonth": "/tháng",
+      "availableNow": "Còn trống ngay",
+      "availableOn": "Trống từ {date}",
+      "studio": "Studio",
+      "beds": "{count, plural, other {# phòng ngủ}}"
+    },
+    "empty": {
+      "title": "Không có nhà nào khớp bộ lọc",
+      "body": "Thử mở rộng khoảng giá hoặc bỏ bớt một bộ lọc.",
+      "reset": "Đặt lại bộ lọc"
+    },
+    "pagination": {
+      "prev": "Trước",
+      "next": "Sau",
+      "showing": "Hiển thị {from}–{to} trong {total}"
     }
   }
 }

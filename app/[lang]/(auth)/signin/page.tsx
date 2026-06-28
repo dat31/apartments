@@ -45,12 +45,12 @@ export default function SignInPage() {
       router.refresh();
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Could not sign in. Try again."
+        err instanceof Error ? err.message : t("errorToast")
       );
     }
   });
 
-  const soon = () => toast("Social sign-in is coming soon.");
+  const soon = () => toast(t("soonToast"));
 
   return (
     <AuthShell>

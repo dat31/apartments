@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -27,13 +28,14 @@ export function AccountMenu({
   onSignOut: () => void;
 }) {
   const router = useRouter();
+  const t = useTranslations("account");
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const [open, setOpen] = React.useState(false);
 
   const role = profile.role;
-  const first = (profile.name || "there").trim().split(/\s+/)[0];
-  const roleLabel = role === "owner" ? "Hosting on Danapa" : "Renting on Danapa";
+  const first = (profile.name || t("fallbackName")).trim().split(/\s+/)[0];
+  const roleLabel = role === "owner" ? t("hosting") : t("renting");
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -69,7 +71,7 @@ export function AccountMenu({
           <ProfileAvatar name={profile.name} palette={profile.palette} size={44} />
           <div className="min-w-0">
             <p className="font-semibold leading-tight truncate">
-              {profile.name || "Your account"}
+              {profile.name || t("yourAccount")}
             </p>
             <p className="text-xs text-muted-foreground truncate mt-0.5">
               {profile.email || roleLabel}
@@ -81,7 +83,7 @@ export function AccountMenu({
         <div className="px-4 py-3 flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-secondary text-secondary-foreground">
             {role === "owner" ? <Building2 size={13} /> : <Search size={13} />}
-            {role === "owner" ? "Owner" : "Renter"}
+            {role === "owner" ? t("owner") : t("renter")}
           </span>
           {profile.location && (
             <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground truncate">
@@ -97,14 +99,14 @@ export function AccountMenu({
             className="px-4 h-11 text-[15px] rounded-none"
             onSelect={onManage}
           >
-            <Settings size={18} /> Manage profile
+            <Settings size={18} /> {t("manageProfile")}
           </DropdownMenuItem>
           {role === "owner" && (
             <DropdownMenuItem
               className="px-4 h-11 text-[15px] rounded-none"
               onSelect={() => router.push("/owner/dashboard")}
             >
-              <LayoutGrid size={18} /> Owner dashboard
+              <LayoutGrid size={18} /> {t("ownerDashboard")}
             </DropdownMenuItem>
           )}
           {role === "owner" && (
@@ -112,15 +114,15 @@ export function AccountMenu({
               className="px-4 h-11 text-[15px] rounded-none"
               onSelect={() => router.push("/owner/you")}
             >
-              <Eye size={18} /> View public profile
+              <Eye size={18} /> {t("viewPublic")}
             </DropdownMenuItem>
           )}
           <DropdownMenuItem
             className="px-4 h-11 text-[15px] rounded-none"
             onSelect={() => onSwitchRole(role === "owner" ? "renter" : "owner")}
           >
-            <ArrowLeftRight size={18} /> Switch to{" "}
-            {role === "owner" ? "renting" : "listing"}
+            <ArrowLeftRight size={18} />{" "}
+            {role === "owner" ? t("switchToRenting") : t("switchToListing")}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="px-4 h-11 text-[15px] rounded-none"
@@ -130,7 +132,7 @@ export function AccountMenu({
             }}
           >
             {isDark ? <Sun size={18} /> : <Moon size={18} />}
-            {isDark ? "Light mode" : "Dark mode"}
+            {isDark ? t("lightMode") : t("darkMode")}
           </DropdownMenuItem>
         </div>
 
@@ -142,7 +144,7 @@ export function AccountMenu({
             className="px-4 h-11 text-[15px] rounded-none"
             onSelect={onSignOut}
           >
-            <LogOut size={18} /> Sign out
+            <LogOut size={18} /> {t("signOut")}
           </DropdownMenuItem>
         </div>
       </DropdownMenuContent>

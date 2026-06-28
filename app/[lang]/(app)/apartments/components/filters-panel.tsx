@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ function useDebouncedTextParam(
 }
 
 export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
+  const t = useTranslations("apartments");
   const { searchParams, setParams, reset } = useFilterNav();
   const filters = React.useMemo(
     () => parseFilters(Object.fromEntries(searchParams.entries())),
@@ -69,7 +71,7 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
   return (
     <div className="flex flex-col gap-7">
       <div>
-        <h4 className={heading}>Search</h4>
+        <h4 className={heading}>{t("filtersPanel.search")}</h4>
         <div className="relative">
           <Search
             size={16}
@@ -78,29 +80,29 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Area, type, or name…"
+            placeholder={t("filtersPanel.searchPlaceholder")}
             className={cn(FILLED_INPUT, "pl-9")}
           />
         </div>
       </div>
 
       <div>
-        <h4 className={heading}>Home type</h4>
+        <h4 className={heading}>{t("filtersPanel.homeType")}</h4>
         <div className="flex flex-wrap gap-2">
-          {["All", ...TYPES].map((t) => (
+          {["All", ...TYPES].map((opt) => (
             <Chip
-              key={t}
-              active={filters.type === t}
-              onClick={() => setParams({ type: t === "All" ? null : t })}
+              key={opt}
+              active={filters.type === opt}
+              onClick={() => setParams({ type: opt === "All" ? null : opt })}
             >
-              {t}
+              {opt === "All" ? t("filtersPanel.all") : t(`types.${opt}`)}
             </Chip>
           ))}
         </div>
       </div>
 
       <div>
-        <h4 className={heading}>District</h4>
+        <h4 className={heading}>{t("filtersPanel.district")}</h4>
         <div className="flex flex-wrap gap-2">
           {["All", ...districts].map((d) => (
             <Chip
@@ -108,19 +110,19 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
               active={filters.district === d}
               onClick={() => setParams({ district: d === "All" ? null : d })}
             >
-              {d === "All" ? d : districtLabel(d)}
+              {d === "All" ? t("filtersPanel.all") : districtLabel(d)}
             </Chip>
           ))}
         </div>
       </div>
 
       <div>
-        <h4 className={heading}>Monthly price</h4>
+        <h4 className={heading}>{t("filtersPanel.monthlyPrice")}</h4>
         <div className="flex items-center gap-2">
           <Input
             type="number"
             inputMode="numeric"
-            placeholder="Min"
+            placeholder={t("filtersPanel.min")}
             value={minPrice}
             onChange={(e) => setMinPrice(e.target.value)}
             className={FILLED_INPUT}
@@ -129,7 +131,7 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
           <Input
             type="number"
             inputMode="numeric"
-            placeholder="Max"
+            placeholder={t("filtersPanel.max")}
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
             className={FILLED_INPUT}
@@ -138,7 +140,7 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
       </div>
 
       <div>
-        <h4 className={heading}>Bedrooms</h4>
+        <h4 className={heading}>{t("filtersPanel.bedrooms")}</h4>
         <div className="flex flex-wrap gap-2">
           {["Any", "Studio", "1", "2", "3+"].map((b) => (
             <Chip
@@ -146,14 +148,18 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
               active={filters.beds === b}
               onClick={() => setParams({ beds: b === "Any" ? null : b })}
             >
-              {b}
+              {b === "Any"
+                ? t("filtersPanel.any")
+                : b === "Studio"
+                  ? t("filtersPanel.studio")
+                  : b}
             </Chip>
           ))}
         </div>
       </div>
 
       <div>
-        <h4 className={heading}>Amenities</h4>
+        <h4 className={heading}>{t("filtersPanel.amenities")}</h4>
         <div className="flex flex-col gap-1">
           {AMENITIES.map((a) => {
             const I = AMENITY_ICONS[a.icon];
@@ -178,7 +184,7 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
                 >
                   {on ? <Check size={18} /> : <I size={18} />}
                 </span>
-                {a.label}
+                {t(`amenities.${a.id}`)}
               </button>
             );
           })}
@@ -186,7 +192,7 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
       </div>
 
       <Button variant="secondary" className="h-11" onClick={reset}>
-        Reset filters
+        {t("filtersPanel.reset")}
       </Button>
     </div>
   );

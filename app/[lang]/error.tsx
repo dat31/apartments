@@ -1,11 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { ErrorShell } from "@/components/error-shell";
 import { Home } from "lucide-react";
 
 export default function Error({ reset }: { error: Error; reset: () => void }) {
+  const t = useTranslations("errors");
   return (
     <ErrorShell>
       <div className="flex items-center justify-center" aria-hidden="true">
@@ -24,32 +26,34 @@ export default function Error({ reset }: { error: Error; reset: () => void }) {
       </div>
 
       <h1 className="mt-10 text-[2rem] font-semibold tracking-tight text-balance">
-        Something went wrong
+        {t("errorTitle")}
       </h1>
       <p className="mt-3 text-muted-foreground text-pretty max-w-md mx-auto">
-        An unexpected error stopped this page from loading. It&apos;s on our side
-        — trying again usually fixes it.
+        {t("errorBody")}
       </p>
 
       <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
         <Button size="lg" className="h-14 px-7 text-base" onClick={() => reset()}>
-          Try again
+          {t("tryAgain")}
         </Button>
         <Button asChild variant="ghost" size="lg" className="h-14 px-7 text-base gap-2">
           <Link href="/apartments">
-            <Home size={18} /> Go home
+            <Home size={18} /> {t("goHome")}
           </Link>
         </Button>
       </div>
 
       <p className="mt-9 text-sm text-muted-foreground">
-        Still stuck? Write to{" "}
-        <a
-          href="mailto:support@danapa.vn"
-          className="text-primary font-medium hover:underline"
-        >
-          support@danapa.vn
-        </a>
+        {t.rich("stillStuck", {
+          email: (chunks) => (
+            <a
+              href="mailto:support@danapa.vn"
+              className="text-primary font-medium hover:underline"
+            >
+              {chunks}
+            </a>
+          ),
+        })}
       </p>
     </ErrorShell>
   );

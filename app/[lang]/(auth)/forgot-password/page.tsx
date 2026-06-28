@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +18,7 @@ import { useResetPassword } from "@/hooks/auth";
 export default function ForgotPasswordPage() {
   const [sentTo, setSentTo] = React.useState<string | null>(null);
   const resetPassword = useResetPassword();
+  const t = useTranslations("auth.forgot");
   const {
     register,
     handleSubmit,
@@ -33,7 +35,7 @@ export default function ForgotPasswordPage() {
       setSentTo(email);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Could not send reset link."
+        err instanceof Error ? err.message : t("errorToast")
       );
     }
   };
@@ -44,7 +46,7 @@ export default function ForgotPasswordPage() {
         href="/signin"
         className="flex w-fit items-center gap-1.5 whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground mb-8"
       >
-        <ArrowLeft size={16} /> Back to sign in
+        <ArrowLeft size={16} /> {t("back")}
       </Link>
 
       {!sentTo ? (
@@ -53,11 +55,10 @@ export default function ForgotPasswordPage() {
             <Lock size={22} />
           </span>
           <h1 className="text-[1.85rem] font-semibold tracking-tight">
-            Reset your password
+            {t("title")}
           </h1>
           <p className="mt-2 text-muted-foreground text-pretty">
-            Enter the email tied to your account and we&apos;ll send you a link
-            to set a new password.
+            {t("subtitle")}
           </p>
 
           <form
@@ -66,11 +67,11 @@ export default function ForgotPasswordPage() {
             noValidate
           >
             <Field data-invalid={!!errors.email}>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@email.com"
+                placeholder={t("emailPlaceholder")}
                 autoComplete="email"
                 autoFocus
                 className={FILLED_INPUT}
@@ -85,18 +86,18 @@ export default function ForgotPasswordPage() {
               disabled={resetPassword.isPending}
               className="w-full mt-1 h-14 text-base gap-2"
             >
-              {resetPassword.isPending ? "Sending…" : "Send reset link"}
+              {resetPassword.isPending ? t("submitting") : t("submit")}
               <ChevronRight size={18} />
             </Button>
           </form>
 
           <p className="mt-8 text-center text-sm text-muted-foreground">
-            Remembered it?{" "}
+            {t("remembered")}{" "}
             <Link
               href="/signin"
               className="text-primary font-medium hover:underline"
             >
-              Sign in
+              {t("signin")}
             </Link>
           </p>
         </>
@@ -106,12 +107,15 @@ export default function ForgotPasswordPage() {
             <Mail size={22} />
           </span>
           <h1 className="text-[1.85rem] font-semibold tracking-tight">
-            Check your email
+            {t("sentTitle")}
           </h1>
           <p className="mt-2 text-muted-foreground text-pretty">
-            We sent a reset link to{" "}
-            <span className="font-medium text-foreground">{sentTo}</span>. It
-            expires in 30 minutes.
+            {t.rich("sentLead", {
+              email: sentTo,
+              b: (chunks) => (
+                <span className="font-medium text-foreground">{chunks}</span>
+              ),
+            })}
           </p>
 
           <div className="mt-8 grid gap-3">
@@ -121,7 +125,7 @@ export default function ForgotPasswordPage() {
               className="w-full h-14 text-base gap-2"
             >
               <Link href="/signin">
-                Back to sign in <ChevronRight size={18} />
+                {t("backToSignin")} <ChevronRight size={18} />
               </Link>
             </Button>
             <Button
@@ -130,20 +134,22 @@ export default function ForgotPasswordPage() {
               className="w-full h-14 text-base"
               onClick={() => setSentTo(null)}
             >
-              Use a different email
+              {t("differentEmail")}
             </Button>
           </div>
 
           <p className="mt-8 text-center text-sm text-muted-foreground">
-            Didn&apos;t get it? Check spam, or{" "}
-            <button
-              type="button"
-              onClick={() => sendLink(getValues("email"))}
-              className="text-primary font-medium hover:underline"
-            >
-              resend
-            </button>
-            .
+            {t.rich("didntGet", {
+              resend: (chunks) => (
+                <button
+                  type="button"
+                  onClick={() => sendLink(getValues("email"))}
+                  className="text-primary font-medium hover:underline"
+                >
+                  {chunks}
+                </button>
+              ),
+            })}
           </p>
         </div>
       )}

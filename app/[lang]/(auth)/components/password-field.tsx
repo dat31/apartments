@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -13,12 +14,15 @@ type Props = React.ComponentProps<typeof Input> & {
 };
 
 export const PasswordField = React.forwardRef<HTMLInputElement, Props>(
-  function PasswordField({ label = "Password", rightLink, ...props }, ref) {
+  function PasswordField({ label, rightLink, ...props }, ref) {
+    const t = useTranslations("auth.field");
     const [show, setShow] = React.useState(false);
     return (
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-sm font-medium text-foreground">{label}</span>
+          <span className="text-sm font-medium text-foreground">
+            {label ?? t("password")}
+          </span>
           {rightLink}
         </div>
         <div className="relative">
@@ -33,7 +37,7 @@ export const PasswordField = React.forwardRef<HTMLInputElement, Props>(
             type="button"
             onClick={() => setShow((s) => !s)}
             className="absolute right-0 top-0 h-11 w-11 inline-flex items-center justify-center text-muted-foreground hover:text-foreground focus-ring"
-            aria-label={show ? "Hide password" : "Show password"}
+            aria-label={show ? t("hidePassword") : t("showPassword")}
           >
             {show ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
