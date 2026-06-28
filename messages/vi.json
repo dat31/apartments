@@ -322,5 +322,50 @@
     "nextMonth": "Tháng sau",
     "notRobot": "Tôi không phải là robot",
     "privacyTerms": "Quyền riêng tư · Điều khoản"
+  },
+  "listingForm": {
+    "backToDashboard": "Quay lại bảng điều khiển",
+    "editTitle": "Chỉnh sửa tin đăng",
+    "newTitle": "Tin đăng mới",
+    "editSubtitle": "Cập nhật thông tin bên dưới.",
+    "newSubtitle": "Thêm thông tin về chỗ ở của bạn. Bạn có thể lưu dưới dạng bản nháp.",
+    "photos": "Hình ảnh",
+    "photosHint": "Tải lên hình ảnh chỗ ở của bạn. Kéo để sắp xếp lại — ảnh đầu tiên được dùng làm ảnh bìa.",
+    "basics": "Thông tin cơ bản",
+    "title": "Tiêu đề",
+    "titlePlaceholder": "vd. Căn studio đầy nắng gần Mỹ Khê",
+    "homeType": "Loại nhà",
+    "price": "Giá theo tháng (USD)",
+    "bedrooms": "Phòng ngủ",
+    "studio": "Studio",
+    "bathrooms": "Phòng tắm",
+    "area": "Diện tích (m²)",
+    "district": "Quận",
+    "districtPlaceholder": "Chọn một quận…",
+    "availableFrom": "Trống từ",
+    "now": "Ngay bây giờ",
+    "or": "hoặc",
+    "pickDate": "Chọn ngày",
+    "availableHint": "Khi nào người thuê có thể dọn vào?",
+    "description": "Mô tả",
+    "descriptionPlaceholder": "Mô tả ánh sáng, bố cục, khu phố…",
+    "amenities": "Tiện nghi",
+    "photoUploader": {
+      "addPhoto": "Thêm ảnh",
+      "uploadPhotos": "Tải ảnh lên",
+      "uploadHint": "PNG hoặc JPG — thêm bao nhiêu tùy thích",
+      "removePhoto": "Xóa ảnh",
+      "cover": "Ảnh bìa"
+    },
+    "publish": {
+      "editHeading": "Lưu thay đổi",
+      "newHeading": "Sẵn sàng đăng?",
+      "editBlurb": "Thay đổi của bạn sẽ hiển thị ngay khi bạn lưu.",
+      "newBlurb": "Đăng để hiển thị ngay, hoặc lưu nháp để hoàn thiện sau.",
+      "saveChanges": "Lưu thay đổi",
+      "publish": "Đăng tin",
+      "saveDraft": "Lưu nháp",
+      "cancel": "Hủy"
+    }
   }
 }

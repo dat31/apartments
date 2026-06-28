@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { notFound } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
@@ -53,6 +54,8 @@ export function ListingForm({
   mode: "create" | "edit";
   listingId?: string;
 }) {
+  const t = useTranslations("listingForm");
+  const tt = useTranslations("apartments");
   const router = useRouter();
   const { getById, addListing, updateListing } = useListings();
   const isEdit = mode === "edit";
@@ -104,26 +107,23 @@ export function ListingForm({
         onClick={() => router.push(DASHBOARD)}
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-5 focus-ring"
       >
-        <ArrowLeft size={18} /> Back to dashboard
+        <ArrowLeft size={18} /> {t("backToDashboard")}
       </button>
 
       <h1 className="text-3xl font-semibold tracking-tight">
-        {isEdit ? "Edit listing" : "New listing"}
+        {isEdit ? t("editTitle") : t("newTitle")}
       </h1>
       <p className="mt-1 text-muted-foreground">
-        {isEdit
-          ? "Update the details below."
-          : "Add the details of your place. You can save it as a draft."}
+        {isEdit ? t("editSubtitle") : t("newSubtitle")}
       </p>
 
       <form className="mt-8 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] gap-6 lg:gap-8 items-start">
         <div className="flex flex-col gap-6 min-w-0">
         {/* Photos */}
         <section className="bg-card p-6">
-          <h2 className="font-semibold mb-1">Photos</h2>
+          <h2 className="font-semibold mb-1">{t("photos")}</h2>
           <p className="text-sm text-muted-foreground mb-4">
-            Upload photos of your place. Drag to reorder — the first photo is
-            used as the cover.
+            {t("photosHint")}
           </p>
           <PhotoUploader
             value={values.images}
@@ -133,13 +133,13 @@ export function ListingForm({
 
         {/* Basics */}
         <section className="bg-card p-6 flex flex-col gap-5">
-          <h2 className="font-semibold">The basics</h2>
+          <h2 className="font-semibold">{t("basics")}</h2>
 
           <Field data-invalid={!!errors.title}>
-            <FieldLabel htmlFor="title">Title</FieldLabel>
+            <FieldLabel htmlFor="title">{t("title")}</FieldLabel>
             <Input
               id="title"
-              placeholder="e.g. Sunlit studio near Mỹ Khê"
+              placeholder={t("titlePlaceholder")}
               aria-invalid={!!errors.title}
               {...register("title")}
             />
@@ -148,7 +148,7 @@ export function ListingForm({
 
           <div className="grid sm:grid-cols-2 gap-5">
             <Field>
-              <FieldLabel>Home type</FieldLabel>
+              <FieldLabel>{t("homeType")}</FieldLabel>
               <Select
                 value={values.type}
                 onValueChange={(v) => setField("type", v)}
@@ -157,9 +157,9 @@ export function ListingForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t}
+                  {TYPES.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {tt(`types.${type}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -167,7 +167,7 @@ export function ListingForm({
             </Field>
 
             <Field data-invalid={!!errors.price}>
-              <FieldLabel htmlFor="price">Monthly price (USD)</FieldLabel>
+              <FieldLabel htmlFor="price">{t("price")}</FieldLabel>
               <Input
                 id="price"
                 type="number"
@@ -182,7 +182,7 @@ export function ListingForm({
 
           <div className="grid grid-cols-3 gap-5">
             <Field>
-              <FieldLabel>Bedrooms</FieldLabel>
+              <FieldLabel>{t("bedrooms")}</FieldLabel>
               <Select
                 value={values.beds}
                 onValueChange={(v) => setField("beds", v)}
@@ -193,7 +193,7 @@ export function ListingForm({
                 <SelectContent>
                   {BED_OPTIONS.map((n) => (
                     <SelectItem key={n} value={String(n)}>
-                      {n === 0 ? "Studio" : n}
+                      {n === 0 ? t("studio") : n}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -201,7 +201,7 @@ export function ListingForm({
             </Field>
 
             <Field>
-              <FieldLabel>Bathrooms</FieldLabel>
+              <FieldLabel>{t("bathrooms")}</FieldLabel>
               <Select
                 value={values.baths}
                 onValueChange={(v) => setField("baths", v)}
@@ -220,7 +220,7 @@ export function ListingForm({
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="area">Area (m²)</FieldLabel>
+              <FieldLabel htmlFor="area">{t("area")}</FieldLabel>
               <Input
                 id="area"
                 type="number"
@@ -232,7 +232,7 @@ export function ListingForm({
           </div>
 
           <Field data-invalid={!!errors.district}>
-            <FieldLabel>District</FieldLabel>
+            <FieldLabel>{t("district")}</FieldLabel>
             <Select
               value={values.district}
               onValueChange={(v) => setField("district", v)}
@@ -241,7 +241,7 @@ export function ListingForm({
                 className="w-full h-9"
                 aria-invalid={!!errors.district}
               >
-                <SelectValue placeholder="Select a district…" />
+                <SelectValue placeholder={t("districtPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {districtOptions.map((d) => (
@@ -257,19 +257,19 @@ export function ListingForm({
           </Field>
 
           <Field>
-            <FieldLabel>Available from</FieldLabel>
+            <FieldLabel>{t("availableFrom")}</FieldLabel>
             <div className="flex flex-wrap items-center gap-3">
               <Chip
                 className="h-8"
                 active={values.available === "now"}
                 onClick={() => setField("available", "now")}
               >
-                <Clock size={16} /> Now
+                <Clock size={16} /> {t("now")}
               </Chip>
-              <span className="text-sm text-muted-foreground">or</span>
+              <span className="text-sm text-muted-foreground">{t("or")}</span>
               <DatePicker
                 min={today || undefined}
-                placeholder="Pick a date"
+                placeholder={t("pickDate")}
                 value={values.available === "now" ? undefined : values.available}
                 onChange={(v) => setField("available", v || "now")}
                 className={cn(
@@ -279,15 +279,15 @@ export function ListingForm({
                 )}
               />
             </div>
-            <FieldDescription>When can a renter move in?</FieldDescription>
+            <FieldDescription>{t("availableHint")}</FieldDescription>
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="desc">Description</FieldLabel>
+            <FieldLabel htmlFor="desc">{t("description")}</FieldLabel>
             <Textarea
               id="desc"
               rows={4}
-              placeholder="Describe the light, the layout, the neighborhood…"
+              placeholder={t("descriptionPlaceholder")}
               {...register("desc")}
             />
           </Field>
@@ -295,7 +295,7 @@ export function ListingForm({
 
         {/* Amenities */}
         <section className="bg-card p-6">
-          <h2 className="font-semibold mb-4">Amenities</h2>
+          <h2 className="font-semibold mb-4">{t("amenities")}</h2>
           <AmenityPicker
             value={values.amenities}
             onChange={(next) => setField("amenities", next)}
@@ -308,12 +308,10 @@ export function ListingForm({
           <div className="bg-card p-6 flex flex-col gap-4">
             <div>
               <h2 className="font-semibold">
-                {isEdit ? "Save changes" : "Ready to publish?"}
+                {isEdit ? t("publish.editHeading") : t("publish.newHeading")}
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                {isEdit
-                  ? "Your edits go live as soon as you save."
-                  : "Publish to list it now, or keep it as a draft to finish later."}
+                {isEdit ? t("publish.editBlurb") : t("publish.newBlurb")}
               </p>
             </div>
             <div className="flex flex-col gap-2">
@@ -322,7 +320,7 @@ export function ListingForm({
                 className="w-full justify-center"
                 onClick={handleSubmit((v) => save(v, "active"))}
               >
-                {isEdit ? "Save changes" : "Publish listing"}
+                {isEdit ? t("publish.saveChanges") : t("publish.publish")}
               </Button>
               {!isEdit && (
                 <Button
@@ -331,7 +329,7 @@ export function ListingForm({
                   className="w-full justify-center"
                   onClick={handleSubmit((v) => save(v, "draft"))}
                 >
-                  Save as draft
+                  {t("publish.saveDraft")}
                 </Button>
               )}
               <Button
@@ -340,7 +338,7 @@ export function ListingForm({
                 className="w-full justify-center"
                 onClick={() => router.push(DASHBOARD)}
               >
-                Cancel
+                {t("publish.cancel")}
               </Button>
             </div>
           </div>

@@ -322,5 +322,50 @@
     "nextMonth": "Next month",
     "notRobot": "I'm not a robot",
     "privacyTerms": "Privacy · Terms"
+  },
+  "listingForm": {
+    "backToDashboard": "Back to dashboard",
+    "editTitle": "Edit listing",
+    "newTitle": "New listing",
+    "editSubtitle": "Update the details below.",
+    "newSubtitle": "Add the details of your place. You can save it as a draft.",
+    "photos": "Photos",
+    "photosHint": "Upload photos of your place. Drag to reorder — the first photo is used as the cover.",
+    "basics": "The basics",
+    "title": "Title",
+    "titlePlaceholder": "e.g. Sunlit studio near Mỹ Khê",
+    "homeType": "Home type",
+    "price": "Monthly price (USD)",
+    "bedrooms": "Bedrooms",
+    "studio": "Studio",
+    "bathrooms": "Bathrooms",
+    "area": "Area (m²)",
+    "district": "District",
+    "districtPlaceholder": "Select a district…",
+    "availableFrom": "Available from",
+    "now": "Now",
+    "or": "or",
+    "pickDate": "Pick a date",
+    "availableHint": "When can a renter move in?",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe the light, the layout, the neighborhood…",
+    "amenities": "Amenities",
+    "photoUploader": {
+      "addPhoto": "Add photo",
+      "uploadPhotos": "Upload photos",
+      "uploadHint": "PNG or JPG — add as many as you like",
+      "removePhoto": "Remove photo",
+      "cover": "Cover"
+    },
+    "publish": {
+      "editHeading": "Save changes",
+      "newHeading": "Ready to publish?",
+      "editBlurb": "Your edits go live as soon as you save.",
+      "newBlurb": "Publish to list it now, or keep it as a draft to finish later.",
+      "saveChanges": "Save changes",
+      "publish": "Publish listing",
+      "saveDraft": "Save as draft",
+      "cancel": "Cancel"
+    }
   }
 }

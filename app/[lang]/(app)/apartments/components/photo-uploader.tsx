@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { PhotoCard } from "./photo-card";
@@ -16,6 +17,7 @@ export function PhotoUploader({
   value: string[];
   onChange: (next: string[]) => void;
 }) {
+  const t = useTranslations("listingForm.photoUploader");
   const fileRef = React.useRef<HTMLInputElement>(null);
 
   const addFiles = (fileList: FileList | null) => {
@@ -80,7 +82,7 @@ export function PhotoUploader({
               className="aspect-[4/3] flex flex-col items-center justify-center gap-1.5 text-muted-foreground bg-muted hover:bg-accent hover:text-accent-foreground transition-colors focus-ring"
             >
               <Plus size={22} />
-              <span className="text-sm font-medium">Add photo</span>
+              <span className="text-sm font-medium">{t("addPhoto")}</span>
             </button>
           </div>
         </DndProvider>
@@ -92,9 +94,9 @@ export function PhotoUploader({
         >
           <ImageIcon size={30} />
           <span className="text-sm font-medium text-foreground">
-            Upload photos
+            {t("uploadPhotos")}
           </span>
-          <span className="text-xs">PNG or JPG — add as many as you like</span>
+          <span className="text-xs">{t("uploadHint")}</span>
         </button>
       )}
     </div>
