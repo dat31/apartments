@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PALETTE, money, specStr } from "@/lib/data/listings";
+import { PALETTE, money } from "@/lib/data/listings";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { BedDouble, Eye, MapPin, Pencil, Trash2 } from "lucide-react";
 import { ViewTransition } from "react";
@@ -19,6 +20,8 @@ export function ListingRow({
   onToggleStatus: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
+  const t = useTranslations("dashboard");
+  const ta = useTranslations("apartments");
   const isActive = listing.status === "active";
   const cover = listing.images?.[0];
   const colors = PALETTE[listing.palette];
@@ -51,9 +54,9 @@ export function ListingRow({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <Badge variant={isActive ? "default" : "secondary"}>
-              {isActive ? "Active" : "Draft"}
+              {isActive ? t("status.active") : t("status.draft")}
             </Badge>
-            <Badge variant="secondary">{listing.type}</Badge>
+            <Badge variant="secondary">{ta(`types.${listing.type}`)}</Badge>
           </div>
           <h3 className="font-semibold tracking-tight truncate">
             {listing.title}
@@ -63,10 +66,14 @@ export function ListingRow({
           </p>
           <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
             <span className="font-medium text-foreground">
-              {money(listing.price)}/mo
+              {money(listing.price)}
+              {ta("card.perMonth")}
             </span>
             <span className="flex items-center gap-1">
-              <BedDouble size={15} /> {specStr(listing)}
+              <BedDouble size={15} />{" "}
+              {listing.beds === 0
+                ? ta("card.studio")
+                : ta("card.beds", { count: listing.beds })}
             </span>
             <span className="flex items-center gap-1">
               <Eye size={15} /> {listing.views}
@@ -80,14 +87,14 @@ export function ListingRow({
             size="sm"
             onClick={() => onToggleStatus(listing.id)}
           >
-            {isActive ? "Pause" : "Publish"}
+            {isActive ? t("listings.pause") : t("listings.publish")}
           </Button>
           <Button
             asChild
             variant="secondary"
             size="icon"
             className="h-9 w-9"
-            aria-label="Preview"
+            aria-label={t("listings.preview")}
           >
             <Link href={`/apartments/${listing.id}`}>
               <Eye size={17} />
@@ -98,7 +105,7 @@ export function ListingRow({
             variant="secondary"
             size="icon"
             className="h-9 w-9"
-            aria-label="Edit"
+            aria-label={t("listings.edit")}
           >
             <Link href={`/apartments/${listing.id}/edit`}>
               <Pencil size={17} />
@@ -109,7 +116,7 @@ export function ListingRow({
             size="icon"
             className="h-9 w-9 hover:bg-destructive hover:text-destructive-foreground"
             onClick={() => onDelete(listing.id)}
-            aria-label="Delete"
+            aria-label={t("listings.delete")}
           >
             <Trash2 size={17} />
           </Button>

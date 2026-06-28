@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations, useFormatter } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,8 +18,7 @@ import {
   type WeekTemplate,
   occupiedSet,
   openSlotsFor,
-  tourDateMed,
-  tourTimeLabel,
+  parseYmd,
 } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { User } from "lucide-react";
 
@@ -41,6 +41,21 @@ export function ProposeTimeModal({
   tours: TourRequest[];
   onSubmit: (id: string, date: string, time: string) => void;
 }) {
+  const t = useTranslations("dashboard.propose");
+  const format = useFormatter();
+  const fmtDateMed = (s: string) =>
+    format.dateTime(parseYmd(s), {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  const fmtTime = (time: string) => {
+    const [h, m] = time.split(":").map(Number);
+    return format.dateTime(new Date(2000, 0, 1, h, m), {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
   // The parent remounts this modal per tour (via `key`), so fresh local
   // state here is naturally empty — no reset effect needed.
   const [date, setDate] = React.useState("");
@@ -57,10 +72,10 @@ export function ProposeTimeModal({
       <DialogContent className="max-w-3xl p-0 gap-0 max-h-[88vh] flex flex-col">
         <DialogHeader className="px-6 pt-6 pb-0">
           <DialogTitle className="text-xl font-semibold tracking-tight">
-            Suggest another time
+            {t("title")}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Pick a new date and time to propose to the renter.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -75,7 +90,11 @@ export function ProposeTimeModal({
                 </span>
               )}
               <span className="text-muted-foreground">
-                · originally {tourDateMed(tour.date)} at {tourTimeLabel(tour.time)}
+                ·{" "}
+                {t("originally", {
+                  date: fmtDateMed(tour.date),
+                  time: fmtTime(tour.time),
+                })}
               </span>
             </div>
           )}
@@ -92,13 +111,13 @@ export function ProposeTimeModal({
             />
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2">
-                {date ? tourDateMed(date) : "Pick a date first"}
+                {date ? fmtDateMed(date) : t("pickDateFirst")}
               </h4>
               {date ? (
                 <TimeSlots slots={slots} value={time} onPick={setTime} />
               ) : (
                 <div className="bg-card p-6 text-sm text-muted-foreground text-center">
-                  Select a day to see your open times.
+                  {t("selectDayHint")}
                 </div>
               )}
             </div>
@@ -106,13 +125,13 @@ export function ProposeTimeModal({
 
           <div className="mt-6 flex justify-end gap-3">
             <Button variant="ghost" onClick={onClose}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               disabled={!date || !time || !tour}
               onClick={() => tour && onSubmit(tour.id, date, time)}
             >
-              Send proposal
+              {t("send")}
             </Button>
           </div>
         </div>

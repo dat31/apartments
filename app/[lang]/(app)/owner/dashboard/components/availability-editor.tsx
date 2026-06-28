@@ -1,19 +1,28 @@
 "use client";
 
+import { useTranslations, useFormatter } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAvailability } from "@/hooks/use-availability";
 import {
   TOUR_TIMES,
-  WD_SHORT,
   type WeekTemplate,
-  tourTimeLabel,
 } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { Clock } from "lucide-react";
 
 /* Weekly recurring tour-availability editor. Each weekday is a row of
    toggleable time chips; the result repeats every week. */
 export function AvailabilityEditor() {
+  const t = useTranslations("dashboard.availability");
+  const format = useFormatter();
+  // Locale-aware short weekday labels, Sun→Sat (2023-01-01 is a Sunday).
+  const weekdays = Array.from({ length: 7 }, (_, i) =>
+    format.dateTime(new Date(2023, 0, 1 + i), { weekday: "short" })
+  );
+  const fmtHour = (time: string) => {
+    const [h, m] = time.split(":").map(Number);
+    return format.dateTime(new Date(2000, 0, 1, h, m), { hour: "numeric" });
+  };
   const { template, setTemplate } = useAvailability();
 
   const total = Object.values(template).reduce(
@@ -21,12 +30,12 @@ export function AvailabilityEditor() {
     0
   );
 
-  const toggle = (wd: number, t: string) => {
+  const toggle = (wd: number, time: string) => {
     setTemplate((prev) => {
       const cur = prev[wd] ?? [];
-      const next = cur.includes(t)
-        ? cur.filter((x) => x !== t)
-        : [...cur, t].sort();
+      const next = cur.includes(time)
+        ? cur.filter((x) => x !== time)
+        : [...cur, time].sort();
       return { ...prev, [wd]: next };
     });
   };
@@ -34,8 +43,8 @@ export function AvailabilityEditor() {
   const preset = (kind: "weekday" | "all" | "clear") => {
     if (kind === "clear") return setTemplate({});
     if (kind === "weekday") {
-      const t = ["10:00", "11:00", "13:00", "14:00", "15:00", "16:00"];
-      return setTemplate({ 1: [...t], 2: [...t], 3: [...t], 4: [...t], 5: [...t] });
+      const wd = ["10:00", "11:00", "13:00", "14:00", "15:00", "16:00"];
+      return setTemplate({ 1: [...wd], 2: [...wd], 3: [...wd], 4: [...wd], 5: [...wd] });
     }
     const all: WeekTemplate = {};
     for (let i = 0; i < 7; i++) all[i] = [...TOUR_TIMES];
@@ -47,32 +56,31 @@ export function AvailabilityEditor() {
       <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">
-            Tour availability
+            {t("title")}
           </h2>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Pick the times you&apos;re open to show your places. This repeats
-            every week.
+            {t("subtitle")}
           </p>
         </div>
         <span className="inline-flex items-center gap-1.5 bg-secondary text-secondary-foreground px-3 h-9 text-sm font-medium tabular-nums">
-          <Clock size={15} /> {total} slot{total !== 1 ? "s" : ""}/week
+          <Clock size={15} /> {t("slotsPerWeek", { count: total })}
         </span>
       </div>
 
       <div className="flex flex-wrap gap-2 mt-4 mb-6">
         <Button variant="secondary" size="sm" onClick={() => preset("weekday")}>
-          Weekdays 10–4
+          {t("presetWeekday")}
         </Button>
         <Button variant="secondary" size="sm" onClick={() => preset("all")}>
-          Every day, all hours
+          {t("presetAll")}
         </Button>
         <Button variant="ghost" size="sm" onClick={() => preset("clear")}>
-          Clear all
+          {t("presetClear")}
         </Button>
       </div>
 
       <div className="flex flex-col gap-2">
-        {WD_SHORT.map((label, wd) => {
+        {weekdays.map((label, wd) => {
           const on = template[wd] ?? [];
           return (
             <div
@@ -88,13 +96,13 @@ export function AvailabilityEditor() {
                 )}
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {TOUR_TIMES.map((t) => {
-                  const active = on.includes(t);
+                {TOUR_TIMES.map((time) => {
+                  const active = on.includes(time);
                   return (
                     <button
-                      key={t}
+                      key={time}
                       type="button"
-                      onClick={() => toggle(wd, t)}
+                      onClick={() => toggle(wd, time)}
                       className={cn(
                         "h-9 px-2.5 text-[13px] font-medium tabular-nums transition-colors focus-ring",
                         active
@@ -102,7 +110,7 @@ export function AvailabilityEditor() {
                           : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                       )}
                     >
-                      {tourTimeLabel(t).replace(":00", "")}
+                      {fmtHour(time)}
                     </button>
                   );
                 })}

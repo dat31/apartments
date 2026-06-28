@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { ListingRow } from "./listing-row";
@@ -8,14 +9,15 @@ import { Building2, Plus } from "lucide-react";
 
 type Filter = "all" | "active" | "drafts";
 
-const EMPTY_TITLE: Record<Filter, string> = {
-  all: "Nothing here yet",
-  active: "No active listings",
-  drafts: "No drafts",
+const EMPTY_TITLE_KEY: Record<Filter, string> = {
+  all: "emptyAll",
+  active: "emptyActive",
+  drafts: "emptyDrafts",
 };
 
 /* Owner-listing list for the overview / active / drafts tabs. */
 export function ListingsTab({ filter }: { filter: Filter }) {
+  const t = useTranslations("dashboard");
   const { listings, toggleStatus, removeListing } = useListings();
 
   const mine = listings.filter((l) => l.owner === "you");
@@ -32,13 +34,15 @@ export function ListingsTab({ filter }: { filter: Filter }) {
         <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
           <Building2 size={26} />
         </div>
-        <h3 className="text-lg font-semibold">{EMPTY_TITLE[filter]}</h3>
+        <h3 className="text-lg font-semibold">
+          {t(`listings.${EMPTY_TITLE_KEY[filter]}`)}
+        </h3>
         <p className="mt-1 text-muted-foreground">
-          Create a listing to start renting out your place.
+          {t("listings.emptyBody")}
         </p>
         <Button asChild className="mt-5">
           <Link href="/apartments/create">
-            <Plus size={18} /> New listing
+            <Plus size={18} /> {t("newListing")}
           </Link>
         </Button>
       </div>
