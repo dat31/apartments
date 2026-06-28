@@ -1,8 +1,8 @@
 # i18n translation — handoff
 
-Status of the "translate the remaining UI" effort. Resume from **Phase 4**.
+Status of the "translate the remaining UI" effort. Resume from **Phase 5**.
 
-- **Branch:** `feat/i18n-routing` (PR #19)
+- **Branch:** `feat/i18n-routing` (PR #19); Phase 4 on `feat/i18n-translate-detail-tour`
 - **Stack:** next-intl v4 · routes under `app/[lang]` · locales `vi` (default) + `en` · `localePrefix: "as-needed"`
 - **Messages:** `messages/vi.json`, `messages/en.json` (keep both in sync, same shape)
 - **Skill:** invoke `i18n-translation` before continuing — it has the full conventions, server/client API rules, and non-component (metadata/actions/route-handler) guidance.
@@ -26,14 +26,17 @@ Status of the "translate the remaining UI" effort. Resume from **Phase 4**.
 | 1 | Auth (signin/signup/forgot/reset, brand panel, password field, auth shell) | `a7106ad` | `auth.*`, `common.toggleTheme` |
 | 2 | Landing + global chrome (role chooser/cards, hero, district tiles, showcase, error/404, error shell, account menu, manage-profile dialog, theme toggle) | `e9e53e7` | `landing.*`, `errors.*`, `account.*`, `profile.*` |
 | 3 | Apartments browse (filters, sort, empty, pagination, summary) + listing card + data labels (home types, amenities, sort, availability, beds) | `6bea53c` | `apartments.*` |
+| 4 | Apartment detail (detail-view, gallery, reviews, review-pager, availability-label, save-home, back-to-results, detail-skeleton) + tour booking (book-tour button/dialog, time-slots, month-calendar, recaptcha) | _this branch_ | `detail.*`, `tours.*` |
 
-Existing namespaces: `common`, `header`, `landing`, `auth`, `errors`, `account`, `profile`, `apartments`.
+Existing namespaces: `common`, `header`, `landing`, `auth`, `errors`, `account`, `profile`, `apartments`, `detail`, `tours`.
+
+**Phase 4 notes:**
+- `detail-view` now pulls type/amenity/beds labels from the existing `apartments.*` keys (no new keys for those); reused `apartments.card.availableNow/availableOn` in `availability-label.tsx` (migrated it off the deprecated `availLabel`).
+- Tour dates/times are formatted with `useFormatter` (`book-tour-dialog`, `time-slots`, `month-calendar` month header + locale weekday initials) instead of the English helpers in `constants/tours.ts` — those helpers (`tourDateLong/Med`, `tourTimeLabel`, `MONTHS`, `WD_SHORT`) are **still used by Phase 6 files** (owner/renter tour cards, propose-time-modal, availability-editor), so they were left in place.
+- `specStr` (lib/data/listings.ts) is now unused by detail-view but **still used by `owner/dashboard/components/listing-row.tsx`** → delete in Phase 6/7.
+- `money()` left as-is (USD) — currency is Phase 7.
 
 ## Remaining ⬜
-
-### Phase 4 — Apartment detail + tour booking (next)
-Files (`app/[lang]/(app)/apartments/[id]/`): `page.tsx`, `components/detail-view.tsx`, `detail-content.tsx`, `gallery.tsx`, `reviews.tsx`, `review-pager.tsx`, `availability-label.tsx`, `book-tour-button.tsx`, `book-tour-dialog.tsx`, `time-slots.tsx`, `month-calendar.tsx`, `save-home-button.tsx`, `back-to-results.tsx`, `recaptcha-check.tsx`, `loading.tsx`, `constants/tours.ts`.
-Suggested namespace: `detail.*`, `tours.*`.
 
 ### Phase 5 — Listing form (create/edit)
 `app/[lang]/(app)/apartments/components/listing-form.tsx`, `photo-uploader.tsx`, `photo-card.tsx`, `amenity-picker.tsx`, `create/page.tsx`, `[id]/edit/page.tsx`, and `constants/listing-form.ts` (field labels, `DISTRICT_LABELS`, bed/bath options).

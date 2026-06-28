@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type Listing } from "@/schemas/listing";
@@ -16,17 +17,18 @@ export function BookTourButton({
   listing: Listing;
   mode: "full" | "compact";
 }) {
+  const t = useTranslations("tours");
   const [open, setOpen] = React.useState(false);
 
   return (
     <>
       {mode === "full" ? (
         <Button size="lg" className="h-12 gap-2" onClick={() => setOpen(true)}>
-          <Calendar size={18} /> Book tour
+          <Calendar size={18} /> {t("bookTour")}
         </Button>
       ) : (
         <Button className="h-11 gap-2" onClick={() => setOpen(true)}>
-          <Calendar size={18} /> Book tour
+          <Calendar size={18} /> {t("bookTour")}
         </Button>
       )}
       <BookTourDialog

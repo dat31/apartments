@@ -1,11 +1,13 @@
+import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /* Detail-shaped placeholder shown while DetailContent streams. Mirrors the
    gallery + two-column layout so the page doesn't jump when content lands —
    replaces the full-screen splash that used to flash on every navigation. */
 export function DetailSkeleton() {
+  const t = useTranslations("detail");
   return (
-    <div aria-busy="true" aria-label="Loading home">
+    <div aria-busy="true" aria-label={t("loadingHome")}>
       {/* Gallery — desktop mosaic */}
       <div className="hidden sm:grid grid-cols-4 grid-rows-2 gap-2 aspect-[16/9]">
         <Skeleton className="skeleton col-span-3 row-span-2" />

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 
 /* Faux Google reCAPTCHA "I'm not a robot" checkbox. Brand-exact colors are
    intentionally inline — this replicates a third-party widget, not our theme. */
@@ -11,6 +12,7 @@ export function RecaptchaCheck({
   checked: boolean;
   onChange: (v: boolean) => void;
 }) {
+  const t = useTranslations("tours");
   const [loading, setLoading] = React.useState(false);
 
   const click = () => {
@@ -33,7 +35,7 @@ export function RecaptchaCheck({
           role="checkbox"
           aria-checked={checked}
           onClick={click}
-          aria-label="I'm not a robot"
+          aria-label={t("notRobot")}
           className="relative w-7 h-7 inline-flex items-center justify-center"
           style={{ background: "#fff", border: "2px solid #c1c1c1" }}
         >
@@ -63,7 +65,7 @@ export function RecaptchaCheck({
           )}
         </button>
         <span className="text-[14px]" style={{ color: "#222" }}>
-          I&apos;m not a robot
+          {t("notRobot")}
         </span>
       </div>
       <div
@@ -78,7 +80,7 @@ export function RecaptchaCheck({
           <path d="M10 39v-7h7" fill="none" stroke="#1c3aa9" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <span className="text-[9px] leading-none">reCAPTCHA</span>
-        <span className="text-[8px] leading-none">Privacy · Terms</span>
+        <span className="text-[8px] leading-none">{t("privacyTerms")}</span>
       </div>
     </div>
   );

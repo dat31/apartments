@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +17,7 @@ import {
   User,
 } from "lucide-react";
 import { AMENITY_ICONS } from "@/components/icons";
-import { PALETTE, AMENITIES, money, specStr } from "@/lib/data/listings";
+import { PALETTE, AMENITIES, money } from "@/lib/data/listings";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { type Review } from "@/schemas/review";
 import { type Owner } from "@/schemas/owner";
@@ -30,9 +31,12 @@ export function DetailView({
   reviews: Review[];
   owner: Owner | null;
 }) {
+  const t = useTranslations("detail");
+  const ta = useTranslations("apartments");
   const colors = PALETTE[listing.palette];
   const ams = AMENITIES.filter((a) => listing.amenities.includes(a.id));
-  const ownerLabel = listing.owner === "you" ? "You" : owner?.name ?? listing.owner;
+  const isYou = listing.owner === "you";
+  const ownerLabel = isYou ? t("you") : owner?.name ?? listing.owner;
 
   const renderOwner = (cls: string) => (
     <Link
@@ -49,7 +53,7 @@ export function DetailView({
             PALETTE[(owner ? owner.palette : listing.palette) % PALETTE.length][0],
         }}
       >
-        {ownerLabel === "You" ? (
+        {isYou ? (
           <User size={20} className="text-background/95" />
         ) : (
           ownerLabel
@@ -61,13 +65,13 @@ export function DetailView({
         )}
       </span>
       <div className="min-w-0">
-        <p className="text-sm text-muted-foreground">Listed by</p>
+        <p className="text-sm text-muted-foreground">{t("listedBy")}</p>
         <p className="font-medium capitalize group-hover:text-primary transition-colors flex items-center gap-1.5">
           {ownerLabel}{" "}
           {owner?.verified && <Check size={14} className="text-primary" />}
         </p>
         <p className="text-xs text-muted-foreground mt-0.5 group-hover:text-primary transition-colors">
-          View profile →
+          {t("viewProfile")} →
         </p>
       </div>
     </Link>
@@ -82,7 +86,7 @@ export function DetailView({
         {/* Main */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Badge variant="secondary">{listing.type}</Badge>
+            <Badge variant="secondary">{ta(`types.${listing.type}`)}</Badge>
             {listing.status === "active" && (
               <Badge>
                 <AvailabilityLabel listing={listing} />
@@ -98,11 +102,14 @@ export function DetailView({
 
           <div className="mt-6 flex flex-wrap gap-3">
             {[
-              { I: BedDouble, label: specStr(listing) },
               {
-                I: Bath,
-                label: `${listing.baths} bath${listing.baths > 1 ? "s" : ""}`,
+                I: BedDouble,
+                label:
+                  listing.beds === 0
+                    ? ta("card.studio")
+                    : ta("card.beds", { count: listing.beds }),
               },
+              { I: Bath, label: t("baths", { count: listing.baths }) },
               { I: Maximize, label: `${listing.area} m²` },
             ].map(({ I, label }) => (
               <div
@@ -116,14 +123,14 @@ export function DetailView({
           </div>
 
           <div className="mt-8">
-            <h2 className="text-lg font-semibold mb-2">About this place</h2>
+            <h2 className="text-lg font-semibold mb-2">{t("aboutTitle")}</h2>
             <p className="text-[15px] leading-relaxed text-muted-foreground text-pretty">
               {listing.desc}
             </p>
           </div>
 
           <div className="mt-8">
-            <h2 className="text-lg font-semibold mb-3">What&apos;s included</h2>
+            <h2 className="text-lg font-semibold mb-3">{t("includedTitle")}</h2>
             <div className="grid sm:grid-cols-2 gap-2">
               {ams.map((a) => {
                 const I = AMENITY_ICONS[a.icon];
@@ -133,7 +140,7 @@ export function DetailView({
                     className="flex items-center gap-3 bg-card px-4 py-3"
                   >
                     <I size={20} className="text-primary" />{" "}
-                    <span className="text-[15px]">{a.label}</span>
+                    <span className="text-[15px]">{ta(`amenities.${a.id}`)}</span>
                   </div>
                 );
               })}
@@ -154,7 +161,7 @@ export function DetailView({
               <span className="text-3xl font-semibold tracking-tight">
                 {money(listing.price)}
               </span>
-              <span className="text-muted-foreground">/ month</span>
+              <span className="text-muted-foreground">{t("perMonth")}</span>
             </div>
             <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-primary">
               <Clock size={16} /> <AvailabilityLabel listing={listing} />
@@ -182,7 +189,9 @@ export function DetailView({
               <span className="text-xl font-semibold tracking-tight">
                 {money(listing.price)}
               </span>
-              <span className="text-sm text-muted-foreground">/mo</span>
+              <span className="text-sm text-muted-foreground">
+                {t("perMonthShort")}
+              </span>
             </div>
             <p className="flex items-center gap-1 text-xs font-medium text-primary truncate">
               <Clock size={13} /> <AvailabilityLabel listing={listing} />

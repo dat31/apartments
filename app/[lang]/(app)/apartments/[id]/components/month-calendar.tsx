@@ -1,12 +1,11 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations, useFormatter } from "next-intl";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
-  MONTHS,
   MONTHS_AHEAD,
-  WD_SHORT,
   type WeekTemplate,
   openSlotsFor,
   todayYmd,
@@ -25,6 +24,16 @@ export function MonthCalendar({
   selected: string;
   onSelect: (date: string) => void;
 }) {
+  const t = useTranslations("tours");
+  const format = useFormatter();
+  // Locale-aware weekday initials, Sun→Sat (2023-01-01 is a Sunday).
+  const weekdays = React.useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, i) =>
+        format.dateTime(new Date(2023, 0, 1 + i), { weekday: "narrow" })
+      ),
+    [format]
+  );
   const start = React.useMemo(() => {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -53,7 +62,10 @@ export function MonthCalendar({
     <div className="bg-card p-4 select-none">
       <div className="flex items-center justify-between mb-3 px-1">
         <span className="font-semibold tracking-tight">
-          {MONTHS[m]} {y}
+          {format.dateTime(new Date(y, m, 1), {
+            month: "long",
+            year: "numeric",
+          })}
         </span>
         <div className="flex items-center gap-1">
           <button
@@ -61,7 +73,7 @@ export function MonthCalendar({
             onClick={() => canPrev && setView(new Date(y, m - 1, 1))}
             disabled={!canPrev}
             className="w-9 h-9 inline-flex items-center justify-center text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none focus-ring"
-            aria-label="Previous month"
+            aria-label={t("prevMonth")}
           >
             <ChevronLeft size={18} />
           </button>
@@ -70,19 +82,19 @@ export function MonthCalendar({
             onClick={() => canNext && setView(new Date(y, m + 1, 1))}
             disabled={!canNext}
             className="w-9 h-9 inline-flex items-center justify-center text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none focus-ring"
-            aria-label="Next month"
+            aria-label={t("nextMonth")}
           >
             <ChevronRight size={18} />
           </button>
         </div>
       </div>
       <div className="grid grid-cols-7 gap-1 mb-1">
-        {WD_SHORT.map((w) => (
+        {weekdays.map((w, i) => (
           <span
-            key={w}
+            key={i}
             className="h-7 inline-flex items-center justify-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
           >
-            {w[0]}
+            {w}
           </span>
         ))}
       </div>

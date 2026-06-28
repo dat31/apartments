@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ export function Gallery({
   label: string;
   id: string;
 }) {
+  const t = useTranslations("detail.gallery");
   const shots = images?.length ? images : colors;
   const hasPhotos = Boolean(images?.length);
   const n = shots.length;
@@ -99,7 +101,7 @@ export function Gallery({
         {n > 1 && (
           <div className="absolute bottom-3 right-3">
             <Button variant="secondary" size="sm" className="gap-2" onClick={() => openAt(0)}>
-              <Grid2x2 size={16} /> Show all {n} photos
+              <Grid2x2 size={16} /> {t("showAll", { count: n })}
             </Button>
           </div>
         )}
@@ -144,6 +146,7 @@ function Lightbox({
   start: number;
   onClose: () => void;
 }) {
+  const t = useTranslations("detail.gallery");
   const n = shots.length;
   const [api, setApi] = React.useState<CarouselApi>();
   const [active, setActive] = React.useState(start);
@@ -213,7 +216,7 @@ function Lightbox({
         </span>
         <button
           onClick={onClose}
-          aria-label="Close photos"
+          aria-label={t("close")}
           className="inline-flex items-center justify-center w-10 h-10 text-white/80 hover:text-white hover:bg-white/10 transition-colors focus-ring"
         >
           <X size={22} />
@@ -257,7 +260,7 @@ function Lightbox({
             <button
               key={i}
               onClick={() => api?.scrollTo(i)}
-              aria-label={`Photo ${i + 1}`}
+              aria-label={t("photo", { n: i + 1 })}
               className={cn(
                 "relative shrink-0 w-20 h-14 overflow-hidden transition-all focus-ring",
                 active === i ? "ring-2 ring-white" : "opacity-50 hover:opacity-100"
