@@ -4,7 +4,8 @@ import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bath, BedDouble, Clock, MapPin, Maximize } from "lucide-react";
-import { PALETTE, money, availInfo } from "@/lib/data/listings";
+import { PALETTE, availInfo } from "@/lib/data/listings";
+import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { SaveButton } from "@/components/save-button";
 import { ViewTransition, type ReactNode } from "react";
@@ -18,6 +19,7 @@ export function ListingCard({
 }) {
   const t = useTranslations("apartments");
   const format = useFormatter();
+  const money = useMoney();
   const colors = PALETTE[listing.palette];
   const href = `/apartments/${listing.id}`;
   const avail = availInfo(listing);

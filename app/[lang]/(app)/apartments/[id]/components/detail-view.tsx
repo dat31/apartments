@@ -17,7 +17,8 @@ import {
   User,
 } from "lucide-react";
 import { AMENITY_ICONS } from "@/components/icons";
-import { PALETTE, AMENITIES, money } from "@/lib/data/listings";
+import { PALETTE, AMENITIES } from "@/lib/data/listings";
+import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { type Review } from "@/schemas/review";
 import { type Owner } from "@/schemas/owner";
@@ -33,6 +34,7 @@ export function DetailView({
 }) {
   const t = useTranslations("detail");
   const ta = useTranslations("apartments");
+  const money = useMoney();
   const colors = PALETTE[listing.palette];
   const ams = AMENITIES.filter((a) => listing.amenities.includes(a.id));
   const isYou = listing.owner === "you";

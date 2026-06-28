@@ -96,7 +96,10 @@ export const SEED_REVIEWS: Review[] = [
 ];
 
 /* ---- helpers ---- */
-export const money = (n: number) => "$" + n.toLocaleString();
+/* Prices are stored as a single USD amount. For Vietnamese, callers convert
+   to VND at this fixed display rate (demo-only — not a live FX rate) and
+   format with `useMoney()`. */
+export const USD_TO_VND = 25000;
 
 /* Availability as structured data so callers can localize it. Returns either
    "available now" or a concrete future date. */
@@ -110,16 +113,6 @@ export const availInfo = (l: Listing): AvailInfo => {
   today.setHours(0, 0, 0, 0);
   if (d <= today) return { kind: "now" };
   return { kind: "date", date: d };
-};
-
-// Deprecated English label — being migrated to availInfo + i18n at call sites.
-export const availLabel = (l: Listing) => {
-  const info = availInfo(l);
-  if (info.kind === "now") return "Available now";
-  return (
-    "Available " +
-    info.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-  );
 };
 
 export const initialsOf = (name: string) =>

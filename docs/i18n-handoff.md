@@ -1,8 +1,8 @@
 # i18n translation — handoff
 
-Status of the "translate the remaining UI" effort. **All UI translated — only Phase 7 (currency + cleanup) remains.**
+Status of the "translate the remaining UI" effort. **All UI translated + currency localized. Only the zod validation-message refactor remains (deferred follow-up).**
 
-- **Branches:** Phase 4 → #22; Phase 5 → #23; **Phase 6 in 3 PRs** — 6a owner dashboard → #24; 6b owner profile → #25; 6c saved + renter tours → `feat/i18n-translate-saved-tours` (this branch).
+- **Branches:** Phase 4 → #22; Phase 5 → #23; **Phase 6 in 3 PRs** — 6a → #24; 6b → #25; 6c → #26. Phase 7 (currency) → `feat/i18n-currency` (this branch).
 - **Stack:** next-intl v4 · routes under `app/[lang]` · locales `vi` (default) + `en` · `localePrefix: "as-needed"`
 - **Messages:** `messages/vi.json`, `messages/en.json` (keep both in sync, same shape)
 - **Skill:** invoke `i18n-translation` before continuing — it has the full conventions, server/client API rules, and non-component (metadata/actions/route-handler) guidance.
@@ -64,19 +64,22 @@ Existing namespaces: `common`, `header`, `landing`, `auth`, `errors`, `account`,
 - `saved.*` + `tour.*` namespaces. Shared `save-button` aria → `apartments.card.save/removeSaved`. Saved list reuses `apartments.filters/sort/showHomes`; renter-tours empty body uses `t.rich` (bold "Book tour"). StatusTag reuses `tours.status.*` (6a).
 - `renter-tour-card` migrated to `useFormatter`; this was the **last** consumer of `tourDateLong`/`tourDateMed`/`tourTimeLabel`/`WD_SHORT`/`MONTHS` — all **deleted** from `constants/tours.ts` (the locale-agnostic `ymd`/`parseYmd`/`todayYmd` + scheduling helpers stay).
 
-### Phase 7 — Currency + cleanup + final pass (only remaining)
-- **Currency:** make `money()` in `lib/data/listings.ts` locale-aware — VND for `vi`, USD for `en` via `Intl.NumberFormat` (or `useFormatter().number(v, {style:"currency", currency})`). Open question still: the underlying amount is a single USD `z.number()`; decide store-per-currency vs. base+rate.
-- **Zod validation messages:** still English across `schemas/auth/index.ts` and `schemas/listing/index.ts` (rendered client-side via `<FieldError>`). Introduce a schema-factory that takes a translator (or map errors by `issue.path` at render) and apply it consistently to all `schemas/*`.
-- `availLabel()` in `lib/data/listings.ts` is unused (since Phase 4) — delete it.
-- Browser-eyeball both locales end-to-end across every page (final `pnpm build:local` already green per phase).
+### Phase 7 — Currency + cleanup (done, this branch)
+- **Currency: done** — decision was **base USD + fixed rate**. `USD_TO_VND = 25000` lives in `lib/data/listings.ts`; new `useMoney()` hook (`hooks/use-money.ts`) formats via `useFormatter().number(v, {style:"currency", currency})` — VND (converted) for `vi`, USD for `en`, both 0 fraction digits. All 6 `money()` call sites (listing-card, district-tiles, detail-view ×2, book-tour-dialog, listing-row) switched to `useMoney()`; the old `money()` helper **deleted**. Verified both locales (en `$1,450` / vi `36.250.000 ₫`).
+- `availLabel()` — **deleted** (unused since Phase 4).
+- Owner `bio`/`name`/`location`, listing titles/descriptions, and the `landing.hero.*` showcase strings stay as seed/decorative content (intentional).
+
+### Remaining follow-up (not blocking — its own PR)
+- **Zod validation messages:** still English across `schemas/auth/index.ts`, `schemas/listing/index.ts`, `schemas/review/index.ts` (rendered client-side via `<FieldError>`). Introduce a schema-factory that takes a translator (or map errors by `issue.path` at render) and apply it consistently to all `schemas/*`.
+- Optional: extend the detail page's `generateStaticParams` to include live Supabase ids at build time (today only seed ids prerender; live ids render on-demand).
 
 ## Data-layer debts to clean up (carried from Phase 3)
 
 - `lib/data/listings.ts`:
   - `specStr()` — **deleted** (Phase 6a; all call sites migrated to `apartments.card.studio/beds`).
-  - `availLabel()` is **deprecated** and **unused** (since Phase 4) — delete in Phase 7.
+  - `availLabel()` — **deleted** (Phase 7; unused since Phase 4).
   - `tourDateLong/Med`, `tourTimeLabel`, `WD_SHORT`, `MONTHS` in `constants/tours.ts` — **deleted** in 6c.
-  - `money()` → currency phase (above).
+  - `money()` — **deleted** (Phase 7); replaced by `useMoney()` + `USD_TO_VND` rate.
 - Listing `status` ("active" / "draft") — **done** in 6a (`dashboard.status.*`, used by `listing-row.tsx`).
 - Owner profile seed values (`responseTime`, `languages`) — **done** in 6b (localized via `owner.responseTime.*` / `owner.language.*`).
 - Month names: `monthLabel()` / `MONTHS` — **deleted** in 6b; call sites use `useFormatter().dateTime`.
