@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { Chip } from "@/components/chip";
@@ -22,6 +23,7 @@ type NavItem = {
 };
 
 function useNavItems(): NavItem[] {
+  const t = useTranslations("dashboard.nav");
   const { listings } = useListings();
   const { tours } = useTours();
   const mine = listings.filter((l) => l.owner === "you");
@@ -29,28 +31,28 @@ function useNavItems(): NavItem[] {
   const base = "/owner/dashboard";
 
   return [
-    { href: `${base}/overview`, label: "Overview", icon: LayoutGrid, count: mine.length },
+    { href: `${base}/overview`, label: t("overview"), icon: LayoutGrid, count: mine.length },
     {
       href: `${base}/active`,
-      label: "Active",
+      label: t("active"),
       icon: CircleCheck,
       count: mine.filter((l) => l.status === "active").length,
     },
     {
       href: `${base}/drafts`,
-      label: "Drafts",
+      label: t("drafts"),
       icon: Pencil,
       count: mine.filter((l) => l.status === "draft").length,
     },
     {
       href: `${base}/tours`,
-      label: "Tour requests",
+      label: t("tours"),
       icon: Calendar,
       count: myTours.filter(
         (t) => t.status === "pending" || t.status === "reschedule"
       ).length,
     },
-    { href: `${base}/availability`, label: "Availability", icon: Clock, count: null },
+    { href: `${base}/availability`, label: t("availability"), icon: Clock, count: null },
   ];
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { OwnerTourCard } from "./owner-tour-card";
 import { ProposeTimeModal } from "./propose-time-modal";
@@ -40,6 +41,7 @@ function Section({
 }
 
 export function OwnerTours() {
+  const t = useTranslations("dashboard.tours");
   const { getById } = useListings();
   const { tours, acceptTour, declineTour, proposeTime } = useTours();
   const { template } = useAvailability();
@@ -56,14 +58,14 @@ export function OwnerTours() {
 
   const handleAccept = (id: string) => {
     acceptTour(id);
-    toast.success("Tour confirmed", {
-      description: "We let the renter know it's on.",
+    toast.success(t("confirmedToast"), {
+      description: t("confirmedToastDesc"),
     });
   };
 
   const handleDecline = (id: string) => {
     declineTour(id);
-    toast("Tour declined");
+    toast(t("declinedToast"));
   };
 
   const renderCard = (t: TourRequest) => (
@@ -83,10 +85,9 @@ export function OwnerTours() {
         <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
           <Calendar size={26} />
         </div>
-        <h3 className="text-lg font-semibold">No tour requests yet</h3>
+        <h3 className="text-lg font-semibold">{t("emptyTitle")}</h3>
         <p className="mt-1 text-muted-foreground text-pretty max-w-sm mx-auto">
-          When renters request a viewing, they&apos;ll show up here for you to
-          accept, decline, or reschedule.
+          {t("emptyBody")}
         </p>
       </div>
     );
@@ -94,9 +95,9 @@ export function OwnerTours() {
 
   return (
     <div className="anim-fade">
-      <Section title="Needs your response" items={needsResponse} render={renderCard} />
-      <Section title="Upcoming tours" items={upcoming} render={renderCard} />
-      <Section title="Past & declined" items={past} render={renderCard} />
+      <Section title={t("needsResponse")} items={needsResponse} render={renderCard} />
+      <Section title={t("upcoming")} items={upcoming} render={renderCard} />
+      <Section title={t("past")} items={past} render={renderCard} />
 
       <ProposeTimeModal
         key={proposeFor?.id ?? "none"}
@@ -109,8 +110,8 @@ export function OwnerTours() {
         onSubmit={(id, date, time) => {
           proposeTime(id, date, time);
           setProposeFor(null);
-          toast.success("New time proposed", {
-            description: "The renter can accept or decline your suggestion.",
+          toast.success(t("proposedToast"), {
+            description: t("proposedToastDesc"),
           });
         }}
       />

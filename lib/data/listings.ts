@@ -99,7 +99,6 @@ export const SEED_REVIEWS: Review[] = [
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 export const money = (n: number) => "$" + n.toLocaleString();
-export const specStr = (l: Listing) => (l.beds === 0 ? "Studio" : `${l.beds} bed`);
 
 /* Availability as structured data so callers can localize it. Returns either
    "available now" or a concrete future date. */

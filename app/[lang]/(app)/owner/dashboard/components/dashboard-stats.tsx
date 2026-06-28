@@ -1,11 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { StatCard } from "./stat-card";
 import { useListings } from "@/hooks/use-listings";
 import { useTours } from "@/hooks/use-tours";
 import { Building2, CircleCheck, Calendar, Clock } from "lucide-react";
 
 export function DashboardStats() {
+  const t = useTranslations("dashboard.stats");
   const { listings } = useListings();
   const { tours } = useTours();
 
@@ -20,10 +22,10 @@ export function DashboardStats() {
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <StatCard label="Listings" value={mine.length} icon={Building2} accent />
-      <StatCard label="Active" value={active.length} icon={CircleCheck} />
-      <StatCard label="Pending tours" value={pending.length} icon={Calendar} />
-      <StatCard label="Upcoming tours" value={upcoming.length} icon={Clock} />
+      <StatCard label={t("listings")} value={mine.length} icon={Building2} accent />
+      <StatCard label={t("active")} value={active.length} icon={CircleCheck} />
+      <StatCard label={t("pendingTours")} value={pending.length} icon={Calendar} />
+      <StatCard label={t("upcomingTours")} value={upcoming.length} icon={Clock} />
     </div>
   );
 }

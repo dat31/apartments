@@ -321,7 +321,13 @@
     "prevMonth": "Tháng trước",
     "nextMonth": "Tháng sau",
     "notRobot": "Tôi không phải là robot",
-    "privacyTerms": "Quyền riêng tư · Điều khoản"
+    "privacyTerms": "Quyền riêng tư · Điều khoản",
+    "status": {
+      "pending": "Chờ duyệt",
+      "confirmed": "Đã xác nhận",
+      "declined": "Đã từ chối",
+      "reschedule": "Đề xuất thời gian mới"
+    }
   },
   "listingForm": {
     "backToDashboard": "Quay lại bảng điều khiển",
@@ -366,6 +372,79 @@
       "publish": "Đăng tin",
       "saveDraft": "Lưu nháp",
       "cancel": "Hủy"
+    }
+  },
+  "dashboard": {
+    "eyebrow": "Bảng điều khiển chủ nhà",
+    "welcome": "Chào mừng trở lại, {name}",
+    "newListing": "Tin đăng mới",
+    "stats": {
+      "listings": "Tin đăng",
+      "active": "Đang hiển thị",
+      "pendingTours": "Lịch xem chờ duyệt",
+      "upcomingTours": "Lịch xem sắp tới"
+    },
+    "nav": {
+      "overview": "Tổng quan",
+      "active": "Đang hiển thị",
+      "drafts": "Bản nháp",
+      "tours": "Yêu cầu xem nhà",
+      "availability": "Lịch trống"
+    },
+    "status": {
+      "active": "Đang hiển thị",
+      "draft": "Bản nháp"
+    },
+    "listings": {
+      "emptyAll": "Chưa có gì ở đây",
+      "emptyActive": "Chưa có tin đang hiển thị",
+      "emptyDrafts": "Chưa có bản nháp",
+      "emptyBody": "Tạo một tin đăng để bắt đầu cho thuê chỗ của bạn.",
+      "pause": "Tạm ẩn",
+      "publish": "Đăng",
+      "preview": "Xem trước",
+      "edit": "Chỉnh sửa",
+      "delete": "Xóa"
+    },
+    "tours": {
+      "needsResponse": "Cần bạn phản hồi",
+      "upcoming": "Lịch xem sắp tới",
+      "past": "Đã qua & đã từ chối",
+      "emptyTitle": "Chưa có yêu cầu xem nhà",
+      "emptyBody": "Khi người thuê yêu cầu xem nhà, chúng sẽ hiển thị ở đây để bạn chấp nhận, từ chối, hoặc đổi lịch.",
+      "confirmedToast": "Đã xác nhận lịch xem",
+      "confirmedToastDesc": "Chúng tôi đã báo cho người thuê biết.",
+      "declinedToast": "Đã từ chối lịch xem",
+      "proposedToast": "Đã đề xuất thời gian mới",
+      "proposedToastDesc": "Người thuê có thể chấp nhận hoặc từ chối đề xuất của bạn."
+    },
+    "tourCard": {
+      "listingRemoved": "Tin đăng đã bị gỡ",
+      "moveIn": "Dọn vào {date}",
+      "proposedWaiting": "Bạn đã đề xuất thời gian mới — đang chờ {name} phản hồi.",
+      "accept": "Chấp nhận",
+      "suggestNewTime": "Đề xuất thời gian khác",
+      "decline": "Từ chối",
+      "cancelTour": "Hủy lịch xem",
+      "withdraw": "Thu hồi",
+      "noAction": "Không cần thao tác thêm."
+    },
+    "propose": {
+      "title": "Đề xuất thời gian khác",
+      "description": "Chọn ngày và giờ mới để đề xuất cho người thuê.",
+      "originally": "ban đầu {date} lúc {time}",
+      "pickDateFirst": "Chọn ngày trước",
+      "selectDayHint": "Chọn một ngày để xem các khung giờ trống của bạn.",
+      "cancel": "Hủy",
+      "send": "Gửi đề xuất"
+    },
+    "availability": {
+      "title": "Lịch trống cho xem nhà",
+      "subtitle": "Chọn những khung giờ bạn sẵn sàng cho xem nhà. Lịch này lặp lại mỗi tuần.",
+      "slotsPerWeek": "{count, plural, other {# khung}}/tuần",
+      "presetWeekday": "Ngày thường 10–4",
+      "presetAll": "Mọi ngày, mọi giờ",
+      "presetClear": "Xóa hết"
     }
   }
 }

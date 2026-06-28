@@ -1,15 +1,15 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations, useFormatter } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { StatusTag } from "@/components/status-tag";
 import { PALETTE } from "@/lib/data/listings";
 import { type Listing } from "@/schemas/listing";
 import { type TourRequest } from "@/schemas/tour";
 import {
-  tourDateMed,
+  parseYmd,
   tourSlot,
-  tourTimeLabel,
 } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import {
   Calendar,
@@ -35,6 +35,22 @@ export function OwnerTourCard({
   onDecline: (id: string) => void;
   onPropose: (tour: TourRequest) => void;
 }) {
+  const t = useTranslations("dashboard.tourCard");
+  const tt = useTranslations("tours");
+  const format = useFormatter();
+  const fmtDateMed = (s: string) =>
+    format.dateTime(parseYmd(s), {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  const fmtTime = (time: string) => {
+    const [h, m] = time.split(":").map(Number);
+    return format.dateTime(new Date(2000, 0, 1, h, m), {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
   const slot = tourSlot(tour);
   const cover = listing?.images?.[0];
   const color = listing ? PALETTE[listing.palette][0] : "var(--muted)";
@@ -65,16 +81,16 @@ export function OwnerTourCard({
               <StatusTag status={tour.status} />
             </div>
             <h3 className="font-semibold tracking-tight truncate">
-              {listing ? listing.title : "Listing removed"}
+              {listing ? listing.title : t("listingRemoved")}
             </h3>
             <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
               <User size={14} /> {tour.renterName} · {tour.renterEmail}
             </p>
           </div>
           <div className="flex items-center gap-2 bg-secondary text-secondary-foreground px-3 py-2 text-sm font-medium">
-            <Calendar size={15} className="text-primary" /> {tourDateMed(slot.date)}
+            <Calendar size={15} className="text-primary" /> {fmtDateMed(slot.date)}
             <span className="text-muted-foreground">·</span>
-            <Clock size={15} className="text-primary" /> {tourTimeLabel(slot.time)}
+            <Clock size={15} className="text-primary" /> {fmtTime(slot.time)}
           </div>
         </div>
 
@@ -82,14 +98,16 @@ export function OwnerTourCard({
           <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
             {tour.moveIn && (
               <span className="inline-flex items-center gap-1.5 bg-muted px-2.5 py-1.5">
-                <CalendarClock size={14} className="text-primary" /> Move-in{" "}
-                {tourDateMed(tour.moveIn)}
+                <CalendarClock size={14} className="text-primary" />{" "}
+                {t("moveIn", { date: fmtDateMed(tour.moveIn) })}
               </span>
             )}
             {tour.people && (
               <span className="inline-flex items-center gap-1.5 bg-muted px-2.5 py-1.5">
-                <Users size={14} className="text-primary" /> {tour.people}{" "}
-                {tour.people === "1" ? "person" : "people"}
+                <Users size={14} className="text-primary" />{" "}
+                {tour.people === "5+"
+                  ? tt("peopleMax")
+                  : tt("people", { count: Number(tour.people) })}
               </span>
             )}
           </div>
@@ -105,8 +123,7 @@ export function OwnerTourCard({
         )}
         {tour.status === "reschedule" && (
           <p className="text-sm text-muted-foreground">
-            You proposed a new time — waiting for{" "}
-            {tour.renterName.split(/\s+/)[0]} to respond.
+            {t("proposedWaiting", { name: tour.renterName.split(/\s+/)[0] })}
           </p>
         )}
 
@@ -114,14 +131,14 @@ export function OwnerTourCard({
           {tour.status === "pending" && (
             <>
               <Button size="sm" onClick={() => onAccept(tour.id)}>
-                <Check size={16} /> Accept
+                <Check size={16} /> {t("accept")}
               </Button>
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={() => onPropose(tour)}
               >
-                <Calendar size={16} /> Suggest new time
+                <Calendar size={16} /> {t("suggestNewTime")}
               </Button>
               <Button
                 variant="ghost"
@@ -129,7 +146,7 @@ export function OwnerTourCard({
                 className="hover:bg-destructive hover:text-destructive-foreground"
                 onClick={() => onDecline(tour.id)}
               >
-                Decline
+                {t("decline")}
               </Button>
             </>
           )}
@@ -140,7 +157,7 @@ export function OwnerTourCard({
               className="hover:bg-destructive hover:text-destructive-foreground"
               onClick={() => onDecline(tour.id)}
             >
-              Cancel tour
+              {t("cancelTour")}
             </Button>
           )}
           {tour.status === "reschedule" && (
@@ -150,12 +167,12 @@ export function OwnerTourCard({
               className="hover:bg-destructive hover:text-destructive-foreground"
               onClick={() => onDecline(tour.id)}
             >
-              Withdraw
+              {t("withdraw")}
             </Button>
           )}
           {tour.status === "declined" && (
             <span className="text-sm text-muted-foreground">
-              No further action.
+              {t("noAction")}
             </span>
           )}
         </div>

@@ -321,7 +321,13 @@
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
     "notRobot": "I'm not a robot",
-    "privacyTerms": "Privacy · Terms"
+    "privacyTerms": "Privacy · Terms",
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "declined": "Declined",
+      "reschedule": "New time proposed"
+    }
   },
   "listingForm": {
     "backToDashboard": "Back to dashboard",
@@ -366,6 +372,79 @@
       "publish": "Publish listing",
       "saveDraft": "Save as draft",
       "cancel": "Cancel"
+    }
+  },
+  "dashboard": {
+    "eyebrow": "Owner dashboard",
+    "welcome": "Welcome back, {name}",
+    "newListing": "New listing",
+    "stats": {
+      "listings": "Listings",
+      "active": "Active",
+      "pendingTours": "Pending tours",
+      "upcomingTours": "Upcoming tours"
+    },
+    "nav": {
+      "overview": "Overview",
+      "active": "Active",
+      "drafts": "Drafts",
+      "tours": "Tour requests",
+      "availability": "Availability"
+    },
+    "status": {
+      "active": "Active",
+      "draft": "Draft"
+    },
+    "listings": {
+      "emptyAll": "Nothing here yet",
+      "emptyActive": "No active listings",
+      "emptyDrafts": "No drafts",
+      "emptyBody": "Create a listing to start renting out your place.",
+      "pause": "Pause",
+      "publish": "Publish",
+      "preview": "Preview",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "tours": {
+      "needsResponse": "Needs your response",
+      "upcoming": "Upcoming tours",
+      "past": "Past & declined",
+      "emptyTitle": "No tour requests yet",
+      "emptyBody": "When renters request a viewing, they'll show up here for you to accept, decline, or reschedule.",
+      "confirmedToast": "Tour confirmed",
+      "confirmedToastDesc": "We let the renter know it's on.",
+      "declinedToast": "Tour declined",
+      "proposedToast": "New time proposed",
+      "proposedToastDesc": "The renter can accept or decline your suggestion."
+    },
+    "tourCard": {
+      "listingRemoved": "Listing removed",
+      "moveIn": "Move-in {date}",
+      "proposedWaiting": "You proposed a new time — waiting for {name} to respond.",
+      "accept": "Accept",
+      "suggestNewTime": "Suggest new time",
+      "decline": "Decline",
+      "cancelTour": "Cancel tour",
+      "withdraw": "Withdraw",
+      "noAction": "No further action."
+    },
+    "propose": {
+      "title": "Suggest another time",
+      "description": "Pick a new date and time to propose to the renter.",
+      "originally": "originally {date} at {time}",
+      "pickDateFirst": "Pick a date first",
+      "selectDayHint": "Select a day to see your open times.",
+      "cancel": "Cancel",
+      "send": "Send proposal"
+    },
+    "availability": {
+      "title": "Tour availability",
+      "subtitle": "Pick the times you're open to show your places. This repeats every week.",
+      "slotsPerWeek": "{count, plural, one {# slot} other {# slots}}/week",
+      "presetWeekday": "Weekdays 10–4",
+      "presetAll": "Every day, all hours",
+      "presetClear": "Clear all"
     }
   }
 }
