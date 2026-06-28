@@ -16,33 +16,13 @@ export const TOUR_TIMES = [
   "17:00",
 ] as const;
 
-export const WD_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-export const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
 /* How many months ahead the calendar lets you browse. */
 export const MONTHS_AHEAD = 3;
 
-/* ---------------- time / date helpers ---------------- */
-export const tourTimeLabel = (t: string) => {
-  const [h, m] = t.split(":").map(Number);
-  const ap = h < 12 ? "AM" : "PM";
-  const hh = ((h + 11) % 12) + 1;
-  return `${hh}:${String(m).padStart(2, "0")} ${ap}`;
-};
-
+/* ---------------- time / date helpers ----------------
+   Display-formatting of tour dates/times is done at the call sites with
+   next-intl's useFormatter (locale-aware); the helpers below are the
+   locale-agnostic ymd plumbing the scheduling logic relies on. */
 export const ymd = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
     d.getDate()
@@ -54,20 +34,6 @@ export const parseYmd = (s: string) => {
 };
 
 export const todayYmd = () => ymd(new Date());
-
-export const tourDateLong = (s: string) =>
-  parseYmd(s).toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-
-export const tourDateMed = (s: string) =>
-  parseYmd(s).toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
 
 export const isPastSlot = (dateStr: string, time: string) => {
   if (dateStr < todayYmd()) return true;

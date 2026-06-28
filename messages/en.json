@@ -233,7 +233,9 @@
       "availableNow": "Available now",
       "availableOn": "Available {date}",
       "studio": "Studio",
-      "beds": "{count, plural, one {# bed} other {# beds}}"
+      "beds": "{count, plural, one {# bed} other {# beds}}",
+      "save": "Save",
+      "removeSaved": "Remove from saved"
     },
     "empty": {
       "title": "No homes match those filters",
@@ -494,5 +496,35 @@
       "reviewPlaceholder": "What stood out — the place, the communication, the little touches?",
       "submit": "Post review"
     }
+  },
+  "saved": {
+    "title": "Saved homes",
+    "emptyHint": "Homes you save will collect here.",
+    "countSub": "{count, plural, one {# home you're keeping an eye on} other {# homes you're keeping an eye on}}",
+    "keepBrowsing": "Keep browsing",
+    "emptyTitle": "No saved homes yet",
+    "emptyBody": "Tap the heart on any listing to save it. Your shortlist stays here so you can compare and revisit.",
+    "browseHomes": "Browse homes"
+  },
+  "tour": {
+    "title": "My tours",
+    "emptyHint": "Tours you book will show up here.",
+    "countSub": "{count, plural, one {# tour request} other {# tour requests}}",
+    "browseHomes": "Browse homes",
+    "emptyTitle": "No tours booked yet",
+    "emptyBody": "Open any home and tap <b>Book tour</b> to pick a time that works for you.",
+    "toastAccepted": "New time accepted",
+    "toastAcceptedDesc": "Your tour is confirmed for the proposed slot.",
+    "toastDeclined": "Proposal declined",
+    "toastCancelled": "Tour cancelled",
+    "listingRemoved": "Listing removed",
+    "statusPending": "Waiting for the owner to confirm your request.",
+    "statusConfirmed": "Your tour is confirmed — see you there.",
+    "statusDeclined": "This request was declined or cancelled.",
+    "proposedTitle": "The owner suggested a new time:",
+    "at": "at",
+    "acceptNewTime": "Accept new time",
+    "decline": "Decline",
+    "cancelTour": "Cancel tour"
   }
 }

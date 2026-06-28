@@ -1,17 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations, useFormatter } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { StatusTag } from "@/components/status-tag";
 import { PALETTE } from "@/lib/data/listings";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { type TourRequest } from "@/schemas/tour";
-import {
-  tourDateLong,
-  tourDateMed,
-  tourTimeLabel,
-} from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
+import { parseYmd } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import {
   Calendar,
   Check,
@@ -35,6 +32,27 @@ export function RenterTourCard({
   onDecline: (id: string) => void;
   onCancel: (id: string) => void;
 }) {
+  const t = useTranslations("tour");
+  const format = useFormatter();
+  const fmtDateLong = (s: string) =>
+    format.dateTime(parseYmd(s), {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    });
+  const fmtDateMed = (s: string) =>
+    format.dateTime(parseYmd(s), {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  const fmtTime = (time: string) => {
+    const [h, m] = time.split(":").map(Number);
+    return format.dateTime(new Date(2000, 0, 1, h, m), {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
   const cover = listing?.images?.[0];
   const color = listing ? PALETTE[listing.palette][0] : "var(--muted)";
 
@@ -72,41 +90,41 @@ export function RenterTourCard({
               <StatusTag status={tour.status} />
             </div>
             <h3 className="font-semibold tracking-tight truncate">
-              {listing ? listing.title : "Listing removed"}
+              {listing ? listing.title : t("listingRemoved")}
             </h3>
             <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
               <MapPin size={14} /> {listing ? districtLabel(listing.district) : ""}
             </p>
           </div>
           <div className="flex items-center gap-2 bg-secondary text-secondary-foreground px-3 py-2 text-sm font-medium">
-            <Calendar size={15} className="text-primary" /> {tourDateMed(tour.date)}
+            <Calendar size={15} className="text-primary" /> {fmtDateMed(tour.date)}
             <span className="text-muted-foreground">·</span>
-            <Clock size={15} className="text-primary" /> {tourTimeLabel(tour.time)}
+            <Clock size={15} className="text-primary" /> {fmtTime(tour.time)}
           </div>
         </div>
 
         {tour.status === "pending" && (
           <p className="text-sm text-muted-foreground">
-            Waiting for the owner to confirm your request.
+            {t("statusPending")}
           </p>
         )}
         {tour.status === "confirmed" && (
           <p className="text-sm text-primary font-medium flex items-center gap-1.5">
-            <CircleCheck size={16} /> Your tour is confirmed — see you there.
+            <CircleCheck size={16} /> {t("statusConfirmed")}
           </p>
         )}
         {tour.status === "declined" && (
           <p className="text-sm text-muted-foreground">
-            This request was declined or cancelled.
+            {t("statusDeclined")}
           </p>
         )}
         {tour.status === "reschedule" && tour.proposedDate && tour.proposedTime && (
           <div className="bg-accent text-accent-foreground p-3">
-            <p className="text-sm font-medium">The owner suggested a new time:</p>
+            <p className="text-sm font-medium">{t("proposedTitle")}</p>
             <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
-              <Calendar size={15} /> {tourDateLong(tour.proposedDate)}
-              <span className="opacity-70">at</span>
-              <Clock size={15} /> {tourTimeLabel(tour.proposedTime)}
+              <Calendar size={15} /> {fmtDateLong(tour.proposedDate)}
+              <span className="opacity-70">{t("at")}</span>
+              <Clock size={15} /> {fmtTime(tour.proposedTime)}
             </p>
           </div>
         )}
@@ -115,7 +133,7 @@ export function RenterTourCard({
           {tour.status === "reschedule" && (
             <>
               <Button size="sm" onClick={() => onAcceptNew(tour.id)}>
-                <Check size={16} /> Accept new time
+                <Check size={16} /> {t("acceptNewTime")}
               </Button>
               <Button
                 variant="ghost"
@@ -123,7 +141,7 @@ export function RenterTourCard({
                 className="hover:bg-destructive hover:text-destructive-foreground"
                 onClick={() => onDecline(tour.id)}
               >
-                Decline
+                {t("decline")}
               </Button>
             </>
           )}
@@ -134,7 +152,7 @@ export function RenterTourCard({
               className="hover:bg-destructive hover:text-destructive-foreground"
               onClick={() => onCancel(tour.id)}
             >
-              Cancel tour
+              {t("cancelTour")}
             </Button>
           )}
         </div>

@@ -1,8 +1,8 @@
 # i18n translation — handoff
 
-Status of the "translate the remaining UI" effort. Resume from **Phase 6c** (saved + renter tours).
+Status of the "translate the remaining UI" effort. **All UI translated — only Phase 7 (currency + cleanup) remains.**
 
-- **Branches:** Phase 4 → #22; Phase 5 → #23; **Phase 6 in 3 PRs** — 6a owner dashboard → #24; 6b owner profile + reviews → `feat/i18n-translate-owner-profile` (this branch); 6c saved + renter tours.
+- **Branches:** Phase 4 → #22; Phase 5 → #23; **Phase 6 in 3 PRs** — 6a owner dashboard → #24; 6b owner profile → #25; 6c saved + renter tours → `feat/i18n-translate-saved-tours` (this branch).
 - **Stack:** next-intl v4 · routes under `app/[lang]` · locales `vi` (default) + `en` · `localePrefix: "as-needed"`
 - **Messages:** `messages/vi.json`, `messages/en.json` (keep both in sync, same shape)
 - **Skill:** invoke `i18n-translation` before continuing — it has the full conventions, server/client API rules, and non-component (metadata/actions/route-handler) guidance.
@@ -29,9 +29,10 @@ Status of the "translate the remaining UI" effort. Resume from **Phase 6c** (sav
 | 4 | Apartment detail (detail-view, gallery, reviews, review-pager, availability-label, save-home, back-to-results, detail-skeleton) + tour booking (book-tour button/dialog, time-slots, month-calendar, recaptcha) | #22 | `detail.*`, `tours.*` |
 | 5 | Listing form create/edit (listing-form, photo-uploader, photo-card, amenity-picker) | #23 | `listingForm.*` |
 | 6a | Owner dashboard (header, nav, stats, stat-card, listings-tab, listing-row, owner-tours, owner-tour-card, propose-time-modal, availability-editor) + shared `status-tag` | #24 | `dashboard.*`, `tours.status.*` |
-| 6b | Owner profile (owner-profile, review-modal, star-picker) + shared `review-card`, `star-row` | _this branch_ | `owner.*` (+ `detail.reviews.stayedAt/outOf`) |
+| 6b | Owner profile (owner-profile, review-modal, star-picker) + shared `review-card`, `star-row` | #25 | `owner.*` (+ `detail.reviews.stayedAt/outOf`) |
+| 6c | Saved (saved-list) + renter tours (renter-tours, renter-tour-card) + shared `save-button` | _this branch_ | `saved.*`, `tour.*` (+ `apartments.card.save/removeSaved`) |
 
-Existing namespaces: `common`, `header`, `landing`, `auth`, `errors`, `account`, `profile`, `apartments`, `detail`, `tours`, `listingForm`, `dashboard`, `owner`.
+Existing namespaces: `common`, `header`, `landing`, `auth`, `errors`, `account`, `profile`, `apartments`, `detail`, `tours`, `listingForm`, `dashboard`, `owner`, `saved`, `tour`.
 
 **Phase 4 notes:**
 - `detail-view` now pulls type/amenity/beds labels from the existing `apartments.*` keys (no new keys for those); reused `apartments.card.availableNow/availableOn` in `availability-label.tsx` (migrated it off the deprecated `availLabel`).
@@ -59,24 +60,22 @@ Existing namespaces: `common`, `header`, `landing`, `auth`, `errors`, `account`,
 - `owner-profile.tsx`: the i18n refactor made the component React-Compiler-compilable, surfacing a pre-existing impurity (`Date.now()`/`new Date()` for a new review's id/timestamp). Scoped `eslint-disable react-hooks/purity` around those two event-time lines (they run on submit, not render).
 - Review form zod messages (`schemas/review/index.ts`) left English — same cross-cutting debt as auth/listing (Phase 7).
 
-### Phase 6c — Saved + renter tours (next)
-- Saved: `apartments/saved/components/saved-list.tsx`, `saved/page.tsx`.
-- Tour (renter): `tour/page.tsx`, `components/renter-tours.tsx`, `renter-tour-card.tsx`.
-- Shared: `components/save-button.tsx`. Reuses `tours.status.*` (StatusTag, done in 6a).
-- Migrate `renter-tour-card.tsx` off `tourDateMed`/`tourTimeLabel` to `useFormatter`, then delete those (+`WD_SHORT`, and re-check `tourDateLong`/`MONTHS`) from `constants/tours.ts` if fully unused.
-Suggested namespaces: `saved.*`, `tour.*`.
+**Phase 6c notes:**
+- `saved.*` + `tour.*` namespaces. Shared `save-button` aria → `apartments.card.save/removeSaved`. Saved list reuses `apartments.filters/sort/showHomes`; renter-tours empty body uses `t.rich` (bold "Book tour"). StatusTag reuses `tours.status.*` (6a).
+- `renter-tour-card` migrated to `useFormatter`; this was the **last** consumer of `tourDateLong`/`tourDateMed`/`tourTimeLabel`/`WD_SHORT`/`MONTHS` — all **deleted** from `constants/tours.ts` (the locale-agnostic `ymd`/`parseYmd`/`todayYmd` + scheduling helpers stay).
 
-### Phase 7 — Currency + cleanup + final pass
+### Phase 7 — Currency + cleanup + final pass (only remaining)
 - **Currency:** make `money()` in `lib/data/listings.ts` locale-aware — VND for `vi`, USD for `en` via `Intl.NumberFormat` (or `useFormatter().number(v, {style:"currency", currency})`). Open question still: the underlying amount is a single USD `z.number()`; decide store-per-currency vs. base+rate.
 - **Zod validation messages:** still English across `schemas/auth/index.ts` and `schemas/listing/index.ts` (rendered client-side via `<FieldError>`). Introduce a schema-factory that takes a translator (or map errors by `issue.path` at render) and apply it consistently to all `schemas/*`.
-- Delete now-unused helpers from `constants/tours.ts` once 6c migrates the renter card (`WD_SHORT`, possibly `tourDateLong/Med`, `tourTimeLabel`, `MONTHS`).
-- Final `pnpm build:local` + browser eyeball both locales end-to-end.
+- `availLabel()` in `lib/data/listings.ts` is unused (since Phase 4) — delete it.
+- Browser-eyeball both locales end-to-end across every page (final `pnpm build:local` already green per phase).
 
 ## Data-layer debts to clean up (carried from Phase 3)
 
 - `lib/data/listings.ts`:
   - `specStr()` — **deleted** (Phase 6a; all call sites migrated to `apartments.card.studio/beds`).
-  - `availLabel()` is **deprecated** and now **unused** (Phase 4 migrated `availability-label.tsx` to `availInfo()` + `t("apartments.card.availableNow"/"availableOn")`) — safe to delete in Phase 7.
+  - `availLabel()` is **deprecated** and **unused** (since Phase 4) — delete in Phase 7.
+  - `tourDateLong/Med`, `tourTimeLabel`, `WD_SHORT`, `MONTHS` in `constants/tours.ts` — **deleted** in 6c.
   - `money()` → currency phase (above).
 - Listing `status` ("active" / "draft") — **done** in 6a (`dashboard.status.*`, used by `listing-row.tsx`).
 - Owner profile seed values (`responseTime`, `languages`) — **done** in 6b (localized via `owner.responseTime.*` / `owner.language.*`).

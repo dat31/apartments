@@ -233,7 +233,9 @@
       "availableNow": "Còn trống ngay",
       "availableOn": "Trống từ {date}",
       "studio": "Studio",
-      "beds": "{count, plural, other {# phòng ngủ}}"
+      "beds": "{count, plural, other {# phòng ngủ}}",
+      "save": "Lưu",
+      "removeSaved": "Bỏ khỏi đã lưu"
     },
     "empty": {
       "title": "Không có nhà nào khớp bộ lọc",
@@ -494,5 +496,35 @@
       "reviewPlaceholder": "Điều gì khiến bạn ấn tượng — chỗ ở, cách giao tiếp, hay những chi tiết nhỏ?",
       "submit": "Đăng đánh giá"
     }
+  },
+  "saved": {
+    "title": "Nhà đã lưu",
+    "emptyHint": "Những nhà bạn lưu sẽ xuất hiện ở đây.",
+    "countSub": "{count, plural, other {# nhà bạn đang để mắt tới}}",
+    "keepBrowsing": "Tiếp tục xem",
+    "emptyTitle": "Chưa có nhà nào được lưu",
+    "emptyBody": "Chạm vào biểu tượng trái tim trên bất kỳ tin đăng nào để lưu. Danh sách rút gọn của bạn sẽ ở đây để so sánh và xem lại.",
+    "browseHomes": "Xem nhà"
+  },
+  "tour": {
+    "title": "Lịch xem của tôi",
+    "emptyHint": "Những lịch xem bạn đặt sẽ hiển thị ở đây.",
+    "countSub": "{count, plural, other {# yêu cầu xem nhà}}",
+    "browseHomes": "Xem nhà",
+    "emptyTitle": "Chưa đặt lịch xem nào",
+    "emptyBody": "Mở bất kỳ nhà nào và chạm <b>Đặt lịch xem</b> để chọn thời gian phù hợp với bạn.",
+    "toastAccepted": "Đã chấp nhận thời gian mới",
+    "toastAcceptedDesc": "Lịch xem của bạn đã được xác nhận cho khung giờ được đề xuất.",
+    "toastDeclined": "Đã từ chối đề xuất",
+    "toastCancelled": "Đã hủy lịch xem",
+    "listingRemoved": "Tin đăng đã bị gỡ",
+    "statusPending": "Đang chờ chủ nhà xác nhận yêu cầu của bạn.",
+    "statusConfirmed": "Lịch xem của bạn đã được xác nhận — hẹn gặp bạn ở đó.",
+    "statusDeclined": "Yêu cầu này đã bị từ chối hoặc hủy.",
+    "proposedTitle": "Chủ nhà đã đề xuất thời gian mới:",
+    "at": "lúc",
+    "acceptNewTime": "Chấp nhận thời gian mới",
+    "decline": "Từ chối",
+    "cancelTour": "Hủy lịch xem"
   }
 }
