@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ const ORDER: Record<TourRequest["status"], number> = {
 };
 
 export function RenterTours() {
+  const t = useTranslations("tour");
   const { tours, acceptReschedule, declineTour, ready } = useTours();
   const { profile, ready: profileReady } = useProfile();
   const { getById } = useListings();
@@ -37,17 +39,17 @@ export function RenterTours() {
 
   const acceptNew = (id: string) => {
     acceptReschedule(id);
-    toast.success("New time accepted", {
-      description: "Your tour is confirmed for the proposed slot.",
+    toast.success(t("toastAccepted"), {
+      description: t("toastAcceptedDesc"),
     });
   };
   const decline = (id: string) => {
     declineTour(id);
-    toast("Proposal declined");
+    toast(t("toastDeclined"));
   };
   const cancel = (id: string) => {
     declineTour(id);
-    toast("Tour cancelled");
+    toast(t("toastCancelled"));
   };
 
   return (
@@ -55,17 +57,17 @@ export function RenterTours() {
       <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2.5">
-            <Calendar size={26} className="text-primary" /> My tours
+            <Calendar size={26} className="text-primary" /> {t("title")}
           </h1>
           <p className="mt-1 text-muted-foreground">
             {mine.length === 0
-              ? "Tours you book will show up here."
-              : `${mine.length} tour request${mine.length !== 1 ? "s" : ""}`}
+              ? t("emptyHint")
+              : t("countSub", { count: mine.length })}
           </p>
         </div>
         <Button asChild variant="secondary" className="h-11 gap-1.5">
           <Link href="/apartments">
-            <Search size={16} /> Browse homes
+            <Search size={16} /> {t("browseHomes")}
           </Link>
         </Button>
       </div>
@@ -97,15 +99,17 @@ export function RenterTours() {
           <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
             <Calendar size={26} />
           </div>
-          <h3 className="text-lg font-semibold">No tours booked yet</h3>
+          <h3 className="text-lg font-semibold">{t("emptyTitle")}</h3>
           <p className="mt-1 text-muted-foreground text-pretty max-w-sm mx-auto">
-            Open any home and tap{" "}
-            <span className="text-foreground font-medium">Book tour</span> to
-            pick a time that works for you.
+            {t.rich("emptyBody", {
+              b: (chunks) => (
+                <span className="text-foreground font-medium">{chunks}</span>
+              ),
+            })}
           </p>
           <Button asChild className="mt-5 h-11 gap-1.5">
             <Link href="/apartments">
-              <Search size={16} /> Browse homes
+              <Search size={16} /> {t("browseHomes")}
             </Link>
           </Button>
         </div>
