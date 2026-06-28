@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations, useFormatter } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -23,7 +24,7 @@ import {
 } from "@/app/[lang]/(app)/apartments/[id]/lib/reviews";
 import { ReviewModal } from "./review-modal";
 import { Building2, Calendar, Check, ChevronLeft, Clock, Globe, MapPin, MessageSquare, ShieldCheck, Star } from "lucide-react";
-import { PALETTE, monthLabel, initialsOf, avgOf } from "@/lib/data/listings";
+import { PALETTE, initialsOf, avgOf } from "@/lib/data/listings";
 import { type Listing } from "@/schemas/listing";
 import { type Owner } from "@/schemas/owner";
 import { type Review, type ReviewFormValues } from "@/schemas/review";
@@ -37,6 +38,9 @@ export function OwnerProfile({
   homes: Listing[];
   reviews: Review[];
 }) {
+  const t = useTranslations("owner");
+  const tr = useTranslations("detail.reviews");
+  const format = useFormatter();
   const router = useRouter();
   const [reviewOpen, setReviewOpen] = React.useState(false);
   const [reviews, setReviews] = React.useState<Review[]>(initialReviews);
@@ -47,10 +51,29 @@ export function OwnerProfile({
   const pageReviews = reviewsForPage(reviews, safePage);
 
   const isYou = owner.key === "you";
-  const displayName = isYou ? "You" : owner.name;
+  const displayName = isYou ? t("you") : owner.name;
   const firstName = owner.name.split(" ")[0];
   const avg = avgOf(reviews);
   const color = PALETTE[owner.palette % PALETTE.length][0];
+
+  // owner.joined is a "YYYY-MM" key → locale month + year.
+  const [jy, jm] = owner.joined.split("-").map(Number);
+  const joinedLabel = format.dateTime(new Date(jy, jm - 1, 1), {
+    month: "long",
+    year: "numeric",
+  });
+  // Localize the small fixed sets of seed values shown in the stats.
+  const RESPONSE_TIME_KEY: Record<string, string> = {
+    "within an hour": "hour",
+    "within a few hours": "fewHours",
+    "within a day": "day",
+  };
+  const respondsValue = RESPONSE_TIME_KEY[owner.responseTime]
+    ? t(`responseTime.${RESPONSE_TIME_KEY[owner.responseTime]}`)
+    : owner.responseTime;
+  const languagesValue = owner.languages
+    .map((l) => t(`language.${l.toLowerCase()}`))
+    .join(", ");
 
   const dist = [5, 4, 3, 2, 1].map((s) => ({
     s,
@@ -59,13 +82,19 @@ export function OwnerProfile({
   const maxN = Math.max(1, ...dist.map((d) => d.n));
 
   const addReview = (data: ReviewFormValues) => {
+    // Event-time values for the new review (unique id + current month).
+    // Impure by nature but this runs on submit, not during render.
+    /* eslint-disable react-hooks/purity */
+    const id = "r" + Date.now();
+    const date = new Date().toISOString().slice(0, 7);
+    /* eslint-enable react-hooks/purity */
     const r: Review = {
-      id: "r" + Date.now(),
+      id,
       owner: owner.key,
       author: data.author,
       rating: data.rating,
       text: data.text,
-      date: new Date().toISOString().slice(0, 7),
+      date,
       initials: data.author
         .split(/\s+/)
         .slice(0, 2)
@@ -75,16 +104,16 @@ export function OwnerProfile({
     };
     setReviews((rs) => [r, ...rs]);
     setPage(1); // jump back so the new review is visible at the top
-    toast.success("Review posted", {
-      description: `Thanks for sharing your experience with ${firstName}.`,
+    toast.success(t("reviewPosted"), {
+      description: t("reviewPostedDesc", { name: firstName }),
     });
   };
 
   const stats = [
-    { label: "Member since", value: monthLabel(owner.joined) || "—", icon: Calendar },
-    { label: "Response rate", value: `${owner.responseRate}%`, icon: MessageSquare },
-    { label: "Responds", value: owner.responseTime, icon: Clock },
-    { label: "Languages", value: owner.languages.join(", "), icon: Globe },
+    { label: t("stats.memberSince"), value: joinedLabel || "—", icon: Calendar },
+    { label: t("stats.responseRate"), value: `${owner.responseRate}%`, icon: MessageSquare },
+    { label: t("stats.responds"), value: respondsValue, icon: Clock },
+    { label: t("stats.languages"), value: languagesValue, icon: Globe },
   ];
 
   return (
@@ -93,7 +122,7 @@ export function OwnerProfile({
         onClick={() => router.push("/apartments")}
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-5 focus-ring"
       >
-        <ChevronLeft size={18} /> Back
+        <ChevronLeft size={18} /> {t("back")}
       </button>
 
       {/* Hero */}
@@ -112,12 +141,12 @@ export function OwnerProfile({
             <div className="flex flex-wrap items-center gap-2">
               {owner.superhost && (
                 <Badge>
-                  <ShieldCheck size={13} /> Superhost
+                  <ShieldCheck size={13} /> {t("superhost")}
                 </Badge>
               )}
               {owner.verified && (
                 <Badge variant="secondary">
-                  <Check size={13} /> Verified
+                  <Check size={13} /> {t("verified")}
                 </Badge>
               )}
             </div>
@@ -129,7 +158,7 @@ export function OwnerProfile({
                 <MapPin size={16} /> {owner.location}
               </span>
               <span className="flex items-center gap-1.5">
-                <Calendar size={16} /> Joined {monthLabel(owner.joined)}
+                <Calendar size={16} /> {t("joined", { date: joinedLabel })}
               </span>
             </p>
             <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground text-pretty max-w-xl">
@@ -144,7 +173,7 @@ export function OwnerProfile({
             <div className="flex flex-col items-center gap-1.5">
               <StarRow value={avg} size={17} />
               <p className="text-sm text-muted-foreground">
-                {reviews.length} review{reviews.length !== 1 ? "s" : ""}
+                {tr("count", { count: reviews.length })}
               </p>
             </div>
           </div>
@@ -168,17 +197,19 @@ export function OwnerProfile({
       <section className="mt-10">
         <div className="flex flex-wrap items-end justify-between gap-4 mb-5">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Reviews</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              {tr("title")}
+            </h2>
             <p className="mt-1 flex items-center gap-2 text-muted-foreground">
               <StarRow value={avg} size={16} />
               <span className="text-foreground font-medium tabular-nums">
                 {reviews.length ? avg.toFixed(1) : "—"}
               </span>
-              · {reviews.length} review{reviews.length !== 1 ? "s" : ""}
+              · {tr("count", { count: reviews.length })}
             </p>
           </div>
           <Button className="h-11 gap-1.5" onClick={() => setReviewOpen(true)}>
-            <Star size={17} /> Write a review
+            <Star size={17} /> {t("writeReview")}
           </Button>
         </div>
 
@@ -187,9 +218,9 @@ export function OwnerProfile({
             <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
               <Star size={26} />
             </div>
-            <h3 className="text-lg font-semibold">No reviews yet</h3>
+            <h3 className="text-lg font-semibold">{tr("emptyTitle")}</h3>
             <p className="mt-1 text-muted-foreground text-pretty max-w-sm mx-auto">
-              Be the first to share what it&apos;s like renting from {firstName}.
+              {t("reviewsEmptyBody", { name: firstName })}
             </p>
             <Button
               className="mt-5 h-11 gap-1.5"
@@ -201,7 +232,7 @@ export function OwnerProfile({
         ) : (
           <div className="grid lg:grid-cols-[260px_1fr] gap-8">
             <div className="bg-card p-5 self-start lg:sticky lg:top-24">
-              <p className="text-sm font-medium mb-3">Rating breakdown</p>
+              <p className="text-sm font-medium mb-3">{t("ratingBreakdown")}</p>
               <div className="flex flex-col gap-2">
                 {dist.map(({ s, n }) => (
                   <div key={s} className="flex items-center gap-2.5 text-sm">
@@ -231,14 +262,14 @@ export function OwnerProfile({
 
               {pageCount > 1 && (
                 <Pagination
-                  aria-label="Reviews pagination"
+                  aria-label={tr("pagination")}
                   className="mt-6 justify-center"
                 >
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious
                         href="#"
-                        text="Prev"
+                        text={tr("prev")}
                         aria-disabled={safePage <= 1}
                         className={cn(
                           safePage <= 1 && "pointer-events-none opacity-40"
@@ -266,6 +297,7 @@ export function OwnerProfile({
                     <PaginationItem>
                       <PaginationNext
                         href="#"
+                        text={tr("next")}
                         aria-disabled={safePage >= pageCount}
                         className={cn(
                           safePage >= pageCount &&
@@ -288,18 +320,16 @@ export function OwnerProfile({
       {/* Their homes */}
       <section className="mt-12">
         <h2 className="text-2xl font-semibold tracking-tight mb-1">
-          {homes.length} home{homes.length !== 1 ? "s" : ""} by {firstName}
+          {t("homesBy", { count: homes.length, name: firstName })}
         </h2>
-        <p className="text-muted-foreground mb-5">
-          Active listings you can rent right now.
-        </p>
+        <p className="text-muted-foreground mb-5">{t("homesSubtitle")}</p>
         {homes.length === 0 ? (
           <div className="bg-card p-14 text-center anim-fade">
             <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
               <Building2 size={26} />
             </div>
             <p className="text-muted-foreground">
-              {firstName} has no active listings at the moment.
+              {t("noListings", { name: firstName })}
             </p>
           </div>
         ) : (

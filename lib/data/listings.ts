@@ -96,8 +96,6 @@ export const SEED_REVIEWS: Review[] = [
 ];
 
 /* ---- helpers ---- */
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
 export const money = (n: number) => "$" + n.toLocaleString();
 
 /* Availability as structured data so callers can localize it. Returns either
@@ -122,12 +120,6 @@ export const availLabel = (l: Listing) => {
     "Available " +
     info.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
   );
-};
-
-export const monthLabel = (key: string) => {
-  if (!key) return "";
-  const [y, m] = key.split("-");
-  return `${MONTHS[+m - 1]} ${y}`;
 };
 
 export const initialsOf = (name: string) =>

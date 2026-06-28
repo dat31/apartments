@@ -272,7 +272,9 @@
       "emptyBody": "Chủ nhà này chưa nhận được đánh giá nào.",
       "pagination": "Phân trang đánh giá",
       "prev": "Trước",
-      "next": "Sau"
+      "next": "Sau",
+      "stayedAt": "Đã ở tại {place}",
+      "outOf": "{value} trên 5"
     }
   },
   "tours": {
@@ -445,6 +447,52 @@
       "presetWeekday": "Ngày thường 10–4",
       "presetAll": "Mọi ngày, mọi giờ",
       "presetClear": "Xóa hết"
+    }
+  },
+  "owner": {
+    "back": "Quay lại",
+    "you": "Bạn",
+    "superhost": "Siêu chủ nhà",
+    "verified": "Đã xác minh",
+    "joined": "Tham gia {date}",
+    "stats": {
+      "memberSince": "Thành viên từ",
+      "responseRate": "Tỉ lệ phản hồi",
+      "responds": "Phản hồi",
+      "languages": "Ngôn ngữ"
+    },
+    "responseTime": {
+      "hour": "trong vòng một giờ",
+      "fewHours": "trong vài giờ",
+      "day": "trong vòng một ngày"
+    },
+    "language": {
+      "english": "Tiếng Anh",
+      "vietnamese": "Tiếng Việt",
+      "french": "Tiếng Pháp",
+      "german": "Tiếng Đức"
+    },
+    "writeReview": "Viết đánh giá",
+    "reviewsEmptyBody": "Hãy là người đầu tiên chia sẻ trải nghiệm thuê nhà từ {name}.",
+    "ratingBreakdown": "Phân bố đánh giá",
+    "homesBy": "{count, plural, other {# nhà}} của {name}",
+    "homesSubtitle": "Các tin đang hiển thị bạn có thể thuê ngay.",
+    "noListings": "{name} hiện chưa có tin đăng nào đang hiển thị.",
+    "reviewPosted": "Đã đăng đánh giá",
+    "reviewPostedDesc": "Cảm ơn bạn đã chia sẻ trải nghiệm với {name}.",
+    "starPicker": {
+      "stars": "{count, plural, other {# sao}}",
+      "tapToRate": "Chạm để chấm điểm"
+    },
+    "modal": {
+      "title": "Đánh giá {name}",
+      "intro": "Chia sẻ trải nghiệm thuê nhà từ {name}. Đánh giá của bạn giúp ích cho những người thuê khác.",
+      "rating": "Đánh giá của bạn",
+      "name": "Tên của bạn",
+      "namePlaceholder": "vd. Alex Moreno",
+      "review": "Bài đánh giá của bạn",
+      "reviewPlaceholder": "Điều gì khiến bạn ấn tượng — chỗ ở, cách giao tiếp, hay những chi tiết nhỏ?",
+      "submit": "Đăng đánh giá"
     }
   }
 }

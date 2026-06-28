@@ -272,7 +272,9 @@
       "emptyBody": "This home's host hasn't been reviewed yet.",
       "pagination": "Reviews pagination",
       "prev": "Prev",
-      "next": "Next"
+      "next": "Next",
+      "stayedAt": "Stayed at {place}",
+      "outOf": "{value} out of 5"
     }
   },
   "tours": {
@@ -445,6 +447,52 @@
       "presetWeekday": "Weekdays 10–4",
       "presetAll": "Every day, all hours",
       "presetClear": "Clear all"
+    }
+  },
+  "owner": {
+    "back": "Back",
+    "you": "You",
+    "superhost": "Superhost",
+    "verified": "Verified",
+    "joined": "Joined {date}",
+    "stats": {
+      "memberSince": "Member since",
+      "responseRate": "Response rate",
+      "responds": "Responds",
+      "languages": "Languages"
+    },
+    "responseTime": {
+      "hour": "within an hour",
+      "fewHours": "within a few hours",
+      "day": "within a day"
+    },
+    "language": {
+      "english": "English",
+      "vietnamese": "Vietnamese",
+      "french": "French",
+      "german": "German"
+    },
+    "writeReview": "Write a review",
+    "reviewsEmptyBody": "Be the first to share what it's like renting from {name}.",
+    "ratingBreakdown": "Rating breakdown",
+    "homesBy": "{count, plural, one {# home} other {# homes}} by {name}",
+    "homesSubtitle": "Active listings you can rent right now.",
+    "noListings": "{name} has no active listings at the moment.",
+    "reviewPosted": "Review posted",
+    "reviewPostedDesc": "Thanks for sharing your experience with {name}.",
+    "starPicker": {
+      "stars": "{count, plural, one {# star} other {# stars}}",
+      "tapToRate": "Tap to rate"
+    },
+    "modal": {
+      "title": "Review {name}",
+      "intro": "Share how it went renting from {name}. Your review helps other renters.",
+      "rating": "Your rating",
+      "name": "Your name",
+      "namePlaceholder": "e.g. Alex Moreno",
+      "review": "Your review",
+      "reviewPlaceholder": "What stood out — the place, the communication, the little touches?",
+      "submit": "Post review"
     }
   }
 }
