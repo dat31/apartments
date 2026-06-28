@@ -1,6 +1,6 @@
 # i18n translation — handoff
 
-Status of the "translate the remaining UI" effort. **All UI translated + currency localized. Only the zod validation-message refactor remains (deferred follow-up).**
+Status of the "translate the remaining UI" effort. **All UI translated + currency localized + zod validation messages localized. Effort complete.**
 
 - **Branches:** Phase 4 → #22; Phase 5 → #23; **Phase 6 in 3 PRs** — 6a → #24; 6b → #25; 6c → #26. Phase 7 (currency) → `feat/i18n-currency` (this branch).
 - **Stack:** next-intl v4 · routes under `app/[lang]` · locales `vi` (default) + `en` · `localePrefix: "as-needed"`
@@ -69,8 +69,12 @@ Existing namespaces: `common`, `header`, `landing`, `auth`, `errors`, `account`,
 - `availLabel()` — **deleted** (unused since Phase 4).
 - Owner `bio`/`name`/`location`, listing titles/descriptions, and the `landing.hero.*` showcase strings stay as seed/decorative content (intentional).
 
-### Remaining follow-up (not blocking — its own PR)
-- **Zod validation messages:** still English across `schemas/auth/index.ts`, `schemas/listing/index.ts`, `schemas/review/index.ts` (rendered client-side via `<FieldError>`). Introduce a schema-factory that takes a translator (or map errors by `issue.path` at render) and apply it consistently to all `schemas/*`.
+### Phase 8 — Zod validation messages (done, branch `feat/i18n-schema`)
+- **Done** — schema-factory approach. Each form schema is now `createXSchema(t)` where `t` is a translator (typed `(key: string) => string`) scoped to the new `validation.*` namespace; messages moved out of the literals into `messages/{vi,en}.json`. Covers `schemas/auth` (`createSignInSchema`/`createSignUpSchema`/`createForgotSchema`/`createResetPasswordSchema` + the shared `passwordSchema(t)`), `schemas/listing` (`createListingFormSchema`), `schemas/review` (`createReviewFormSchema`), `schemas/tour` (`createTourBookingSchema`/`createTourSignInSchema`). Data-only schemas (`ListingSchema`, `ReviewSchema`, `tourRequestSchema`, `AmenitySchema`) stay static.
+- Consumers call `const tv = useTranslations("validation")` then `useMemo(() => createXSchema(tv), [tv])` and pass that to `zodResolver`: signin/signup/forgot/reset pages, `listing-form`, `review-modal`, `book-tour-dialog`. Type exports preserved via `z.infer<ReturnType<typeof createXSchema>>`.
+- `validation.*` namespace reuses shared keys (`email.*`, `password.*`, `name.required`) across auth/tour; per-feature keys under `validation.{listing,review,tour}`.
+
+### Remaining follow-up (optional, not blocking)
 - Optional: extend the detail page's `generateStaticParams` to include live Supabase ids at build time (today only seed ids prerender; live ids render on-demand).
 
 ## Data-layer debts to clean up (carried from Phase 3)

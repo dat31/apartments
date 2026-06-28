@@ -45,8 +45,8 @@ import { acctInitials } from "@/lib/data/profile";
 import {
   type TourBookingValues,
   type TourSignInValues,
-  tourBookingSchema,
-  tourSignInSchema,
+  createTourBookingSchema,
+  createTourSignInSchema,
 } from "@/schemas/tour";
 import {
   availabilityFor,
@@ -72,6 +72,15 @@ export function BookTourDialog({
   listing: Listing;
 }) {
   const t = useTranslations("tours");
+  const tv = useTranslations("validation");
+  const tourBookingSchema = React.useMemo(
+    () => createTourBookingSchema(tv),
+    [tv]
+  );
+  const tourSignInSchema = React.useMemo(
+    () => createTourSignInSchema(tv),
+    [tv]
+  );
   const format = useFormatter();
   const money = useMoney();
   const fmtDateLong = (s: string) =>

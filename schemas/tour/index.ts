@@ -22,24 +22,27 @@ export const tourRequestSchema = z.object({
 export type TourRequest = z.infer<typeof tourRequestSchema>;
 
 /* The renter's tour selection — date and time are required, the rest is
-   optional context for the owner. */
-export const tourBookingSchema = z.object({
-  date: z.string().min(1, "Pick a date"),
-  time: z.string().min(1, "Pick a time"),
-  moveIn: z.string().optional(),
-  people: z.string().optional(),
-  note: z.string().optional(),
-});
-export type TourBookingValues = z.infer<typeof tourBookingSchema>;
+   optional context for the owner. Built from a translator (scoped to the
+   `validation` namespace) so the field messages are localized. */
+export const createTourBookingSchema = (t: (key: string) => string) =>
+  z.object({
+    date: z.string().min(1, t("tour.date")),
+    time: z.string().min(1, t("tour.time")),
+    moveIn: z.string().optional(),
+    people: z.string().optional(),
+    note: z.string().optional(),
+  });
+export type TourBookingValues = z.infer<
+  ReturnType<typeof createTourBookingSchema>
+>;
 
 /* Sign-in gate inside the book-tour flow. */
-export const tourSignInSchema = z.object({
-  name: z.string().trim().min(2, "Enter your name"),
-  email: z
-    .string()
-    .trim()
-    .min(1, "Enter your email")
-    .email("Enter a valid email"),
-  password: z.string().min(1, "Enter your password"),
-});
-export type TourSignInValues = z.infer<typeof tourSignInSchema>;
+export const createTourSignInSchema = (t: (key: string) => string) =>
+  z.object({
+    name: z.string().trim().min(2, t("name.required")),
+    email: z.string().trim().min(1, t("email.required")).email(t("email.invalid")),
+    password: z.string().min(1, t("password.required")),
+  });
+export type TourSignInValues = z.infer<
+  ReturnType<typeof createTourSignInSchema>
+>;

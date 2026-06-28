@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { FILLED_INPUT } from "@/app/[lang]/(auth)/components/password-field";
 import { StarPicker } from "./star-picker";
-import { reviewFormSchema, type ReviewFormValues } from "@/schemas/review";
+import { createReviewFormSchema, type ReviewFormValues } from "@/schemas/review";
 
 export function ReviewModal({
   open,
@@ -30,6 +30,11 @@ export function ReviewModal({
   onSubmit: (data: ReviewFormValues) => void;
 }) {
   const t = useTranslations("owner.modal");
+  const tv = useTranslations("validation");
+  const reviewFormSchema = React.useMemo(
+    () => createReviewFormSchema(tv),
+    [tv]
+  );
   const {
     register,
     handleSubmit,

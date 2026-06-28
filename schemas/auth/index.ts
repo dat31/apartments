@@ -1,44 +1,54 @@
 import { z } from "zod";
 
+/** A translator scoped to the `validation` message namespace. */
+type T = (key: string) => string;
+
 // Mirrors the Supabase Auth password policy (min length 8 + required
 // character classes). Keep in sync with the Email provider settings in the
 // dashboard so the form rejects weak passwords before they hit Supabase.
-const passwordSchema = z
-  .string()
-  .min(8, "At least 8 characters")
-  .regex(/[a-z]/, "Add a lowercase letter")
-  .regex(/[A-Z]/, "Add an uppercase letter")
-  .regex(/[0-9]/, "Add a number")
-  .regex(/[^A-Za-z0-9]/, "Add a symbol");
+const passwordSchema = (t: T) =>
+  z
+    .string()
+    .min(8, t("password.min"))
+    .regex(/[a-z]/, t("password.lowercase"))
+    .regex(/[A-Z]/, t("password.uppercase"))
+    .regex(/[0-9]/, t("password.number"))
+    .regex(/[^A-Za-z0-9]/, t("password.symbol"));
 
-export const signInSchema = z.object({
-  email: z.string().min(1, "Enter your email").email("Enter a valid email"),
-  password: z.string().min(1, "Enter your password"),
-  remember: z.boolean(),
-});
-export type SignInValues = z.infer<typeof signInSchema>;
-
-export const signUpSchema = z.object({
-  role: z.enum(["renter", "owner"]),
-  name: z.string().min(1, "Add your name"),
-  email: z.string().min(1, "Enter your email").email("Enter a valid email"),
-  password: passwordSchema,
-  agree: z.literal(true, { message: "Please accept the terms to continue" }),
-});
-export type SignUpValues = z.infer<typeof signUpSchema>;
-
-export const forgotSchema = z.object({
-  email: z.string().min(1, "Enter your email").email("Enter a valid email"),
-});
-export type ForgotValues = z.infer<typeof forgotSchema>;
-
-export const resetPasswordSchema = z
-  .object({
-    password: passwordSchema,
-    confirm: z.string().min(1, "Confirm your password"),
-  })
-  .refine((v) => v.password === v.confirm, {
-    message: "Passwords don't match",
-    path: ["confirm"],
+export const createSignInSchema = (t: T) =>
+  z.object({
+    email: z.string().min(1, t("email.required")).email(t("email.invalid")),
+    password: z.string().min(1, t("password.required")),
+    remember: z.boolean(),
   });
-export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
+export type SignInValues = z.infer<ReturnType<typeof createSignInSchema>>;
+
+export const createSignUpSchema = (t: T) =>
+  z.object({
+    role: z.enum(["renter", "owner"]),
+    name: z.string().min(1, t("name.required")),
+    email: z.string().min(1, t("email.required")).email(t("email.invalid")),
+    password: passwordSchema(t),
+    agree: z.literal(true, { message: t("terms") }),
+  });
+export type SignUpValues = z.infer<ReturnType<typeof createSignUpSchema>>;
+
+export const createForgotSchema = (t: T) =>
+  z.object({
+    email: z.string().min(1, t("email.required")).email(t("email.invalid")),
+  });
+export type ForgotValues = z.infer<ReturnType<typeof createForgotSchema>>;
+
+export const createResetPasswordSchema = (t: T) =>
+  z
+    .object({
+      password: passwordSchema(t),
+      confirm: z.string().min(1, t("password.confirm")),
+    })
+    .refine((v) => v.password === v.confirm, {
+      message: t("password.mismatch"),
+      path: ["confirm"],
+    });
+export type ResetPasswordValues = z.infer<
+  ReturnType<typeof createResetPasswordSchema>
+>;

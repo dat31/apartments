@@ -83,22 +83,27 @@ export type ListingCore = Pick<
 
 /* Listing form schema — shared by the create and edit pages.
    Numeric fields are kept as strings while editing (native inputs/selects
-   yield strings) and converted to numbers on submit via formToCore(). */
-export const listingFormSchema = z.object({
-  title: z.string().trim().min(1, "Give your listing a title."),
-  type: z.string().min(1),
-  price: z.string().refine((v) => Number(v) > 0, "Enter a price above 0."),
-  beds: z.string(),
-  baths: z.string(),
-  area: z.string(),
-  district: z.string().min(1, "Choose a district."),
-  desc: z.string(),
-  amenities: z.array(z.string()),
-  images: z.array(z.string()),
-  available: z.string(),
-});
+   yield strings) and converted to numbers on submit via formToCore().
+   Built from a translator (scoped to the `validation` namespace) so the
+   field messages are localized. */
+export const createListingFormSchema = (t: (key: string) => string) =>
+  z.object({
+    title: z.string().trim().min(1, t("listing.title")),
+    type: z.string().min(1),
+    price: z.string().refine((v) => Number(v) > 0, t("listing.price")),
+    beds: z.string(),
+    baths: z.string(),
+    area: z.string(),
+    district: z.string().min(1, t("listing.district")),
+    desc: z.string(),
+    amenities: z.array(z.string()),
+    images: z.array(z.string()),
+    available: z.string(),
+  });
 
-export type ListingFormValues = z.infer<typeof listingFormSchema>;
+export type ListingFormValues = z.infer<
+  ReturnType<typeof createListingFormSchema>
+>;
 
 export const blankListingForm: ListingFormValues = {
   title: "",
