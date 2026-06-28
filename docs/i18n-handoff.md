@@ -1,8 +1,8 @@
 # i18n translation — handoff
 
-Status of the "translate the remaining UI" effort. Resume from **Phase 6b** (owner profile + reviews).
+Status of the "translate the remaining UI" effort. Resume from **Phase 6c** (saved + renter tours).
 
-- **Branches:** Phase 4 → #22; Phase 5 → #23; **Phase 6 split into 3 PRs** — 6a owner dashboard → `feat/i18n-translate-owner-dashboard` (this branch); 6b owner profile + reviews; 6c saved + renter tours.
+- **Branches:** Phase 4 → #22; Phase 5 → #23; **Phase 6 in 3 PRs** — 6a owner dashboard → #24; 6b owner profile + reviews → `feat/i18n-translate-owner-profile` (this branch); 6c saved + renter tours.
 - **Stack:** next-intl v4 · routes under `app/[lang]` · locales `vi` (default) + `en` · `localePrefix: "as-needed"`
 - **Messages:** `messages/vi.json`, `messages/en.json` (keep both in sync, same shape)
 - **Skill:** invoke `i18n-translation` before continuing — it has the full conventions, server/client API rules, and non-component (metadata/actions/route-handler) guidance.
@@ -28,9 +28,10 @@ Status of the "translate the remaining UI" effort. Resume from **Phase 6b** (own
 | 3 | Apartments browse (filters, sort, empty, pagination, summary) + listing card + data labels (home types, amenities, sort, availability, beds) | `6bea53c` | `apartments.*` |
 | 4 | Apartment detail (detail-view, gallery, reviews, review-pager, availability-label, save-home, back-to-results, detail-skeleton) + tour booking (book-tour button/dialog, time-slots, month-calendar, recaptcha) | #22 | `detail.*`, `tours.*` |
 | 5 | Listing form create/edit (listing-form, photo-uploader, photo-card, amenity-picker) | #23 | `listingForm.*` |
-| 6a | Owner dashboard (header, nav, stats, stat-card, listings-tab, listing-row, owner-tours, owner-tour-card, propose-time-modal, availability-editor) + shared `status-tag` | _this branch_ | `dashboard.*`, `tours.status.*` |
+| 6a | Owner dashboard (header, nav, stats, stat-card, listings-tab, listing-row, owner-tours, owner-tour-card, propose-time-modal, availability-editor) + shared `status-tag` | #24 | `dashboard.*`, `tours.status.*` |
+| 6b | Owner profile (owner-profile, review-modal, star-picker) + shared `review-card`, `star-row` | _this branch_ | `owner.*` (+ `detail.reviews.stayedAt/outOf`) |
 
-Existing namespaces: `common`, `header`, `landing`, `auth`, `errors`, `account`, `profile`, `apartments`, `detail`, `tours`, `listingForm`, `dashboard`.
+Existing namespaces: `common`, `header`, `landing`, `auth`, `errors`, `account`, `profile`, `apartments`, `detail`, `tours`, `listingForm`, `dashboard`, `owner`.
 
 **Phase 4 notes:**
 - `detail-view` now pulls type/amenity/beds labels from the existing `apartments.*` keys (no new keys for those); reused `apartments.card.availableNow/availableOn` in `availability-label.tsx` (migrated it off the deprecated `availLabel`).
@@ -51,13 +52,14 @@ Existing namespaces: `common`, `header`, `landing`, `auth`, `errors`, `account`,
 
 ## Remaining ⬜
 
-### Phase 6b — Owner profile + reviews (next)
-- Owner profile: `owner/[id]/page.tsx`, `components/owner-profile.tsx`, `review-modal.tsx`, `star-picker.tsx`.
-- Shared: `components/review-card.tsx` (used here and on the detail page), `star-row.tsx` if it has any text.
-- Owner seed data shown on the profile (`OWNERS[*].responseTime` like "within an hour", `languages: ["English","Vietnamese"]`, `joined` month) — decide localize-at-render (map to keys / `useFormatter`) vs leave as seed data.
-Suggested namespace: `owner.*`.
+**Phase 6b notes:**
+- `owner.*` namespace; reuses `detail.reviews.*` for generic review words (title/count/emptyTitle/pagination/prev/next) and extends it with `stayedAt` + `outOf` (consumed by shared `review-card` / `star-row`, which render on the detail page too).
+- **Owner seed values localized** (per decision): `responseTime` → `owner.responseTime.{hour,fewHours,day}` via an exact-string map; `languages` → `owner.language.*` (lowercased name → key). Owner `bio`, `name`, `location` stay as seed prose.
+- `monthLabel()` + the English `MONTHS` array **deleted** from `lib/data/listings.ts` — `owner-profile` (`joined`) and `review-card` (`date`) now use `useFormatter().dateTime` on the `"YYYY-MM"` keys.
+- `owner-profile.tsx`: the i18n refactor made the component React-Compiler-compilable, surfacing a pre-existing impurity (`Date.now()`/`new Date()` for a new review's id/timestamp). Scoped `eslint-disable react-hooks/purity` around those two event-time lines (they run on submit, not render).
+- Review form zod messages (`schemas/review/index.ts`) left English — same cross-cutting debt as auth/listing (Phase 7).
 
-### Phase 6c — Saved + renter tours
+### Phase 6c — Saved + renter tours (next)
 - Saved: `apartments/saved/components/saved-list.tsx`, `saved/page.tsx`.
 - Tour (renter): `tour/page.tsx`, `components/renter-tours.tsx`, `renter-tour-card.tsx`.
 - Shared: `components/save-button.tsx`. Reuses `tours.status.*` (StatusTag, done in 6a).
@@ -77,8 +79,8 @@ Suggested namespaces: `saved.*`, `tour.*`.
   - `availLabel()` is **deprecated** and now **unused** (Phase 4 migrated `availability-label.tsx` to `availInfo()` + `t("apartments.card.availableNow"/"availableOn")`) — safe to delete in Phase 7.
   - `money()` → currency phase (above).
 - Listing `status` ("active" / "draft") — **done** in 6a (`dashboard.status.*`, used by `listing-row.tsx`).
-- Owner data shown on the profile (`OWNERS[*].responseTime` like "within an hour", `languages: ["English","Vietnamese"]`) — seed strings in `lib/data/listings.ts`; decide localize-at-render vs leave as seed data → **handle in Phase 6b**.
-- Month names: `monthLabel()` / `MONTHS` in `lib/data/listings.ts` are English — prefer `useFormatter().dateTime` at call sites for any visible month/date.
+- Owner profile seed values (`responseTime`, `languages`) — **done** in 6b (localized via `owner.responseTime.*` / `owner.language.*`).
+- Month names: `monthLabel()` / `MONTHS` — **deleted** in 6b; call sites use `useFormatter().dateTime`.
 
 ## Notes / decisions already made
 

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -28,6 +29,7 @@ export function ReviewModal({
   firstName: string;
   onSubmit: (data: ReviewFormValues) => void;
 }) {
+  const t = useTranslations("owner.modal");
   const {
     register,
     handleSubmit,
@@ -48,7 +50,7 @@ export function ReviewModal({
       <DialogContent className="max-w-md p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="text-xl font-semibold tracking-tight">
-            Review {firstName}
+            {t("title", { name: firstName })}
           </DialogTitle>
         </DialogHeader>
         <form
@@ -60,12 +62,11 @@ export function ReviewModal({
           noValidate
         >
           <p className="text-sm text-muted-foreground -mt-1 text-pretty">
-            Share how it went renting from {firstName}. Your review helps other
-            renters.
+            {t("intro", { name: firstName })}
           </p>
 
           <Field data-invalid={!!errors.rating}>
-            <FieldLabel>Your rating</FieldLabel>
+            <FieldLabel>{t("rating")}</FieldLabel>
             <Controller
               control={control}
               name="rating"
@@ -77,10 +78,10 @@ export function ReviewModal({
           </Field>
 
           <Field data-invalid={!!errors.author}>
-            <FieldLabel htmlFor="author">Your name</FieldLabel>
+            <FieldLabel htmlFor="author">{t("name")}</FieldLabel>
             <Input
               id="author"
-              placeholder="e.g. Alex Moreno"
+              placeholder={t("namePlaceholder")}
               className={FILLED_INPUT}
               aria-invalid={!!errors.author}
               {...register("author")}
@@ -89,11 +90,11 @@ export function ReviewModal({
           </Field>
 
           <Field data-invalid={!!errors.text}>
-            <FieldLabel htmlFor="text">Your review</FieldLabel>
+            <FieldLabel htmlFor="text">{t("review")}</FieldLabel>
             <Textarea
               id="text"
               rows={4}
-              placeholder="What stood out — the place, the communication, the little touches?"
+              placeholder={t("reviewPlaceholder")}
               className="bg-input border-transparent text-[15px] resize-none focus-ring"
               aria-invalid={!!errors.text}
               {...register("text")}
@@ -102,7 +103,7 @@ export function ReviewModal({
           </Field>
 
           <Button size="lg" type="submit" className="w-full h-12">
-            Post review
+            {t("submit")}
           </Button>
         </form>
       </DialogContent>
