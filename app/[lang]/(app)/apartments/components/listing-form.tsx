@@ -37,7 +37,7 @@ import {
   BATH_OPTIONS,
 } from "../constants/listing-form";
 import {
-  listingFormSchema,
+  createListingFormSchema,
   blankListingForm,
   listingToForm,
   formToCore,
@@ -56,6 +56,11 @@ export function ListingForm({
 }) {
   const t = useTranslations("listingForm");
   const tt = useTranslations("apartments");
+  const tv = useTranslations("validation");
+  const listingFormSchema = React.useMemo(
+    () => createListingFormSchema(tv),
+    [tv]
+  );
   const router = useRouter();
   const { getById, addListing, updateListing } = useListings();
   const isEdit = mode === "edit";

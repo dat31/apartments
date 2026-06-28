@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
@@ -19,13 +20,15 @@ import { AuthShell } from "../components/auth-shell";
 import { SocialButton } from "../components/social-button";
 import { AuthDivider } from "../components/auth-divider";
 import { PasswordField, FILLED_INPUT } from "../components/password-field";
-import { signInSchema, type SignInValues } from "@/schemas/auth";
+import { createSignInSchema, type SignInValues } from "@/schemas/auth";
 import { useSignIn } from "@/hooks/auth";
 
 export default function SignInPage() {
   const router = useRouter();
   const signIn = useSignIn();
   const t = useTranslations("auth.signin");
+  const tv = useTranslations("validation");
+  const signInSchema = useMemo(() => createSignInSchema(tv), [tv]);
   const {
     register,
     handleSubmit,

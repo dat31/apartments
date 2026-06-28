@@ -526,5 +526,38 @@
     "acceptNewTime": "Accept new time",
     "decline": "Decline",
     "cancelTour": "Cancel tour"
+  },
+  "validation": {
+    "email": {
+      "required": "Enter your email",
+      "invalid": "Enter a valid email"
+    },
+    "password": {
+      "required": "Enter your password",
+      "min": "At least 8 characters",
+      "lowercase": "Add a lowercase letter",
+      "uppercase": "Add an uppercase letter",
+      "number": "Add a number",
+      "symbol": "Add a symbol",
+      "confirm": "Confirm your password",
+      "mismatch": "Passwords don't match"
+    },
+    "name": {
+      "required": "Add your name"
+    },
+    "terms": "Please accept the terms to continue",
+    "listing": {
+      "title": "Give your listing a title.",
+      "price": "Enter a price above 0.",
+      "district": "Choose a district."
+    },
+    "review": {
+      "rating": "Pick a rating from 1 to 5",
+      "text": "Tell us a little more"
+    },
+    "tour": {
+      "date": "Pick a date",
+      "time": "Pick a time"
+    }
   }
 }
