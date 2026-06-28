@@ -38,7 +38,8 @@ import { AuthDivider } from "@/app/[lang]/(auth)/components/auth-divider";
 import { FILLED_INPUT } from "@/app/[lang]/(auth)/components/password-field";
 import { Calendar, ChevronLeft, ChevronRight, CircleCheck, Clock, ShieldCheck } from "lucide-react";
 import { GoogleMark } from "@/components/icons";
-import { PALETTE, money } from "@/lib/data/listings";
+import { PALETTE } from "@/lib/data/listings";
+import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { acctInitials } from "@/lib/data/profile";
 import {
@@ -72,6 +73,7 @@ export function BookTourDialog({
 }) {
   const t = useTranslations("tours");
   const format = useFormatter();
+  const money = useMoney();
   const fmtDateLong = (s: string) =>
     format.dateTime(parseYmd(s), {
       weekday: "long",

@@ -5,10 +5,11 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PALETTE, money } from "@/lib/data/listings";
+import { PALETTE } from "@/lib/data/listings";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { BedDouble, Eye, MapPin, Pencil, Trash2 } from "lucide-react";
 import { ViewTransition } from "react";
+import { useMoney } from "@/hooks/use-money";
 
 /* A single owner-listing management row: cover, meta, and quick actions. */
 export function ListingRow({
@@ -22,6 +23,7 @@ export function ListingRow({
 }) {
   const t = useTranslations("dashboard");
   const ta = useTranslations("apartments");
+  const money = useMoney();
   const isActive = listing.status === "active";
   const cover = listing.images?.[0];
   const colors = PALETTE[listing.palette];

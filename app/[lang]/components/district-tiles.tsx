@@ -1,11 +1,12 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { money } from "@/lib/data/listings";
 import { Card } from "@/components/ui/card";
+import { useMoney } from "@/hooks/use-money";
 import { type DistrictTile } from "../lib/landing";
 
 export function DistrictTiles({ tiles }: { tiles: DistrictTile[] }) {
   const t = useTranslations("landing.districts");
+  const money = useMoney();
   return (
     <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
       {tiles.map((d) => (
