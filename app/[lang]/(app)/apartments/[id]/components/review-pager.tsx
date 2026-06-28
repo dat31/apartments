@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
   Pagination,
@@ -26,6 +27,7 @@ export function ReviewPager({
   pageCount: number;
   firstPage: React.ReactNode;
 }) {
+  const t = useTranslations("detail.reviews");
   const [page, setPage] = React.useState(1);
 
   return (
@@ -42,14 +44,14 @@ export function ReviewPager({
 
       {pageCount > 1 && (
         <Pagination
-          aria-label="Reviews pagination"
+          aria-label={t("pagination")}
           className="mt-6 justify-center"
         >
           <PaginationContent>
             <PaginationItem key="prev">
               <PaginationPrevious
                 href="#"
-                text="Prev"
+                text={t("prev")}
                 aria-disabled={page <= 1}
                 className={cn(page <= 1 && "pointer-events-none opacity-40")}
                 onClick={(e) => {
@@ -75,6 +77,7 @@ export function ReviewPager({
             <PaginationItem key="next">
               <PaginationNext
                 href="#"
+                text={t("next")}
                 aria-disabled={page >= pageCount}
                 className={cn(page >= pageCount && "pointer-events-none opacity-40")}
                 onClick={(e) => {

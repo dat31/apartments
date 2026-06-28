@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ChevronLeft } from "lucide-react";
 import { SEARCH_MEMORY_KEY } from "@/app/[lang]/(app)/apartments/lib/search-memory";
@@ -9,6 +10,7 @@ import { SEARCH_MEMORY_KEY } from "@/app/[lang]/(app)/apartments/lib/search-memo
    with. Starts as bare /apartments (SSR-safe) and upgrades to the remembered
    query after mount, so a click always lands somewhere sensible. */
 export function BackToResults() {
+  const t = useTranslations("detail");
   const [href, setHref] = useState("/apartments");
   useEffect(() => {
     try {
@@ -23,7 +25,7 @@ export function BackToResults() {
       href={href}
       className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-5 focus-ring"
     >
-      <ChevronLeft size={18} /> Back to results
+      <ChevronLeft size={18} /> {t("backToResults")}
     </Link>
   );
 }

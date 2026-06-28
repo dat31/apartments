@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations, useFormatter } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -50,10 +51,8 @@ import {
   availabilityFor,
   occupiedSet,
   openSlotsFor,
+  parseYmd,
   todayYmd,
-  tourDateLong,
-  tourDateMed,
-  tourTimeLabel,
 } from "../constants/tours";
 import { DatePicker } from "@/components/ui/date-picker";
 import { MonthCalendar } from "./month-calendar";
@@ -71,6 +70,28 @@ export function BookTourDialog({
   onClose: () => void;
   listing: Listing;
 }) {
+  const t = useTranslations("tours");
+  const format = useFormatter();
+  const fmtDateLong = (s: string) =>
+    format.dateTime(parseYmd(s), {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    });
+  const fmtDateMed = (s: string) =>
+    format.dateTime(parseYmd(s), {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  const fmtTime = (time: string) => {
+    const [h, m] = time.split(":").map(Number);
+    return format.dateTime(new Date(2000, 0, 1, h, m), {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
   const isMobile = useIsMobile();
   const { profile, updateProfile } = useProfile();
   const { tours, addTour } = useTours();
@@ -143,8 +164,11 @@ export function BookTourDialog({
       renterName: form.getValues("name").trim() || profile.name,
       renterEmail: form.getValues("email").trim() || profile.email,
     });
-    toast.success("Tour requested", {
-      description: `${tourDateMed(values.date)} at ${tourTimeLabel(values.time)} — the owner will confirm shortly.`,
+    toast.success(t("toastTitle"), {
+      description: t("toastDesc", {
+        date: fmtDateMed(values.date),
+        time: fmtTime(values.time),
+      }),
     });
     setStep("done");
   };
@@ -153,7 +177,11 @@ export function BookTourDialog({
   const goVerify = booking.handleSubmit(() => setStep("verify"));
 
   const title =
-    step === "done" ? "Tour requested" : step === "pick" ? "Book a tour" : "Confirm your tour";
+    step === "done"
+      ? t("titleDone")
+      : step === "pick"
+        ? t("titlePick")
+        : t("titleVerify");
 
   const listingHeader = (
     <div className="flex items-center gap-3 bg-secondary p-3 mb-5">
@@ -161,7 +189,8 @@ export function BookTourDialog({
       <div className="min-w-0">
         <p className="font-medium truncate">{listing.title}</p>
         <p className="text-sm text-muted-foreground">
-          {districtLabel(listing.district)} · {money(listing.price)}/mo
+          {districtLabel(listing.district)} · {money(listing.price)}
+          {t("perMonthShort")}
         </p>
       </div>
     </div>
@@ -173,17 +202,23 @@ export function BookTourDialog({
         <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground mb-4">
           <Calendar size={30} />
         </div>
-        <h3 className="text-xl font-semibold tracking-tight">Tour requested</h3>
+        <h3 className="text-xl font-semibold tracking-tight">
+          {t("requestedTitle")}
+        </h3>
         <p className="mt-2 text-muted-foreground text-pretty max-w-sm mx-auto">
-          We&apos;ve sent your request for{" "}
-          <span className="text-foreground font-medium">{tourDateLong(date)}</span>{" "}
-          at{" "}
-          <span className="text-foreground font-medium">{tourTimeLabel(time)}</span>
-          . The owner will confirm shortly — you&apos;ll get an email once they
-          respond.
+          {t.rich("requestedBody", {
+            date: fmtDateLong(date),
+            time: fmtTime(time),
+            d: (chunks) => (
+              <span className="text-foreground font-medium">{chunks}</span>
+            ),
+            t: (chunks) => (
+              <span className="text-foreground font-medium">{chunks}</span>
+            ),
+          })}
         </p>
         <Button className="mt-6 w-full" onClick={onClose}>
-          Done
+          {t("done")}
         </Button>
       </div>
     ) : step === "pick" ? (
@@ -192,7 +227,7 @@ export function BookTourDialog({
         <div className="grid sm:grid-cols-2 gap-5">
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 flex items-center gap-1.5">
-              <Calendar size={14} /> Pick a date
+              <Calendar size={14} /> {t("pickDate")}
             </h4>
             <MonthCalendar
               template={template}
@@ -206,19 +241,19 @@ export function BookTourDialog({
           </div>
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2 flex items-center gap-1.5">
-              <Clock size={14} /> {date ? tourDateMed(date) : "Available times"}
+              <Clock size={14} /> {date ? fmtDateMed(date) : t("availableTimes")}
             </h4>
             {date ? (
               <TimeSlots
                 slots={slots}
                 value={time}
-                onPick={(t) =>
-                  booking.setValue("time", t, { shouldValidate: true })
+                onPick={(slot) =>
+                  booking.setValue("time", slot, { shouldValidate: true })
                 }
               />
             ) : (
               <div className="bg-card p-6 text-sm text-muted-foreground text-center">
-                Select a highlighted day to see open tour times.
+                {t("selectDayHint")}
               </div>
             )}
             {date && time && (
@@ -226,7 +261,7 @@ export function BookTourDialog({
                 <div className="grid grid-cols-2 gap-3">
                   <Field>
                     <FieldLabel htmlFor="tour-movein">
-                      Move-in date (optional)
+                      {t("moveInLabel")}
                     </FieldLabel>
                     <DatePicker
                       id="tour-movein"
@@ -235,13 +270,13 @@ export function BookTourDialog({
                         booking.setValue("moveIn", v ?? "")
                       }
                       min={todayYmd()}
-                      placeholder="Pick a date"
+                      placeholder={t("moveInPlaceholder")}
                       className="w-full"
                     />
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="tour-people">
-                      People (optional)
+                      {t("peopleLabel")}
                     </FieldLabel>
                     <Select
                       value={booking.watch("people")}
@@ -251,24 +286,24 @@ export function BookTourDialog({
                         id="tour-people"
                         className="w-full bg-input border-transparent h-10"
                       >
-                        <SelectValue placeholder="Select" />
+                        <SelectValue placeholder={t("peopleSelect")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">1 person</SelectItem>
-                        <SelectItem value="2">2 people</SelectItem>
-                        <SelectItem value="3">3 people</SelectItem>
-                        <SelectItem value="4">4 people</SelectItem>
-                        <SelectItem value="5+">5 or more</SelectItem>
+                        <SelectItem value="1">{t("people", { count: 1 })}</SelectItem>
+                        <SelectItem value="2">{t("people", { count: 2 })}</SelectItem>
+                        <SelectItem value="3">{t("people", { count: 3 })}</SelectItem>
+                        <SelectItem value="4">{t("people", { count: 4 })}</SelectItem>
+                        <SelectItem value="5+">{t("peopleMax")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </Field>
                 </div>
                 <Field>
-                  <FieldLabel htmlFor="tour-note">Add a note (optional)</FieldLabel>
+                  <FieldLabel htmlFor="tour-note">{t("noteLabel")}</FieldLabel>
                   <Textarea
                     id="tour-note"
                     rows={2}
-                    placeholder="Anything you'd like the owner to know?"
+                    placeholder={t("notePlaceholder")}
                     className="bg-input border-transparent text-[15px] resize-none focus-ring"
                     {...booking.register("note")}
                   />
@@ -279,14 +314,16 @@ export function BookTourDialog({
         </div>
         <div className="mt-6 flex items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">
-            {time ? `${tourDateMed(date)} · ${tourTimeLabel(time)}` : "No time selected"}
+            {time
+              ? `${fmtDateMed(date)} · ${fmtTime(time)}`
+              : t("noTimeSelected")}
           </p>
           <Button
             className="gap-1.5"
             disabled={!date || !time}
             onClick={goVerify}
           >
-            Continue <ChevronRight size={18} />
+            {t("continue")} <ChevronRight size={18} />
           </Button>
         </div>
       </div>
@@ -297,28 +334,30 @@ export function BookTourDialog({
           onClick={() => setStep("pick")}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-4 focus-ring"
         >
-          <ChevronLeft size={16} /> Back
+          <ChevronLeft size={16} /> {t("back")}
         </button>
         <div className="flex items-center gap-2.5 bg-secondary p-3 mb-5 text-sm">
           <Calendar size={18} className="text-primary shrink-0" />
-          <span className="font-medium">{tourDateLong(date)}</span>
-          <span className="text-muted-foreground">at {tourTimeLabel(time)}</span>
+          <span className="font-medium">{fmtDateLong(date)}</span>
+          <span className="text-muted-foreground">
+            {t("at", { time: fmtTime(time) })}
+          </span>
         </div>
 
         {!authed ? (
           <form className="flex flex-col gap-4" onSubmit={signIn} noValidate>
             <h4 className="font-semibold flex items-center gap-2">
-              <ShieldCheck size={18} className="text-primary" /> Sign in to book
+              <ShieldCheck size={18} className="text-primary" /> {t("signInToBook")}
             </h4>
             <SocialButton icon={<GoogleMark />} onClick={google}>
-              Continue with Google
+              {t("continueGoogle")}
             </SocialButton>
-            <AuthDivider>or</AuthDivider>
+            <AuthDivider>{t("or")}</AuthDivider>
             <Field data-invalid={!!form.formState.errors.name}>
-              <FieldLabel htmlFor="tour-name">Full name</FieldLabel>
+              <FieldLabel htmlFor="tour-name">{t("fullName")}</FieldLabel>
               <Input
                 id="tour-name"
-                placeholder="Jordan Rivera"
+                placeholder={t("fullNamePlaceholder")}
                 className={FILLED_INPUT}
                 aria-invalid={!!form.formState.errors.name}
                 {...form.register("name")}
@@ -326,11 +365,11 @@ export function BookTourDialog({
               <FieldError errors={[form.formState.errors.name]} />
             </Field>
             <Field data-invalid={!!form.formState.errors.email}>
-              <FieldLabel htmlFor="tour-email">Email</FieldLabel>
+              <FieldLabel htmlFor="tour-email">{t("email")}</FieldLabel>
               <Input
                 id="tour-email"
                 type="email"
-                placeholder="you@email.com"
+                placeholder={t("emailPlaceholder")}
                 className={FILLED_INPUT}
                 aria-invalid={!!form.formState.errors.email}
                 {...form.register("email")}
@@ -338,7 +377,7 @@ export function BookTourDialog({
               <FieldError errors={[form.formState.errors.email]} />
             </Field>
             <Field data-invalid={!!form.formState.errors.password}>
-              <FieldLabel htmlFor="tour-password">Password</FieldLabel>
+              <FieldLabel htmlFor="tour-password">{t("password")}</FieldLabel>
               <Input
                 id="tour-password"
                 type="password"
@@ -350,7 +389,7 @@ export function BookTourDialog({
               <FieldError errors={[form.formState.errors.password]} />
             </Field>
             <Button type="submit" size="lg">
-              Sign in
+              {t("signIn")}
             </Button>
           </form>
         ) : (
@@ -368,20 +407,20 @@ export function BookTourDialog({
                 </p>
               </div>
               <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
-                <CircleCheck size={15} /> Signed in
+                <CircleCheck size={15} /> {t("signedIn")}
               </span>
             </div>
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2">
-                Verify you&apos;re human
+                {t("verifyHuman")}
               </h4>
               <RecaptchaCheck checked={robot} onChange={setRobot} />
             </div>
             <Button size="lg" className="gap-2" disabled={!robot} onClick={confirm}>
-              <Calendar size={18} /> Confirm tour request
+              <Calendar size={18} /> {t("confirmRequest")}
             </Button>
             <p className="text-xs text-muted-foreground text-center">
-              The owner will accept, decline, or suggest another time.
+              {t("ownerWillRespond")}
             </p>
           </div>
         )}
@@ -390,10 +429,10 @@ export function BookTourDialog({
 
   const description =
     step === "pick"
-      ? `Choose a day and time to tour ${listing.title}.`
+      ? t("descPick", { title: listing.title })
       : step === "verify"
-        ? "Confirm your details to send the request."
-        : "Your tour request has been sent.";
+        ? t("descVerify")
+        : t("descDone");
 
   if (isMobile) {
     return (

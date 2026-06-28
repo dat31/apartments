@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSaved } from "@/hooks/use-saved";
@@ -13,6 +14,7 @@ export function SaveHomeButton({
   id: string;
   mode: "full" | "icon";
 }) {
+  const t = useTranslations("detail");
   const { isSaved, toggleSave } = useSaved();
   const saved = isSaved(id);
 
@@ -22,7 +24,7 @@ export function SaveHomeButton({
         variant={saved ? "default" : "secondary"}
         size="icon"
         className="size-11"
-        aria-label={saved ? "Saved" : "Save home"}
+        aria-label={saved ? t("saved") : t("save")}
         onClick={() => toggleSave(id)}
       >
         <Heart size={20} />
@@ -37,7 +39,7 @@ export function SaveHomeButton({
       className="h-12 gap-2"
       onClick={() => toggleSave(id)}
     >
-      <Heart size={18} /> {saved ? "Saved" : "Save home"}
+      <Heart size={18} /> {saved ? t("saved") : t("save")}
     </Button>
   );
 }
