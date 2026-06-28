@@ -25,7 +25,15 @@ export function SiteHeader() {
   const savedActive = pathname === "/apartments/saved";
   const toursActive = pathname === "/tour";
   const isOwner = profile.role === "owner";
-  const isSignedIn = !!user;
+  // Auth, saved count and role all come from client-only stores (react-query
+  // cache seeded from cookies, localStorage). They're unknown during SSR, so
+  // gate the auth-dependent header on mount: server and first client render
+  // both show the signed-out shell, then the real state reveals after mount.
+  // This keeps the (app) layout statically prerenderable (no server cookie
+  // read) while avoiding a server/client hydration mismatch.
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  const isSignedIn = mounted && !!user;
 
   return (
     <header className="sticky top-0 z-40 bg-background">
