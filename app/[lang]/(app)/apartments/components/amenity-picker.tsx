@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Chip } from "@/components/chip";
 import { AMENITY_ICONS } from "@/components/icons";
 import { AMENITIES } from "@/lib/data/listings";
@@ -12,6 +13,7 @@ export function AmenityPicker({
   value: string[];
   onChange: (next: string[]) => void;
 }) {
+  const t = useTranslations("apartments.amenities");
   const toggle = (id: string) =>
     onChange(
       value.includes(id) ? value.filter((x) => x !== id) : [...value, id]
@@ -27,7 +29,7 @@ export function AmenityPicker({
             active={value.includes(a.id)}
             onClick={() => toggle(a.id)}
           >
-            {Icon ? <Icon size={16} /> : null} {a.label}
+            {Icon ? <Icon size={16} /> : null} {t(a.id)}
           </Chip>
         );
       })}

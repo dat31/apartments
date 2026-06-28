@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useDrag, useDrop } from "react-dnd";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ export function PhotoCard({
   move: (from: number, to: number) => void;
   onRemove: (index: number) => void;
 }) {
+  const t = useTranslations("listingForm.photoUploader");
   const [{ isDragging }, drag] = useDrag({
     type: PHOTO_DND,
     item: { index } as DragItem,
@@ -67,7 +69,7 @@ export function PhotoCard({
 
       {index === 0 && (
         <span className="absolute top-2 left-2">
-          <Badge>Cover</Badge>
+          <Badge>{t("cover")}</Badge>
         </span>
       )}
 
@@ -81,7 +83,7 @@ export function PhotoCard({
       <button
         type="button"
         onClick={() => onRemove(index)}
-        aria-label="Remove photo"
+        aria-label={t("removePhoto")}
         className="absolute top-2 right-2 w-7 h-7 inline-flex items-center justify-center bg-background/90 text-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100 focus-ring"
       >
         <X size={15} />

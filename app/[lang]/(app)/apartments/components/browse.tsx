@@ -118,7 +118,7 @@ export async function Browse({
 
             <div className="ml-auto flex items-center gap-2">
               <span className="text-sm text-muted-foreground hidden sm:inline">
-                Sort
+                {t("sort")}
               </span>
               <SortMenu />
             </div>
