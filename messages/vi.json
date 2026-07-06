@@ -357,6 +357,8 @@
     "newTitle": "Tin đăng mới",
     "editSubtitle": "Cập nhật thông tin bên dưới.",
     "newSubtitle": "Thêm thông tin về chỗ ở của bạn. Bạn có thể lưu dưới dạng bản nháp.",
+    "loading": "Đang tải…",
+    "saveError": "Không thể lưu tin đăng. Vui lòng thử lại.",
     "photos": "Hình ảnh",
     "photosHint": "Tải lên hình ảnh chỗ ở của bạn. Kéo để sắp xếp lại — ảnh đầu tiên được dùng làm ảnh bìa.",
     "basics": "Thông tin cơ bản",

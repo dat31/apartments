@@ -357,6 +357,8 @@
     "newTitle": "New listing",
     "editSubtitle": "Update the details below.",
     "newSubtitle": "Add the details of your place. You can save it as a draft.",
+    "loading": "Loading…",
+    "saveError": "Couldn't save your listing. Please try again.",
     "photos": "Photos",
     "photosHint": "Upload photos of your place. Drag to reorder — the first photo is used as the cover.",
     "basics": "The basics",

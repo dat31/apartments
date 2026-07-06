@@ -49,12 +49,9 @@ import {
   createTourBookingSchema,
   createTourSignInSchema,
 } from "@/schemas/tour";
-import {
-  availabilityFor,
-  openSlotsFor,
-  parseYmd,
-  todayYmd,
-} from "../constants/tours";
+import { openSlotsFor, parseYmd, todayYmd } from "../constants/tours";
+import { useAvailability } from "@/hooks/use-availability";
+import { OWNER_ID_BY_KEY } from "@/lib/services/listings-map";
 import { DatePicker } from "@/components/ui/date-picker";
 import { MonthCalendar } from "./month-calendar";
 import { TimeSlots } from "./time-slots";
@@ -113,12 +110,13 @@ export function BookTourDialog({
   // the dialog at all, but this guards the race where its data was stale).
   const { tour: existingTour } = useActiveTour(listing.id);
 
-  const ownerKey = listing.owner;
-  const template = React.useMemo(() => availabilityFor(ownerKey), [ownerKey]);
+  // listing.owner is the owner key ("you"/"maya"/…) for seed owners, otherwise
+  // the raw uuid; map it back to the uuid to read that owner's availability.
+  const ownerId = OWNER_ID_BY_KEY[listing.owner] ?? listing.owner;
+  const { template } = useAvailability(ownerId);
   // A cross-renter occupied set would need visibility the renter's RLS scope
-  // doesn't grant, and owner availability is still owner-side (a later phase).
-  // We show the static weekly template and let the DB be the source of truth
-  // when the tour is inserted.
+  // doesn't grant, so we show the owner's weekly template and let the DB be the
+  // source of truth (the one-active-per-listing index) when the tour inserts.
   const occupied = React.useMemo(() => new Set<string>(), []);
   const colors = PALETTE[listing.palette];
 

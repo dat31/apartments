@@ -5,9 +5,8 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { OwnerTourCard } from "./owner-tour-card";
 import { ProposeTimeModal } from "./propose-time-modal";
-import { useListings } from "@/hooks/use-listings";
-import { useTours } from "@/hooks/use-tours";
-import { useAvailability } from "@/hooks/use-availability";
+import { useOwnerTours, type OwnerTour } from "@/hooks/use-owner-tours";
+import { useMyAvailability } from "@/hooks/use-availability";
 import { type TourRequest } from "@/schemas/tour";
 import { tourSlot } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { Calendar } from "lucide-react";
@@ -23,8 +22,8 @@ function Section({
   render,
 }: {
   title: string;
-  items: TourRequest[];
-  render: (t: TourRequest) => React.ReactNode;
+  items: OwnerTour[];
+  render: (t: OwnerTour) => React.ReactNode;
 }) {
   if (items.length === 0) return null;
   return (
@@ -42,19 +41,17 @@ function Section({
 
 export function OwnerTours() {
   const t = useTranslations("dashboard.tours");
-  const { getById } = useListings();
-  const { tours, acceptTour, declineTour, proposeTime } = useTours();
-  const { template } = useAvailability();
+  const { items, acceptTour, declineTour, proposeTime } = useOwnerTours();
+  const { template } = useMyAvailability();
   const [proposeFor, setProposeFor] = React.useState<TourRequest | null>(null);
 
-  const mine = tours.filter((t) => t.ownerKey === "you");
-  const needsResponse = mine
-    .filter((t) => t.status === "pending" || t.status === "reschedule")
-    .sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
-  const upcoming = mine
-    .filter((t) => t.status === "confirmed")
-    .sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
-  const past = mine.filter((t) => t.status === "declined");
+  const needsResponse = items
+    .filter((m) => m.tour.status === "pending" || m.tour.status === "reschedule")
+    .sort((a, b) => sortKey(a.tour).localeCompare(sortKey(b.tour)));
+  const upcoming = items
+    .filter((m) => m.tour.status === "confirmed")
+    .sort((a, b) => sortKey(a.tour).localeCompare(sortKey(b.tour)));
+  const past = items.filter((m) => m.tour.status === "declined");
 
   const handleAccept = (id: string) => {
     acceptTour(id);
@@ -68,18 +65,18 @@ export function OwnerTours() {
     toast(t("declinedToast"));
   };
 
-  const renderCard = (t: TourRequest) => (
+  const renderCard = (m: OwnerTour) => (
     <OwnerTourCard
-      key={t.id}
-      tour={t}
-      listing={getById(t.listingId) ?? null}
+      key={m.tour.id}
+      tour={m.tour}
+      listing={m.listing}
       onAccept={handleAccept}
       onDecline={handleDecline}
       onPropose={setProposeFor}
     />
   );
 
-  if (mine.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="bg-card p-16 text-center anim-fade">
         <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
@@ -104,9 +101,13 @@ export function OwnerTours() {
         open={!!proposeFor}
         onClose={() => setProposeFor(null)}
         tour={proposeFor}
-        listing={proposeFor ? getById(proposeFor.listingId) ?? null : null}
+        listing={
+          proposeFor
+            ? items.find((m) => m.tour.id === proposeFor.id)?.listing ?? null
+            : null
+        }
         template={template}
-        tours={tours}
+        tours={items.map((m) => m.tour)}
         onSubmit={(id, date, time) => {
           proposeTime(id, date, time);
           setProposeFor(null);
