@@ -17,6 +17,7 @@ import {
 import { ListingCard } from "@/components/listing-card";
 import { SkeletonGrid } from "@/components/skeleton-listing-card";
 import { useSaved } from "@/hooks/use-saved";
+import { useActiveListings } from "@/hooks/use-active-listings";
 import { Heart, Search, SlidersHorizontal } from "lucide-react";
 import { type Listing } from "@/schemas/listing";
 import { FiltersPanel } from "@/app/[lang]/(app)/apartments/components/filters-panel";
@@ -33,15 +34,22 @@ import {
   PAGE_SIZE,
 } from "@/app/[lang]/(app)/apartments/lib/query";
 
-/* Saved homes with the same filter/sort UI as Browse. Saved IDs live in
-   localStorage so this stays client-rendered; filter/sort state is driven by
-   the URL via the shared FiltersPanel / SortMenu islands, and the actual
+/* Saved homes with the same filter/sort UI as Browse. This page has no SEO
+   need, so it renders fully client-side: both the saved-id shortlist
+   (useSaved) and the active-listing set (useActiveListings) are fetched in the
+   browser. Filter/sort/page state is driven by the URL via the shared
+   FiltersPanel / SortMenu / ListingPagination islands, and the actual
    filtering reuses Browse's pure `filterListings` helper. */
-export function SavedList({ listings }: { listings: Listing[] }) {
+export function SavedList() {
   const t = useTranslations("saved");
   const ta = useTranslations("apartments");
-  const { saved, ready } = useSaved();
+  const { saved, ready: savedReady } = useSaved();
+  const { data: listings = [], isPending: listingsPending } =
+    useActiveListings();
   const searchParams = useSearchParams();
+
+  // Ready only once both the shortlist and the listing set have resolved.
+  const ready = savedReady && !listingsPending;
 
   const savedListings = React.useMemo(
     () =>
