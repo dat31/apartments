@@ -17,35 +17,42 @@ import {
 import { ListingCard } from "@/components/listing-card";
 import { SkeletonGrid } from "@/components/skeleton-listing-card";
 import { useSaved } from "@/hooks/use-saved";
+import {
+  SAVED_PAGE_SIZE,
+  useSavedFacets,
+  useSavedListingsPage,
+} from "@/hooks/use-saved-listings";
 import { Heart, Search, SlidersHorizontal } from "lucide-react";
-import { type Listing } from "@/schemas/listing";
 import { FiltersPanel } from "@/app/[lang]/(app)/apartments/components/filters-panel";
 import { SortMenu } from "@/app/[lang]/(app)/apartments/components/sort-menu";
 import { EmptyResults } from "@/app/[lang]/(app)/apartments/components/empty-results";
+import { SavedPagination } from "./saved-pagination";
 import {
   activeFilterCount,
-  filterListings,
-  getDistricts,
   parseFilters,
   parseSort,
 } from "@/app/[lang]/(app)/apartments/lib/query";
 
-/* Saved homes with the same filter/sort UI as Browse. Saved IDs live in
-   localStorage so this stays client-rendered; filter/sort state is driven by
-   the URL via the shared FiltersPanel / SortMenu islands, and the actual
-   filtering reuses Browse's pure `filterListings` helper. */
-export function SavedList({ listings }: { listings: Listing[] }) {
+/* Saved homes with the same filter/sort UI as Browse. This page has no SEO
+   need, so it renders fully client-side. Filter/sort state lives in the URL
+   (the shared FiltersPanel / SortMenu islands); pagination is React state.
+   Rather than pull every saved listing into the browser and slice, the DB
+   returns one filtered/sorted page at a time (useSavedListingsPage), with a
+   tiny facets query supplying the district chips + total. */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function SavedList() {
   const t = useTranslations("saved");
   const ta = useTranslations("apartments");
-  const { saved, ready } = useSaved();
+  const { saved, ready: savedReady, scope } = useSaved();
   const searchParams = useSearchParams();
 
-  const savedListings = React.useMemo(
-    () =>
-      saved
-        .map((id) => listings.find((l) => l.id === id))
-        .filter(Boolean) as Listing[],
-    [listings, saved]
+  // Guests may still hold legacy non-uuid ids in localStorage; keep only real
+  // listing uuids so `.in("id", …)` (a uuid column) never errors.
+  const savedIds = React.useMemo(
+    () => saved.filter((id) => UUID_RE.test(id)),
+    [saved]
   );
 
   const filters = React.useMemo(
@@ -53,12 +60,46 @@ export function SavedList({ listings }: { listings: Listing[] }) {
     [searchParams]
   );
   const sort = parseSort(Object.fromEntries(searchParams.entries()));
-  const results = filterListings(savedListings, filters, sort);
-  const districts = getDistricts(savedListings);
   const activeCount = activeFilterCount(filters);
 
+  // Pagination is client state now (no ?page= in the URL). Reset to the first
+  // page whenever the filter/sort query string changes.
+  const [page, setPage] = React.useState(1);
+  const filterKey = searchParams.toString();
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(1);
+  }, [filterKey]);
+
+  const facets = useSavedFacets({ scope, saved: savedIds, enabled: savedReady });
+  const pageQuery = useSavedListingsPage({
+    scope,
+    saved: savedIds,
+    filters,
+    sort,
+    page,
+    enabled: savedReady,
+  });
+
+  const savedTotal = facets.data?.total ?? 0;
+  const districts = facets.data?.districts ?? [];
+  const results = pageQuery.data?.listings ?? [];
+  const total = pageQuery.data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / SAVED_PAGE_SIZE));
+
+  // Ready once the shortlist and both reads (facets + first page) resolve.
+  const ready = savedReady && !facets.isPending && !pageQuery.isPending;
+
+  // Snap back into range if the page fell off the end (e.g. after unsaving).
+  React.useEffect(() => {
+    if (page > totalPages) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
   // No saved homes at all — welcoming empty state, no filter chrome.
-  if (ready && savedListings.length === 0) {
+  if (ready && savedTotal === 0) {
     return (
       <div className="container mx-auto px-5 sm:px-8 py-8">
         <Header count={0} />
@@ -82,7 +123,7 @@ export function SavedList({ listings }: { listings: Listing[] }) {
 
   return (
     <div className="container mx-auto px-5 sm:px-8 py-8">
-      <Header count={savedListings.length} showBrowse />
+      <Header count={savedTotal} showBrowse />
 
       {!ready ? (
         <SkeletonGrid count={3} />
@@ -98,13 +139,13 @@ export function SavedList({ listings }: { listings: Listing[] }) {
           </aside>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-3 mb-5">
+            <div className="flex items-center justify-between gap-3 mb-5 lg:hidden">
               <Drawer>
                 <DrawerTrigger asChild>
                   <Button
                     variant="secondary"
                     size="default"
-                    className="lg:hidden h-9 gap-1.5 px-3"
+                    className="h-9 gap-1.5 px-3"
                   >
                     <SlidersHorizontal size={16} /> {ta("filters")}
                     {activeCount > 0 && (
@@ -126,7 +167,7 @@ export function SavedList({ listings }: { listings: Listing[] }) {
                   <DrawerFooter className="px-6 py-4 bg-muted">
                     <DrawerClose asChild>
                       <Button className="w-full h-11">
-                        {ta("showHomes", { count: results.length })}
+                        {ta("showHomes", { count: total })}
                       </Button>
                     </DrawerClose>
                   </DrawerFooter>
@@ -141,14 +182,24 @@ export function SavedList({ listings }: { listings: Listing[] }) {
               </div>
             </div>
 
-            {results.length === 0 ? (
+            {total === 0 ? (
               <EmptyResults />
             ) : (
-              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
-                {results.map((l) => (
-                  <ListingCard key={l.id} listing={l} />
-                ))}
-              </div>
+              <>
+                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
+                  {results.map((l) => (
+                    <ListingCard key={l.id} listing={l} />
+                  ))}
+                </div>
+                {totalPages > 1 && (
+                  <SavedPagination
+                    page={Math.min(page, totalPages)}
+                    totalPages={totalPages}
+                    total={total}
+                    onPageChange={setPage}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>
@@ -159,6 +210,7 @@ export function SavedList({ listings }: { listings: Listing[] }) {
 
 function Header({ count, showBrowse }: { count: number; showBrowse?: boolean }) {
   const t = useTranslations("saved");
+  const ta = useTranslations("apartments");
   return (
     <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
       <div>
@@ -170,11 +222,19 @@ function Header({ count, showBrowse }: { count: number; showBrowse?: boolean }) 
         </p>
       </div>
       {showBrowse && count > 0 && (
-        <Button asChild variant="secondary" className="h-11 gap-1.5">
-          <Link href="/apartments">
-            <Search size={16} /> {t("keepBrowsing")}
-          </Link>
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2">
+            <span className="text-sm text-muted-foreground hidden sm:inline">
+              {ta("sort")}
+            </span>
+            <SortMenu />
+          </div>
+          <Button asChild variant="ghost" className="h-11 gap-1.5">
+            <Link href="/apartments">
+              <Search size={16} /> {t("keepBrowsing")}
+            </Link>
+          </Button>
+        </div>
       )}
     </div>
   );
