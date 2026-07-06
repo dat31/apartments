@@ -2,7 +2,7 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { type Listing } from "@/schemas/listing";
-import { toListing } from "./listings-map";
+import { OWNER_ID_BY_KEY, toListing } from "./listings-map";
 
 /* ============================================================
    Listings service — the single read path between Supabase and
@@ -32,6 +32,30 @@ export async function getActiveListings(): Promise<Listing[]> {
     .order("created_at", { ascending: true });
 
   if (error) throw new Error(`Failed to load listings: ${error.message}`);
+  return (data ?? []).map(toListing);
+}
+
+/** A seed owner's active listings, oldest first. Reads the real `listings`
+    rows (uuid ids) so cards can be saved/shortlisted — unlike the seed data,
+    whose "l1"-style ids have no matching row. Unknown owner keys yield []. */
+export async function getListingsByOwner(ownerKey: string): Promise<Listing[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("listings", `owner-listings:${ownerKey}`);
+
+  const ownerId = OWNER_ID_BY_KEY[ownerKey];
+  if (!ownerId) return [];
+
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from("listings")
+    .select("*")
+    .eq("status", "active")
+    .eq("owner_id", ownerId)
+    .order("created_at", { ascending: true });
+
+  if (error)
+    throw new Error(`Failed to load owner listings: ${error.message}`);
   return (data ?? []).map(toListing);
 }
 

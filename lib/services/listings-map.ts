@@ -21,11 +21,15 @@ const TYPE_LABELS: Record<ListingRow["type"], string> = {
 /* Seed owners get stable uuids so the (still seed-backed) owner/review
    pages keep resolving by their "you"/"maya"/"leo" keys. Unknown owners
    fall back to their raw uuid. Keep in sync with the seed migration. */
-const OWNER_KEY_BY_ID: Record<string, string> = {
-  "11111111-1111-1111-1111-111111111111": "you",
-  "22222222-2222-2222-2222-222222222222": "maya",
-  "33333333-3333-3333-3333-333333333333": "leo",
+export const OWNER_ID_BY_KEY: Record<string, string> = {
+  you: "11111111-1111-1111-1111-111111111111",
+  maya: "22222222-2222-2222-2222-222222222222",
+  leo: "33333333-3333-3333-3333-333333333333",
 };
+
+const OWNER_KEY_BY_ID: Record<string, string> = Object.fromEntries(
+  Object.entries(OWNER_ID_BY_KEY).map(([key, id]) => [id, key])
+);
 
 /** Map a Supabase `listings` row to the app's domain `Listing`. */
 export function toListing(row: ListingRow): Listing {
