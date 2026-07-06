@@ -17,46 +17,42 @@ import {
 import { ListingCard } from "@/components/listing-card";
 import { SkeletonGrid } from "@/components/skeleton-listing-card";
 import { useSaved } from "@/hooks/use-saved";
-import { useActiveListings } from "@/hooks/use-active-listings";
+import {
+  SAVED_PAGE_SIZE,
+  useSavedFacets,
+  useSavedListingsPage,
+} from "@/hooks/use-saved-listings";
 import { Heart, Search, SlidersHorizontal } from "lucide-react";
-import { type Listing } from "@/schemas/listing";
 import { FiltersPanel } from "@/app/[lang]/(app)/apartments/components/filters-panel";
 import { SortMenu } from "@/app/[lang]/(app)/apartments/components/sort-menu";
 import { EmptyResults } from "@/app/[lang]/(app)/apartments/components/empty-results";
-import { ListingPagination } from "@/app/[lang]/(app)/apartments/components/listing-pagination";
+import { SavedPagination } from "./saved-pagination";
 import {
   activeFilterCount,
-  filterListings,
-  getDistricts,
   parseFilters,
-  parsePage,
   parseSort,
-  PAGE_SIZE,
 } from "@/app/[lang]/(app)/apartments/lib/query";
 
 /* Saved homes with the same filter/sort UI as Browse. This page has no SEO
-   need, so it renders fully client-side: both the saved-id shortlist
-   (useSaved) and the active-listing set (useActiveListings) are fetched in the
-   browser. Filter/sort/page state is driven by the URL via the shared
-   FiltersPanel / SortMenu / ListingPagination islands, and the actual
-   filtering reuses Browse's pure `filterListings` helper. */
+   need, so it renders fully client-side. Filter/sort state lives in the URL
+   (the shared FiltersPanel / SortMenu islands); pagination is React state.
+   Rather than pull every saved listing into the browser and slice, the DB
+   returns one filtered/sorted page at a time (useSavedListingsPage), with a
+   tiny facets query supplying the district chips + total. */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function SavedList() {
   const t = useTranslations("saved");
   const ta = useTranslations("apartments");
   const { saved, ready: savedReady } = useSaved();
-  const { data: listings = [], isPending: listingsPending } =
-    useActiveListings();
   const searchParams = useSearchParams();
 
-  // Ready only once both the shortlist and the listing set have resolved.
-  const ready = savedReady && !listingsPending;
-
-  const savedListings = React.useMemo(
-    () =>
-      saved
-        .map((id) => listings.find((l) => l.id === id))
-        .filter(Boolean) as Listing[],
-    [listings, saved]
+  // Guests may still hold legacy non-uuid ids in localStorage; keep only real
+  // listing uuids so `.in("id", …)` (a uuid column) never errors.
+  const savedIds = React.useMemo(
+    () => saved.filter((id) => UUID_RE.test(id)),
+    [saved]
   );
 
   const filters = React.useMemo(
@@ -64,22 +60,45 @@ export function SavedList() {
     [searchParams]
   );
   const sort = parseSort(Object.fromEntries(searchParams.entries()));
-  const results = filterListings(savedListings, filters, sort);
-  const districts = getDistricts(savedListings);
   const activeCount = activeFilterCount(filters);
 
-  // Paginate off the URL, mirroring Browse's <Listing>: clamp the requested
-  // page to the available range so a stale ?page= (e.g. after unsaving) is safe.
-  const totalPages = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
-  const page = Math.min(
-    parsePage(Object.fromEntries(searchParams.entries())),
-    totalPages
-  );
-  const start = (page - 1) * PAGE_SIZE;
-  const pageResults = results.slice(start, start + PAGE_SIZE);
+  // Pagination is client state now (no ?page= in the URL). Reset to the first
+  // page whenever the filter/sort query string changes.
+  const [page, setPage] = React.useState(1);
+  const filterKey = searchParams.toString();
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(1);
+  }, [filterKey]);
+
+  const facets = useSavedFacets(savedIds, savedReady);
+  const pageQuery = useSavedListingsPage({
+    saved: savedIds,
+    filters,
+    sort,
+    page,
+    enabled: savedReady,
+  });
+
+  const savedTotal = facets.data?.total ?? 0;
+  const districts = facets.data?.districts ?? [];
+  const results = pageQuery.data?.listings ?? [];
+  const total = pageQuery.data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / SAVED_PAGE_SIZE));
+
+  // Ready once the shortlist and both reads (facets + first page) resolve.
+  const ready = savedReady && !facets.isPending && !pageQuery.isPending;
+
+  // Snap back into range if the page fell off the end (e.g. after unsaving).
+  React.useEffect(() => {
+    if (page > totalPages) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   // No saved homes at all — welcoming empty state, no filter chrome.
-  if (ready && savedListings.length === 0) {
+  if (ready && savedTotal === 0) {
     return (
       <div className="container mx-auto px-5 sm:px-8 py-8">
         <Header count={0} />
@@ -103,7 +122,7 @@ export function SavedList() {
 
   return (
     <div className="container mx-auto px-5 sm:px-8 py-8">
-      <Header count={savedListings.length} showBrowse />
+      <Header count={savedTotal} showBrowse />
 
       {!ready ? (
         <SkeletonGrid count={3} />
@@ -147,7 +166,7 @@ export function SavedList() {
                   <DrawerFooter className="px-6 py-4 bg-muted">
                     <DrawerClose asChild>
                       <Button className="w-full h-11">
-                        {ta("showHomes", { count: results.length })}
+                        {ta("showHomes", { count: total })}
                       </Button>
                     </DrawerClose>
                   </DrawerFooter>
@@ -162,20 +181,21 @@ export function SavedList() {
               </div>
             </div>
 
-            {results.length === 0 ? (
+            {total === 0 ? (
               <EmptyResults />
             ) : (
               <>
                 <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
-                  {pageResults.map((l) => (
+                  {results.map((l) => (
                     <ListingCard key={l.id} listing={l} />
                   ))}
                 </div>
                 {totalPages > 1 && (
-                  <ListingPagination
-                    page={page}
+                  <SavedPagination
+                    page={Math.min(page, totalPages)}
                     totalPages={totalPages}
-                    total={results.length}
+                    total={total}
+                    onPageChange={setPage}
                   />
                 )}
               </>

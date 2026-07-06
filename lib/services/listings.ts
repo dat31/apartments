@@ -12,7 +12,7 @@ import { toListing } from "./listings-map";
    enum casing, and FK ids.
 
    The pure row → domain mapping lives in ./listings-map so it can
-   also run in the browser (see hooks/use-active-listings).
+   also run in the browser (see hooks/use-saved-listings).
    ============================================================ */
 
 /** All active listings, oldest first. Cached across requests via "use cache";
