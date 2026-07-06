@@ -1,9 +1,9 @@
 import { PALETTE } from "@/lib/data/listings";
 import { districtLabel, type Listing } from "@/schemas/listing";
 
-/* Pure, server-side derivations for the landing showcase. No React. The seed
-   data is the single source of truth; these mirror the curation the design
-   applies (district counts, newest by id, trending by views). */
+/* Pure, server-side derivations for the landing showcase. No React. Fed the
+   live active listings from Supabase; these mirror the curation the design
+   applies (district counts, newest first, trending by views). */
 
 export type DistrictTile = {
   slug: string;
@@ -37,14 +37,13 @@ export function getDistrictTiles(listings: Listing[]): DistrictTile[] {
   );
 }
 
-const idNum = (id: string) => parseInt(id.replace(/\D/g, ""), 10) || 0;
-
-/** Freshest active listings (highest id first). */
+/** Freshest active listings, newest-first. Expects `listings` in creation
+    order (oldest-first, as getActiveListings returns) — the tail is newest, so
+    we take the last `limit` and reverse. Works with real uuid ids, which carry
+    no orderable number of their own. */
 export function getNewest(listings: Listing[], limit = 4): Listing[] {
-  return listings
-    .filter((l) => l.status === "active")
-    .sort((a, b) => idNum(b.id) - idNum(a.id))
-    .slice(0, limit);
+  const active = listings.filter((l) => l.status === "active");
+  return active.slice(-limit).reverse();
 }
 
 /** Most-watched active listings (highest views first). Pass `exclude` to keep

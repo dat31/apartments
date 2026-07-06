@@ -320,12 +320,30 @@
     "requestedTitle": "Tour requested",
     "requestedBody": "We've sent your request for <d>{date}</d> at <t>{time}</t>. The owner will confirm shortly — you'll get an email once they respond.",
     "done": "Done",
-    "toastTitle": "Tour requested",
-    "toastDesc": "{date} at {time} — the owner will confirm shortly.",
+    "signInError": "Wrong email or password.",
+    "bookError": "Couldn't request the tour. Please try again.",
+    "alreadyToast": "You already have a tour for this home.",
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
     "notRobot": "I'm not a robot",
     "privacyTerms": "Privacy · Terms",
+    "manageTour": "Manage tour",
+    "booked": "Booked",
+    "guardStatus": {
+      "pending": "Tour requested",
+      "confirmed": "Tour confirmed",
+      "reschedule": "New time proposed"
+    },
+    "alreadyTitle": "Tour already booked",
+    "alreadyHeading": "You already have a tour here",
+    "alreadyState": {
+      "pending": "requested",
+      "confirmed": "confirmed",
+      "reschedule": "awaiting your reply on a new time"
+    },
+    "alreadyBody": "Your tour is <s>{state}</s> for <d>{date}</d> at <t>{time}</t>. To keep it simple for the owner, we allow one tour per home at a time — reschedule or cancel the current one first.",
+    "alreadyManage": "Manage my tour",
+    "alreadyClose": "Close",
     "status": {
       "pending": "Pending",
       "confirmed": "Confirmed",
