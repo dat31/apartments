@@ -45,7 +45,7 @@ const UUID_RE =
 export function SavedList() {
   const t = useTranslations("saved");
   const ta = useTranslations("apartments");
-  const { saved, ready: savedReady } = useSaved();
+  const { saved, ready: savedReady, scope } = useSaved();
   const searchParams = useSearchParams();
 
   // Guests may still hold legacy non-uuid ids in localStorage; keep only real
@@ -71,8 +71,9 @@ export function SavedList() {
     setPage(1);
   }, [filterKey]);
 
-  const facets = useSavedFacets(savedIds, savedReady);
+  const facets = useSavedFacets({ scope, saved: savedIds, enabled: savedReady });
   const pageQuery = useSavedListingsPage({
+    scope,
     saved: savedIds,
     filters,
     sort,

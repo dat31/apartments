@@ -68,25 +68,38 @@ function textOr(q: string): string | null {
   return conds.join(",");
 }
 
+export type SavedListingsPage = { listings: Listing[]; total: number };
+export type SavedFacets = { districts: string[]; total: number };
+
+/* Keys are scoped per user ("guest" for anon) + filters/sort/page — deliberately
+   NOT by the saved-id set. That way toggling a save doesn't re-key the query and
+   trigger a refetch; instead useSaved patches the cached data in place (drop the
+   card, decrement totals), so removing a saved home updates the list without a
+   flash or layout shift. The saved ids still scope the DB query via a closure. */
 export const savedListingsKeys = {
+  /** Prefixes for cache-patching every cached page / facets entry at once. */
+  pages: ["saved-listings", "page"] as const,
+  facetsAll: ["saved-listings", "facets"] as const,
   page: (
-    saved: string[],
+    scope: string,
     filters: Filters,
     sort: SortKey,
     page: number
-  ) => ["saved-listings", "page", saved, filters, sort, page] as const,
-  facets: (saved: string[]) => ["saved-listings", "facets", saved] as const,
+  ) => ["saved-listings", "page", scope, filters, sort, page] as const,
+  facets: (scope: string) => ["saved-listings", "facets", scope] as const,
 };
 
 /** One filtered, sorted, paginated page of the user's saved listings, plus the
     total matching count so the pager knows how many pages there are. */
 export function useSavedListingsPage({
+  scope,
   saved,
   filters,
   sort,
   page,
   enabled = true,
 }: {
+  scope: string;
   saved: string[];
   filters: Filters;
   sort: SortKey;
@@ -94,10 +107,10 @@ export function useSavedListingsPage({
   enabled?: boolean;
 }) {
   return useQuery({
-    queryKey: savedListingsKeys.page(saved, filters, sort, page),
+    queryKey: savedListingsKeys.page(scope, filters, sort, page),
     enabled,
     placeholderData: keepPreviousData,
-    queryFn: async (): Promise<{ listings: Listing[]; total: number }> => {
+    queryFn: async (): Promise<SavedListingsPage> => {
       if (saved.length === 0) return { listings: [], total: 0 };
       const supabase = createClient();
 
@@ -142,12 +155,23 @@ export function useSavedListingsPage({
 }
 
 /** Districts present in the saved set (for the filter chips) and the total
-    number of saved active listings (for the header / empty state). */
-export function useSavedFacets(saved: string[], enabled = true) {
+    number of saved active listings (for the header / empty state). Keyed by
+    scope only — independent of filters/sort/page — so it's fetched once and
+    then patched in place by useSaved on toggle. */
+export function useSavedFacets({
+  scope,
+  saved,
+  enabled = true,
+}: {
+  scope: string;
+  saved: string[];
+  enabled?: boolean;
+}) {
   return useQuery({
-    queryKey: savedListingsKeys.facets(saved),
+    queryKey: savedListingsKeys.facets(scope),
     enabled,
-    queryFn: async (): Promise<{ districts: string[]; total: number }> => {
+    placeholderData: keepPreviousData,
+    queryFn: async (): Promise<SavedFacets> => {
       if (saved.length === 0) return { districts: [], total: 0 };
       const supabase = createClient();
       const { data, error } = await supabase

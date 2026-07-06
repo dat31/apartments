@@ -4,6 +4,11 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/auth";
+import {
+  savedListingsKeys,
+  type SavedFacets,
+  type SavedListingsPage,
+} from "@/hooks/use-saved-listings";
 
 /* Persisted shortlist of saved listing ids.
 
@@ -104,15 +109,43 @@ export function useSaved() {
           ? [id, ...previous.filter((x) => x !== id)]
           : previous.filter((x) => x !== id)
       );
+
+      if (!next) {
+        // Removal: patch the Saved page's cached data in place — drop the card
+        // from any cached page it appears on and decrement the totals — so the
+        // list updates without a refetch (no flash / layout shift).
+        queryClient.setQueriesData<SavedListingsPage>(
+          { queryKey: savedListingsKeys.pages },
+          (old) =>
+            old && old.listings.some((l) => l.id === id)
+              ? {
+                  listings: old.listings.filter((l) => l.id !== id),
+                  total: Math.max(0, old.total - 1),
+                }
+              : old
+        );
+        queryClient.setQueriesData<SavedFacets>(
+          { queryKey: savedListingsKeys.facetsAll },
+          (old) => (old ? { ...old, total: Math.max(0, old.total - 1) } : old)
+        );
+      }
       return { previous };
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData(savedKeys.list(userId), context.previous);
       }
+      // The optimistic patches above may have run; resync from the server.
+      queryClient.invalidateQueries({ queryKey: savedListingsKeys.pages });
+      queryClient.invalidateQueries({ queryKey: savedListingsKeys.facetsAll });
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: savedKeys.list(userId) });
+    onSuccess: () => {
+      // Reconcile in the background once the write lands. The cache is already
+      // patched (instant removal) and both saved-listings queries keep previous
+      // data, so this refetch just backfills the freed page slot and refreshes
+      // the district facets — no skeleton, no flash, no lost card.
+      queryClient.invalidateQueries({ queryKey: savedListingsKeys.pages });
+      queryClient.invalidateQueries({ queryKey: savedListingsKeys.facetsAll });
     },
   });
 
@@ -156,5 +189,7 @@ export function useSaved() {
     toggleSave,
     isSaved,
     ready: !userPending && !query.isLoading,
+    // Cache scope for the saved-listings queries (per user, "guest" when anon).
+    scope: userId ?? "guest",
   };
 }
