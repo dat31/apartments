@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 
 export const FILLED_INPUT =
-  "h-11 bg-input border-transparent px-3.5 text-[15px] focus-ring";
+  "h-11 bg-input border-transparent px-3.5 text-[15px]";
 
 type Props = React.ComponentProps<typeof Input> & {
   label?: string;

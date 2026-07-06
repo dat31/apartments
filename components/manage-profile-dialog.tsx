@@ -176,7 +176,7 @@ export function ManageProfileDialog({
               id="bio"
               rows={4}
               placeholder={t("aboutPlaceholder")}
-              className="bg-input border-transparent text-[15px] resize-none focus-ring"
+              className="bg-input border-transparent text-[15px] resize-none"
               {...register("bio")}
             />
           </Field>

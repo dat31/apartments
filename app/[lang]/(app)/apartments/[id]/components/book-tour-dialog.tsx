@@ -315,7 +315,7 @@ export function BookTourDialog({
                     id="tour-note"
                     rows={2}
                     placeholder={t("notePlaceholder")}
-                    className="bg-input border-transparent text-[15px] resize-none focus-ring"
+                    className="bg-input border-transparent text-[15px] resize-none"
                     {...booking.register("note")}
                   />
                 </Field>
