@@ -98,13 +98,13 @@ export function SavedList({ listings }: { listings: Listing[] }) {
           </aside>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-3 mb-5">
+            <div className="flex items-center justify-between gap-3 mb-5 lg:hidden">
               <Drawer>
                 <DrawerTrigger asChild>
                   <Button
                     variant="secondary"
                     size="default"
-                    className="lg:hidden h-9 gap-1.5 px-3"
+                    className="h-9 gap-1.5 px-3"
                   >
                     <SlidersHorizontal size={16} /> {ta("filters")}
                     {activeCount > 0 && (
@@ -159,6 +159,7 @@ export function SavedList({ listings }: { listings: Listing[] }) {
 
 function Header({ count, showBrowse }: { count: number; showBrowse?: boolean }) {
   const t = useTranslations("saved");
+  const ta = useTranslations("apartments");
   return (
     <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
       <div>
@@ -170,11 +171,19 @@ function Header({ count, showBrowse }: { count: number; showBrowse?: boolean }) 
         </p>
       </div>
       {showBrowse && count > 0 && (
-        <Button asChild variant="secondary" className="h-11 gap-1.5">
-          <Link href="/apartments">
-            <Search size={16} /> {t("keepBrowsing")}
-          </Link>
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2">
+            <span className="text-sm text-muted-foreground hidden sm:inline">
+              {ta("sort")}
+            </span>
+            <SortMenu />
+          </div>
+          <Button asChild variant="ghost" className="h-11 gap-1.5">
+            <Link href="/apartments">
+              <Search size={16} /> {t("keepBrowsing")}
+            </Link>
+          </Button>
+        </div>
       )}
     </div>
   );

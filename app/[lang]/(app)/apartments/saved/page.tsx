@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { SavedList } from "./components/saved-list";
 import { SkeletonGrid } from "@/components/skeleton-listing-card";
-import { SEED_LISTINGS } from "@/lib/data/listings";
+import { getActiveListings } from "@/lib/services/listings";
 
 export default function SavedPage() {
   return (
@@ -12,7 +12,16 @@ export default function SavedPage() {
         </div>
       }
     >
-      <SavedList listings={SEED_LISTINGS} />
+      <SavedResults />
     </Suspense>
   );
+}
+
+/* The saved shortlist itself lives client-side (react-query, keyed on the
+   signed-in user); this just supplies the full active-listing set so the
+   client can resolve saved ids to cards and reuse Browse's filter/sort UI.
+   getActiveListings() is cached, so this stream is effectively instant. */
+async function SavedResults() {
+  const listings = await getActiveListings();
+  return <SavedList listings={listings} />;
 }
