@@ -100,7 +100,7 @@ export function ReviewModal({
               id="text"
               rows={4}
               placeholder={t("reviewPlaceholder")}
-              className="bg-input border-transparent text-[15px] resize-none focus-ring"
+              className="bg-input border-transparent text-[15px] resize-none"
               aria-invalid={!!errors.text}
               {...register("text")}
             />
