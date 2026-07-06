@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
@@ -17,13 +18,15 @@ import { AuthShell } from "../components/auth-shell";
 import { SocialButton } from "../components/social-button";
 import { AuthDivider } from "../components/auth-divider";
 import { PasswordField, FILLED_INPUT } from "../components/password-field";
-import { signUpSchema, type SignUpValues } from "@/schemas/auth";
+import { createSignUpSchema, type SignUpValues } from "@/schemas/auth";
 import { useSignUp } from "@/hooks/auth";
 
 export default function SignUpPage() {
   const router = useRouter();
   const signUp = useSignUp();
   const t = useTranslations("auth.signup");
+  const tv = useTranslations("validation");
+  const signUpSchema = useMemo(() => createSignUpSchema(tv), [tv]);
   const {
     register,
     handleSubmit,

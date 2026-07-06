@@ -13,10 +13,14 @@ export const ReviewSchema = z.object({
 });
 export type Review = z.infer<typeof ReviewSchema>;
 
-/* The leave-a-review form. */
-export const reviewFormSchema = z.object({
-  rating: z.number().min(1, "Pick a rating from 1 to 5"),
-  author: z.string().min(1, "Add your name"),
-  text: z.string().min(4, "Tell us a little more"),
-});
-export type ReviewFormValues = z.infer<typeof reviewFormSchema>;
+/* The leave-a-review form. Built from a translator (scoped to the
+   `validation` namespace) so the field messages are localized. */
+export const createReviewFormSchema = (t: (key: string) => string) =>
+  z.object({
+    rating: z.number().min(1, t("review.rating")),
+    author: z.string().min(1, t("name.required")),
+    text: z.string().min(4, t("review.text")),
+  });
+export type ReviewFormValues = z.infer<
+  ReturnType<typeof createReviewFormSchema>
+>;

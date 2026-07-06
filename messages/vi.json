@@ -526,5 +526,38 @@
     "acceptNewTime": "Chấp nhận thời gian mới",
     "decline": "Từ chối",
     "cancelTour": "Hủy lịch xem"
+  },
+  "validation": {
+    "email": {
+      "required": "Nhập email của bạn",
+      "invalid": "Nhập email hợp lệ"
+    },
+    "password": {
+      "required": "Nhập mật khẩu",
+      "min": "Ít nhất 8 ký tự",
+      "lowercase": "Thêm một chữ thường",
+      "uppercase": "Thêm một chữ hoa",
+      "number": "Thêm một chữ số",
+      "symbol": "Thêm một ký tự đặc biệt",
+      "confirm": "Xác nhận mật khẩu",
+      "mismatch": "Mật khẩu không khớp"
+    },
+    "name": {
+      "required": "Nhập tên của bạn"
+    },
+    "terms": "Vui lòng chấp nhận điều khoản để tiếp tục",
+    "listing": {
+      "title": "Đặt tiêu đề cho tin đăng của bạn.",
+      "price": "Nhập giá lớn hơn 0.",
+      "district": "Chọn một quận."
+    },
+    "review": {
+      "rating": "Chọn số sao từ 1 đến 5",
+      "text": "Hãy chia sẻ thêm một chút"
+    },
+    "tour": {
+      "date": "Chọn ngày",
+      "time": "Chọn giờ"
+    }
   }
 }

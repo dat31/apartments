@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
@@ -11,7 +12,7 @@ import { ChevronRight, Lock } from "lucide-react";
 import { AuthShell } from "../components/auth-shell";
 import { PasswordField } from "../components/password-field";
 import {
-  resetPasswordSchema,
+  createResetPasswordSchema,
   type ResetPasswordValues,
 } from "@/schemas/auth";
 import { useUpdatePassword } from "@/hooks/auth";
@@ -20,6 +21,11 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const updatePassword = useUpdatePassword();
   const t = useTranslations("auth.reset");
+  const tv = useTranslations("validation");
+  const resetPasswordSchema = useMemo(
+    () => createResetPasswordSchema(tv),
+    [tv]
+  );
   const {
     register,
     handleSubmit,
