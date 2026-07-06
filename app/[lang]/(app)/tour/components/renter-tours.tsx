@@ -6,9 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTours } from "@/hooks/use-tours";
-import { useProfile } from "@/hooks/use-profile";
-import { useListings } from "@/hooks/use-listings";
+import { useMyTours } from "@/hooks/use-my-tours";
 import { type TourRequest } from "@/schemas/tour";
 import { Calendar, Search } from "lucide-react";
 import { RenterTourCard } from "./renter-tour-card";
@@ -23,19 +21,17 @@ const ORDER: Record<TourRequest["status"], number> = {
 
 export function RenterTours() {
   const t = useTranslations("tour");
-  const { tours, acceptReschedule, declineTour, ready } = useTours();
-  const { profile, ready: profileReady } = useProfile();
-  const { getById } = useListings();
+  const { items, acceptReschedule, declineTour, ready } = useMyTours();
 
-  const email = profile.email.trim();
-  const mine = React.useMemo(() => {
-    const list = tours.filter((t) => email && t.renterEmail === email);
-    return [...list].sort(
-      (a, b) =>
-        ORDER[a.status] - ORDER[b.status] ||
-        (a.date + a.time).localeCompare(b.date + b.time)
-    );
-  }, [tours, email]);
+  const mine = React.useMemo(
+    () =>
+      [...items].sort(
+        (a, b) =>
+          ORDER[a.tour.status] - ORDER[b.tour.status] ||
+          (a.tour.date + a.tour.time).localeCompare(b.tour.date + b.tour.time)
+      ),
+    [items]
+  );
 
   const acceptNew = (id: string) => {
     acceptReschedule(id);
@@ -72,7 +68,7 @@ export function RenterTours() {
         </Button>
       </div>
 
-      {!ready || !profileReady ? (
+      {!ready ? (
         <div className="flex flex-col gap-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="bg-card flex flex-col sm:flex-row">
@@ -115,11 +111,11 @@ export function RenterTours() {
         </div>
       ) : (
         <div className="flex flex-col gap-3 stagger">
-          {mine.map((t) => (
+          {mine.map(({ tour, listing }) => (
             <RenterTourCard
-              key={t.id}
-              tour={t}
-              listing={getById(t.listingId) ?? null}
+              key={tour.id}
+              tour={tour}
+              listing={listing}
               onAcceptNew={acceptNew}
               onDecline={decline}
               onCancel={cancel}

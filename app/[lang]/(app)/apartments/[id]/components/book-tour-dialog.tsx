@@ -7,7 +7,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProfile } from "@/hooks/use-profile";
-import { useTours } from "@/hooks/use-tours";
+import { useUser, useSignIn } from "@/hooks/auth";
+import { useBookTour } from "@/hooks/use-book-tour";
+import { useActiveTour } from "@/hooks/use-active-tour";
+import { Link } from "@/i18n/navigation";
+import { StatusTag } from "@/components/status-tag";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,11 +37,8 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
-import { SocialButton } from "@/app/[lang]/(auth)/components/social-button";
-import { AuthDivider } from "@/app/[lang]/(auth)/components/auth-divider";
 import { FILLED_INPUT } from "@/app/[lang]/(auth)/components/password-field";
 import { Calendar, ChevronLeft, ChevronRight, CircleCheck, Clock, ShieldCheck } from "lucide-react";
-import { GoogleMark } from "@/components/icons";
 import { PALETTE } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
@@ -50,7 +51,6 @@ import {
 } from "@/schemas/tour";
 import {
   availabilityFor,
-  occupiedSet,
   openSlotsFor,
   parseYmd,
   todayYmd,
@@ -104,15 +104,22 @@ export function BookTourDialog({
   };
 
   const isMobile = useIsMobile();
-  const { profile, updateProfile } = useProfile();
-  const { tours, addTour } = useTours();
+  const { profile } = useProfile();
+  const { data: user } = useUser();
+  const signInMutation = useSignIn();
+  const bookTour = useBookTour();
+  // Safety net: if a live tour for this home already exists, the pick step is
+  // replaced with an "already booked" surface (the CTA usually prevents opening
+  // the dialog at all, but this guards the race where its data was stale).
+  const { tour: existingTour } = useActiveTour(listing.id);
 
   const ownerKey = listing.owner;
   const template = React.useMemo(() => availabilityFor(ownerKey), [ownerKey]);
-  const occupied = React.useMemo(
-    () => occupiedSet(tours, ownerKey),
-    [tours, ownerKey]
-  );
+  // A cross-renter occupied set would need visibility the renter's RLS scope
+  // doesn't grant, and owner availability is still owner-side (a later phase).
+  // We show the static weekly template and let the DB be the source of truth
+  // when the tour is inserted.
+  const occupied = React.useMemo(() => new Set<string>(), []);
   const colors = PALETTE[listing.palette];
 
   const [step, setStep] = React.useState<Step>("pick");
@@ -137,58 +144,75 @@ export function BookTourDialog({
     booking.reset({ date: "", time: "", moveIn: "", people: "", note: "" });
     setStep("pick");
     setRobot(false);
-    const signedIn = !!(profile.name.trim() && profile.email.trim());
-    setAuthed(signedIn);
+    setAuthed(!!user);
     form.reset({
       name: profile.name,
       email: profile.email,
       password: "",
     });
-  }, [open, profile.name, profile.email, form, booking]);
+  }, [open, user, profile.name, profile.email, form, booking]);
 
   const slots = date ? openSlotsFor(template, date, occupied) : [];
 
-  const signIn = form.handleSubmit((values) => {
-    updateProfile({ name: values.name, email: values.email });
-    setAuthed(true);
+  const signIn = form.handleSubmit(async (values) => {
+    try {
+      await signInMutation.mutateAsync({
+        email: values.email,
+        password: values.password,
+        remember: true,
+      });
+      setAuthed(true);
+    } catch {
+      form.setError("password", { message: t("signInError") });
+    }
   });
 
-  const google = () => {
-    const name = form.getValues("name").trim() || "Jordan Rivera";
-    const email = form.getValues("email").trim() || "you@gmail.com";
-    updateProfile({ name, email });
-    form.setValue("name", name);
-    form.setValue("email", email);
-    setAuthed(true);
-  };
-
-  const confirm = () => {
+  const confirm = async () => {
     const values = booking.getValues();
-    addTour({
-      listingId: listing.id,
-      ownerKey,
-      date: values.date,
-      time: values.time,
-      moveIn: values.moveIn || undefined,
-      people: values.people || undefined,
-      note: (values.note ?? "").trim(),
-      renterName: form.getValues("name").trim() || profile.name,
-      renterEmail: form.getValues("email").trim() || profile.email,
-    });
-    toast.success(t("toastTitle"), {
-      description: t("toastDesc", {
-        date: fmtDateMed(values.date),
-        time: fmtTime(values.time),
-      }),
-    });
+    try {
+      await bookTour.mutateAsync({
+        listing,
+        date: values.date,
+        time: values.time,
+        moveIn: values.moveIn || undefined,
+        people: values.people || undefined,
+        note: (values.note ?? "").trim(),
+        renterName: form.getValues("name").trim() || profile.name,
+        renterEmail: form.getValues("email").trim() || profile.email,
+      });
+    } catch (e) {
+      // Unique-index race: a live tour for this home already exists. Surface it
+      // softly and close — the detail-page CTA refetches into the guard state.
+      if ((e as { code?: string })?.code === "23505") {
+        toast(t("alreadyToast"));
+        onClose();
+        return;
+      }
+      toast.error(t("bookError"));
+      return;
+    }
+    // Success is shown by the dialog's "done" step — no toast (it would double
+    // up with the confirmation screen). The user closes the dialog themselves.
     setStep("done");
   };
 
   // Validate the date/time selection before moving to the verify step.
   const goVerify = booking.handleSubmit(() => setStep("verify"));
 
-  const title =
-    step === "done"
+  // Show the already-booked surface at the entry (pick) step when a live tour
+  // for this home exists.
+  const showGuard = !!existingTour && step === "pick";
+  const guardState = existingTour
+    ? existingTour.status === "confirmed"
+      ? t("alreadyState.confirmed")
+      : existingTour.status === "reschedule"
+        ? t("alreadyState.reschedule")
+        : t("alreadyState.pending")
+    : "";
+
+  const title = showGuard
+    ? t("alreadyTitle")
+    : step === "done"
       ? t("titleDone")
       : step === "pick"
         ? t("titlePick")
@@ -207,8 +231,52 @@ export function BookTourDialog({
     </div>
   );
 
-  const body =
-    step === "done" ? (
+  const guardBody = existingTour ? (
+    <div className="anim-fade">
+      {listingHeader}
+      <div className="flex flex-col items-center text-center py-1">
+        <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-primary mb-4">
+          <CircleCheck size={28} />
+        </div>
+        <h3 className="text-lg font-semibold tracking-tight">
+          {t("alreadyHeading")}
+        </h3>
+        <p className="mt-1.5 text-sm text-muted-foreground text-pretty max-w-sm">
+          {t.rich("alreadyBody", {
+            state: guardState,
+            date: fmtDateLong(existingTour.date),
+            time: fmtTime(existingTour.time),
+            s: (chunks) => (
+              <span className="text-foreground font-medium">{chunks}</span>
+            ),
+            d: (chunks) => (
+              <span className="text-foreground font-medium">{chunks}</span>
+            ),
+            t: (chunks) => (
+              <span className="text-foreground font-medium">{chunks}</span>
+            ),
+          })}
+        </p>
+        <div className="mt-4">
+          <StatusTag status={existingTour.status} />
+        </div>
+      </div>
+      <div className="mt-6 flex flex-col sm:flex-row gap-2.5">
+        <Button asChild className="flex-1">
+          <Link href="/tour">
+            <Calendar size={18} /> {t("alreadyManage")}
+          </Link>
+        </Button>
+        <Button variant="secondary" className="flex-1" onClick={onClose}>
+          {t("alreadyClose")}
+        </Button>
+      </div>
+    </div>
+  ) : null;
+
+  const body = showGuard ? (
+    guardBody
+  ) : step === "done" ? (
       <div className="text-center py-6 anim-fade">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground mb-4">
           <Calendar size={30} />
@@ -360,10 +428,6 @@ export function BookTourDialog({
             <h4 className="font-semibold flex items-center gap-2">
               <ShieldCheck size={18} className="text-primary" /> {t("signInToBook")}
             </h4>
-            <SocialButton icon={<GoogleMark />} onClick={google}>
-              {t("continueGoogle")}
-            </SocialButton>
-            <AuthDivider>{t("or")}</AuthDivider>
             <Field data-invalid={!!form.formState.errors.name}>
               <FieldLabel htmlFor="tour-name">{t("fullName")}</FieldLabel>
               <Input
@@ -399,7 +463,7 @@ export function BookTourDialog({
               />
               <FieldError errors={[form.formState.errors.password]} />
             </Field>
-            <Button type="submit" size="lg">
+            <Button type="submit" size="lg" disabled={signInMutation.isPending}>
               {t("signIn")}
             </Button>
           </form>
@@ -427,7 +491,12 @@ export function BookTourDialog({
               </h4>
               <RecaptchaCheck checked={robot} onChange={setRobot} />
             </div>
-            <Button size="lg" className="gap-2" disabled={!robot} onClick={confirm}>
+            <Button
+              size="lg"
+              className="gap-2"
+              disabled={!robot || bookTour.isPending}
+              onClick={confirm}
+            >
               <Calendar size={18} /> {t("confirmRequest")}
             </Button>
             <p className="text-xs text-muted-foreground text-center">
@@ -438,8 +507,9 @@ export function BookTourDialog({
       </div>
     );
 
-  const description =
-    step === "pick"
+  const description = showGuard
+    ? t("alreadyHeading")
+    : step === "pick"
       ? t("descPick", { title: listing.title })
       : step === "verify"
         ? t("descVerify")

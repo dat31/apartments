@@ -320,12 +320,30 @@
     "requestedTitle": "Đã gửi yêu cầu xem nhà",
     "requestedBody": "Chúng tôi đã gửi yêu cầu của bạn cho <d>{date}</d> lúc <t>{time}</t>. Chủ nhà sẽ xác nhận trong giây lát — bạn sẽ nhận được email khi họ phản hồi.",
     "done": "Xong",
-    "toastTitle": "Đã gửi yêu cầu xem nhà",
-    "toastDesc": "{date} lúc {time} — chủ nhà sẽ xác nhận trong giây lát.",
+    "signInError": "Email hoặc mật khẩu không đúng.",
+    "bookError": "Không thể gửi yêu cầu xem nhà. Vui lòng thử lại.",
+    "alreadyToast": "Bạn đã có lịch xem cho nhà này.",
     "prevMonth": "Tháng trước",
     "nextMonth": "Tháng sau",
     "notRobot": "Tôi không phải là robot",
     "privacyTerms": "Quyền riêng tư · Điều khoản",
+    "manageTour": "Quản lý lịch xem",
+    "booked": "Đã đặt",
+    "guardStatus": {
+      "pending": "Đã gửi yêu cầu",
+      "confirmed": "Đã xác nhận lịch xem",
+      "reschedule": "Đề xuất thời gian mới"
+    },
+    "alreadyTitle": "Đã đặt lịch xem",
+    "alreadyHeading": "Bạn đã có lịch xem cho nhà này",
+    "alreadyState": {
+      "pending": "đã được yêu cầu",
+      "confirmed": "đã được xác nhận",
+      "reschedule": "đang chờ bạn phản hồi về thời gian mới"
+    },
+    "alreadyBody": "Lịch xem của bạn <s>{state}</s> vào <d>{date}</d> lúc <t>{time}</t>. Để thuận tiện cho chủ nhà, mỗi nhà chỉ cho phép một lịch xem tại một thời điểm — vui lòng đổi lịch hoặc hủy lịch hiện tại trước.",
+    "alreadyManage": "Quản lý lịch xem của tôi",
+    "alreadyClose": "Đóng",
     "status": {
       "pending": "Chờ duyệt",
       "confirmed": "Đã xác nhận",

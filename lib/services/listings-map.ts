@@ -27,7 +27,7 @@ export const OWNER_ID_BY_KEY: Record<string, string> = {
   leo: "33333333-3333-3333-3333-333333333333",
 };
 
-const OWNER_KEY_BY_ID: Record<string, string> = Object.fromEntries(
+export const OWNER_KEY_BY_ID: Record<string, string> = Object.fromEntries(
   Object.entries(OWNER_ID_BY_KEY).map(([key, id]) => [id, key])
 );
 
