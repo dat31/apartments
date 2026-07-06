@@ -22,12 +22,15 @@ import { type Listing } from "@/schemas/listing";
 import { FiltersPanel } from "@/app/[lang]/(app)/apartments/components/filters-panel";
 import { SortMenu } from "@/app/[lang]/(app)/apartments/components/sort-menu";
 import { EmptyResults } from "@/app/[lang]/(app)/apartments/components/empty-results";
+import { ListingPagination } from "@/app/[lang]/(app)/apartments/components/listing-pagination";
 import {
   activeFilterCount,
   filterListings,
   getDistricts,
   parseFilters,
+  parsePage,
   parseSort,
+  PAGE_SIZE,
 } from "@/app/[lang]/(app)/apartments/lib/query";
 
 /* Saved homes with the same filter/sort UI as Browse. Saved IDs live in
@@ -56,6 +59,16 @@ export function SavedList({ listings }: { listings: Listing[] }) {
   const results = filterListings(savedListings, filters, sort);
   const districts = getDistricts(savedListings);
   const activeCount = activeFilterCount(filters);
+
+  // Paginate off the URL, mirroring Browse's <Listing>: clamp the requested
+  // page to the available range so a stale ?page= (e.g. after unsaving) is safe.
+  const totalPages = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
+  const page = Math.min(
+    parsePage(Object.fromEntries(searchParams.entries())),
+    totalPages
+  );
+  const start = (page - 1) * PAGE_SIZE;
+  const pageResults = results.slice(start, start + PAGE_SIZE);
 
   // No saved homes at all — welcoming empty state, no filter chrome.
   if (ready && savedListings.length === 0) {
@@ -144,11 +157,20 @@ export function SavedList({ listings }: { listings: Listing[] }) {
             {results.length === 0 ? (
               <EmptyResults />
             ) : (
-              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
-                {results.map((l) => (
-                  <ListingCard key={l.id} listing={l} />
-                ))}
-              </div>
+              <>
+                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
+                  {pageResults.map((l) => (
+                    <ListingCard key={l.id} listing={l} />
+                  ))}
+                </div>
+                {totalPages > 1 && (
+                  <ListingPagination
+                    page={page}
+                    totalPages={totalPages}
+                    total={results.length}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>
