@@ -1,13 +1,16 @@
-import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /* Detail-shaped placeholder shown while DetailContent streams. Mirrors the
    gallery + two-column layout so the page doesn't jump when content lands —
-   replaces the full-screen splash that used to flash on every navigation. */
-export function DetailSkeleton() {
-  const t = useTranslations("detail");
+   replaces the full-screen splash that used to flash on every navigation.
+
+   Deliberately translation-free (the label comes in as a prop): it also
+   renders inside the route's loading.tsx, which must prerender into the
+   fallback shell where the locale is still unknown — a useTranslations call
+   here would push the whole boundary up to the global full-screen loader. */
+export function DetailSkeleton({ label }: { label?: string }) {
   return (
-    <div aria-busy="true" aria-label={t("loadingHome")}>
+    <div aria-busy="true" aria-label={label}>
       {/* Gallery — desktop mosaic */}
       <div className="hidden sm:grid grid-cols-4 grid-rows-2 gap-2 aspect-[16/9]">
         <Skeleton className="skeleton col-span-3 row-span-2" />

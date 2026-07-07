@@ -1,5 +1,4 @@
 import { useTranslations, useFormatter } from "next-intl";
-import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +7,7 @@ import { PALETTE, availInfo } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { SaveButton } from "@/components/save-button";
+import { ListingCardLink } from "@/components/listing-card-link";
 import { type ReactNode } from "react";
 
 export function ListingCard({
@@ -25,9 +25,10 @@ export function ListingCard({
   const avail = availInfo(listing);
   return (
     <Card className="group/listing relative gap-0 overflow-hidden py-0 ring-0 transition-transform hover:-translate-y-1 hover:bg-accent">
-      {/* Stretched link covers the whole card so it stays server-rendered;
-          the save button (z-20) and its own clicks sit above it. */}
-      <Link
+      {/* Stretched link covers the whole card so the rest stays
+          server-rendered; the save button (z-20) and its own clicks sit
+          above it. */}
+      <ListingCardLink
         href={href}
         aria-label={listing.title}
         className="absolute inset-0 z-10 focus-ring"
