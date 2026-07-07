@@ -23,7 +23,7 @@ export function Listing({
 
   return (
     <>
-      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
         {pageResults.map((l) => (
           <ListingCard key={l.id} listing={l} />
         ))}
