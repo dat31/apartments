@@ -8,7 +8,7 @@ import { PALETTE, availInfo } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { SaveButton } from "@/components/save-button";
-import { ViewTransition, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 export function ListingCard({
   listing,
@@ -24,7 +24,7 @@ export function ListingCard({
   const href = `/apartments/${listing.id}`;
   const avail = availInfo(listing);
   return (
-    <Card className="group/listing relative gap-0 overflow-hidden py-0 ring-0 anim-up transition-transform hover:-translate-y-1 hover:bg-accent">
+    <Card className="group/listing relative gap-0 overflow-hidden py-0 ring-0 transition-transform hover:-translate-y-1 hover:bg-accent">
       {/* Stretched link covers the whole card so it stays server-rendered;
           the save button (z-20) and its own clicks sit above it. */}
       <Link
@@ -35,15 +35,13 @@ export function ListingCard({
       <div className="card-media relative aspect-[16/9] overflow-hidden">
         <div className="absolute inset-0">
           {listing.images?.length ? (
-            <ViewTransition name={`photo-${listing.id}`}>
-              <Image
-                src={listing.images[0]}
-                alt={listing.title}
-                fill
-                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                className="object-cover"
-              />
-            </ViewTransition>
+            <Image
+              src={listing.images[0]}
+              alt={listing.title}
+              fill
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              className="object-cover"
+            />
           ) : (
             <span
               className="absolute inset-0"

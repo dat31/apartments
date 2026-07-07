@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { PALETTE } from "@/lib/data/listings";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { BedDouble, Eye, MapPin, Pencil, Trash2 } from "lucide-react";
-import { ViewTransition } from "react";
 import { useMoney } from "@/hooks/use-money";
 
 /* A single owner-listing management row: cover, meta, and quick actions. */
@@ -33,16 +32,14 @@ export function ListingRow({
       <div className="sm:w-44 shrink-0">
         <div className="relative aspect-[16/9] sm:aspect-auto sm:h-full overflow-hidden">
           {cover ? (
-            <ViewTransition name={`photo-${listing.id}`}>
-              <Image
-                src={cover}
-                alt={listing.title}
-                fill
-                sizes="(min-width: 640px) 11rem, 100vw"
-                className="object-cover"
-                unoptimized={cover.startsWith("data:")}
-              />
-            </ViewTransition>
+            <Image
+              src={cover}
+              alt={listing.title}
+              fill
+              sizes="(min-width: 640px) 11rem, 100vw"
+              className="object-cover"
+              unoptimized={cover.startsWith("data:")}
+            />
           ) : (
             <span
               className="absolute inset-0"

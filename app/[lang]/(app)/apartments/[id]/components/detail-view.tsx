@@ -84,9 +84,9 @@ export function DetailView({
   );
 
   return (
-    <div className="anim-up">
+    <div>
       {/* Gallery */}
-      <Gallery id={listing.id} images={listing.images} colors={colors} label={listing.title} />
+      <Gallery images={listing.images} colors={colors} label={listing.title} />
 
       <div className="mt-8 grid lg:grid-cols-[1fr_340px] gap-10">
         {/* Main */}
