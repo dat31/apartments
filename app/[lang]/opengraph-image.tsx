@@ -4,11 +4,11 @@ import { SITE_URL } from "@/lib/seo";
 import { loadOgFonts, OG_DARK, OG_SIZE, TowerMark } from "@/lib/og";
 
 /* Site-wide social-share card (og:image fallback), one per locale. Detail
-   pages have their own product-preview card (see apartments/[id]); every
-   other page shares this one. Implements the "Dark — typographic (default)"
-   frame from the "Danapa OG Images" Claude Design doc: tower mark + wordmark,
-   headline with the city in brand green, district chips, and right-edge
-   color bars. */
+   pages override it with the listing's cover photo; every other page shares
+   this one. Implements the "Dark — typographic (default)" frame from the
+   "Danapa OG Images" Claude Design doc — set in Lexend (the app's own face)
+   rather than the doc's Be Vietnam Pro: tower mark + wordmark, headline with
+   the city in brand green, district chips, and right-edge color bars. */
 
 export const size = OG_SIZE;
 export const contentType = "image/png";
@@ -40,7 +40,7 @@ export default async function OpengraphImage({
           display: "flex",
           backgroundColor: C.bg,
           color: C.fg,
-          fontFamily: "Be Vietnam Pro",
+          fontFamily: "Lexend",
         }}
       >
         {/* right-edge color bars */}

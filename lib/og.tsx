@@ -39,19 +39,22 @@ export function TowerMark({ size }: { size: number }) {
   );
 }
 
-/** Be Vietnam Pro (the design doc's face, full Vietnamese coverage) in the
-    weights the frame uses, ready for ImageResponse's `fonts` option. */
+/** Lexend — the app's own typeface (see the root layout's next/font setup),
+    which also fully covers Vietnamese diacritics — in the weights the frame
+    uses, ready for ImageResponse's `fonts` option. The og renderer can't
+    consume next/font's woff2 output, so the TTFs are committed under
+    assets/fonts. */
 export async function loadOgFonts() {
   const load = (file: string) =>
     readFile(join(process.cwd(), "assets/fonts", file));
   const [regular, medium, semibold] = await Promise.all([
-    load("be-vietnam-pro-regular.ttf"),
-    load("be-vietnam-pro-medium.ttf"),
-    load("be-vietnam-pro-semibold.ttf"),
+    load("lexend-regular.ttf"),
+    load("lexend-medium.ttf"),
+    load("lexend-semibold.ttf"),
   ]);
   return [
-    { name: "Be Vietnam Pro", data: regular, weight: 400, style: "normal" },
-    { name: "Be Vietnam Pro", data: medium, weight: 500, style: "normal" },
-    { name: "Be Vietnam Pro", data: semibold, weight: 600, style: "normal" },
+    { name: "Lexend", data: regular, weight: 400, style: "normal" },
+    { name: "Lexend", data: medium, weight: 500, style: "normal" },
+    { name: "Lexend", data: semibold, weight: 600, style: "normal" },
   ] as const;
 }
