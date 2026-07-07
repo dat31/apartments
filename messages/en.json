@@ -184,6 +184,11 @@
   },
   "apartments": {
     "heading": "Homes in Da Nang",
+    "ownerFilter": {
+      "listedBy": "Listed by",
+      "clear": "Clear",
+      "you": "You"
+    },
     "summary": "{count, plural, =0 {No places available to rent} one {# place available to rent} other {# places available to rent}}",
     "sort": "Sort",
     "filters": "Filters",
@@ -496,6 +501,8 @@
     "ratingBreakdown": "Rating breakdown",
     "homesBy": "{count, plural, one {# home} other {# homes}} by {name}",
     "homesSubtitle": "Active listings you can rent right now.",
+    "seeAll": "See all {count}",
+    "seeAllHomes": "See all {count, plural, one {# home} other {# homes}} by {name}",
     "noListings": "{name} has no active listings at the moment.",
     "reviewPosted": "Review posted",
     "reviewPostedDesc": "Thanks for sharing your experience with {name}.",

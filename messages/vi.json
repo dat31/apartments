@@ -184,6 +184,11 @@
   },
   "apartments": {
     "heading": "Nhà ở Đà Nẵng",
+    "ownerFilter": {
+      "listedBy": "Đăng bởi",
+      "clear": "Xóa",
+      "you": "Bạn"
+    },
     "summary": "{count, plural, =0 {Không có chỗ nào đang cho thuê} other {# chỗ đang cho thuê}}",
     "sort": "Sắp xếp",
     "filters": "Bộ lọc",
@@ -496,6 +501,8 @@
     "ratingBreakdown": "Phân bố đánh giá",
     "homesBy": "{count, plural, other {# nhà}} của {name}",
     "homesSubtitle": "Các tin đang hiển thị bạn có thể thuê ngay.",
+    "seeAll": "Xem tất cả {count}",
+    "seeAllHomes": "Xem tất cả {count, plural, other {# nhà}} của {name}",
     "noListings": "{name} hiện chưa có tin đăng nào đang hiển thị.",
     "reviewPosted": "Đã đăng đánh giá",
     "reviewPostedDesc": "Cảm ơn bạn đã chia sẻ trải nghiệm với {name}.",
