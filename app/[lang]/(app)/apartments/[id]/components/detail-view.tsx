@@ -27,17 +27,21 @@ export function DetailView({
   listing,
   reviews,
   owner,
+  isOwner = false,
 }: {
   listing: Listing;
   reviews: Review[];
   owner: Owner | null;
+  isOwner?: boolean;
 }) {
   const t = useTranslations("detail");
   const ta = useTranslations("apartments");
   const money = useMoney();
   const colors = PALETTE[listing.palette];
   const ams = AMENITIES.filter((a) => listing.amenities.includes(a.id));
-  const isYou = listing.owner === "you";
+  // "You" covers the signed-in host viewing their own listing, plus the seed
+  // "you" demo owner used by the sample data.
+  const isYou = isOwner || listing.owner === "you";
   const ownerLabel = isYou ? t("you") : owner?.name ?? listing.owner;
 
   const renderOwner = (cls: string) => (
@@ -169,7 +173,7 @@ export function DetailView({
               <Clock size={16} /> <AvailabilityLabel listing={listing} />
             </p>
             <div className="mt-5 flex flex-col gap-2.5">
-              <BookTourButton listing={listing} mode="full" />
+              {!isOwner && <BookTourButton listing={listing} mode="full" />}
               <SaveHomeButton id={listing.id} mode="full" />
             </div>
             {renderOwner("mt-6 pt-6")}
@@ -200,7 +204,7 @@ export function DetailView({
             </p>
           </div>
           <SaveHomeButton id={listing.id} mode="icon" />
-          <BookTourButton listing={listing} mode="compact" />
+          {!isOwner && <BookTourButton listing={listing} mode="compact" />}
         </div>
       </div>
     </div>

@@ -43,7 +43,9 @@ export async function getListingsByOwner(ownerKey: string): Promise<Listing[]> {
   cacheLife("hours");
   cacheTag("listings", `owner-listings:${ownerKey}`);
 
-  const ownerId = OWNER_ID_BY_KEY[ownerKey];
+  // Seed owners map their key → uuid; real owners are already a uuid.
+  const ownerId =
+    OWNER_ID_BY_KEY[ownerKey] ?? (UUID_RE.test(ownerKey) ? ownerKey : null);
   if (!ownerId) return [];
 
   const supabase = createPublicClient();
