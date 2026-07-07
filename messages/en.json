@@ -5,6 +5,42 @@
     "home": "Home",
     "toggleTheme": "Toggle theme"
   },
+  "meta": {
+    "titleTemplate": "%s — Danapa",
+    "ogHeadline": "Find your place in <em>Đà Nẵng</em>.",
+    "ogSub": "Browse apartments, lofts and houses across the city — book a tour in a tap.",
+    "home": {
+      "title": "Danapa — apartment renting in Da Nang",
+      "description": "A calm, simple way to rent in Da Nang. Browse apartments across every district, book tours, and list your home."
+    },
+    "apartments": {
+      "title": "Apartments for rent in Da Nang",
+      "description": "Browse apartments, studios and houses for rent across Da Nang — filter by district, price, bedrooms and amenities."
+    },
+    "detail": {
+      "title": "{title} — {district}",
+      "description": "{beds, plural, =0 {Studio} one {# bedroom} other {# bedrooms}} · {baths, plural, one {# bathroom} other {# bathrooms}} · {area} m² {type} for rent in {district}, {city} — {price}/month on Danapa."
+    },
+    "owner": {
+      "title": "{name} — host on Danapa",
+      "description": "See the homes {name} is renting out on Danapa and book a tour."
+    },
+    "saved": {
+      "title": "Saved homes"
+    },
+    "tours": {
+      "title": "My tours"
+    },
+    "create": {
+      "title": "List your home"
+    },
+    "edit": {
+      "title": "Edit listing"
+    },
+    "dashboard": {
+      "title": "Owner dashboard"
+    }
+  },
   "header": {
     "tours": "Tours",
     "saved": "Saved",
