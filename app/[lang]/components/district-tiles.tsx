@@ -16,14 +16,8 @@ export function DistrictTiles({ tiles }: { tiles: DistrictTile[] }) {
           className="focus-ring anim-up rounded-xl"
         >
           <Card className="h-full min-h-40 gap-0 p-6 text-left transition-colors hover:bg-accent">
-            <span className="flex items-center gap-2">
-              <span
-                className="w-1.5 h-1.5 rounded-full shrink-0"
-                style={{ background: d.color }}
-              />
-              <span className="font-semibold tracking-tight text-balance leading-snug text-base">
-                {d.name}
-              </span>
+            <span className="font-semibold tracking-tight text-balance leading-snug text-base">
+              {d.name}
             </span>
             <span className="mt-auto flex items-baseline gap-1.5 pt-4">
               <span className="font-semibold tracking-tight tabular-nums leading-none text-4xl">

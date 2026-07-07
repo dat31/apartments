@@ -16,8 +16,8 @@
     "footer": "Danapa — a demo prototype. No account required.",
     "chooser": {
       "eyebrow": "Welcome to Danapa",
-      "headline": "Find a place, or fill one.",
-      "sub": "A calm, simple way to rent in Da Nang. Pick how you'd like to start — switch anytime."
+      "headline": "Your next home starts here.",
+      "sub": "Thousands of apartments across Da Nang. Choose how you'd like to begin."
     },
     "roles": {
       "rentTitle": "I'm renting",
@@ -25,16 +25,13 @@
       "listTitle": "I'm listing",
       "listBlurb": "Post and manage your place."
     },
-    "hero": {
-      "browseLabel": "Browse",
-      "browseTitle": "47 listings",
-      "browseSub": "Mỹ Khê · Sơn Trà",
-      "detailsLabel": "View details",
-      "detailsTitle": "4.8 ★",
-      "detailsSub": "₫ 8.5M / month",
-      "tourLabel": "Book tour",
-      "tourTitle": "Tour confirmed",
-      "tourSub": "Thu, Jun 26 · 10AM"
+    "stats": {
+      "eyebrow": "Danapa in numbers",
+      "apartments": "Apartments listed",
+      "renters": "Active renters",
+      "hosts": "Verified hosts",
+      "districts": "Districts covered",
+      "caption": "Live across Da Nang · updated daily"
     },
     "showcase": {
       "districtsTitle": "Browse by district",
