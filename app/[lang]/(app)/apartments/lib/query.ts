@@ -25,6 +25,7 @@ export function parseFilters(sp: SearchParams): Filters {
     maxPrice: first(sp.maxPrice) ?? DEFAULT_FILTERS.maxPrice,
     beds: first(sp.beds) ?? DEFAULT_FILTERS.beds,
     amenities: amenities ? amenities.split(",").filter(Boolean) : [],
+    owner: first(sp.owner) ?? DEFAULT_FILTERS.owner,
   };
 }
 
@@ -55,6 +56,7 @@ export function filterListings(
   if (filters.type !== "All") r = r.filter((l) => l.type === filters.type);
   if (filters.district !== "All")
     r = r.filter((l) => l.district === filters.district);
+  if (filters.owner !== "All") r = r.filter((l) => l.owner === filters.owner);
   if (filters.minPrice) r = r.filter((l) => l.price >= +filters.minPrice);
   if (filters.maxPrice) r = r.filter((l) => l.price <= +filters.maxPrice);
   if (filters.beds !== "Any") {
@@ -82,6 +84,7 @@ export function activeFilterCount(f: Filters): number {
   return (
     Number(f.type !== "All") +
     Number(f.district !== "All") +
+    Number(f.owner !== "All") +
     Number(!!f.minPrice) +
     Number(!!f.maxPrice) +
     Number(f.beds !== "Any") +

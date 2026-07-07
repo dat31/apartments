@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useTranslations, useFormatter } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,11 +23,14 @@ import {
   reviewsForPage,
 } from "@/app/[lang]/(app)/apartments/[id]/lib/reviews";
 import { ReviewModal } from "./review-modal";
-import { Building2, Calendar, Check, ChevronLeft, Clock, Globe, MapPin, MessageSquare, ShieldCheck, Star } from "lucide-react";
+import { Building2, Calendar, Check, ChevronLeft, ChevronRight, Clock, Globe, MapPin, MessageSquare, ShieldCheck, Star } from "lucide-react";
 import { PALETTE, initialsOf, avgOf } from "@/lib/data/listings";
 import { type Listing } from "@/schemas/listing";
 import { type Owner } from "@/schemas/owner";
 import { type Review, type ReviewFormValues } from "@/schemas/review";
+
+/* Homes shown before the "See all" affordance takes over. */
+const HOMES_PREVIEW = 3;
 
 export function OwnerProfile({
   owner,
@@ -53,6 +56,9 @@ export function OwnerProfile({
   const isYou = owner.key === "you";
   const displayName = isYou ? t("you") : owner.name;
   const firstName = owner.name.split(" ")[0];
+  // "Their homes" shows a preview; "See all" carries the owner over to the
+  // browse page as a filter (?owner=<key>).
+  const homesHref = `/apartments?owner=${encodeURIComponent(owner.key)}`;
   const avg = avgOf(reviews);
   const color = PALETTE[owner.palette % PALETTE.length][0];
 
@@ -319,9 +325,19 @@ export function OwnerProfile({
 
       {/* Their homes */}
       <section className="mt-12">
-        <h2 className="text-2xl font-semibold tracking-tight mb-1">
-          {t("homesBy", { count: homes.length, name: firstName })}
-        </h2>
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-1">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            {t("homesBy", { count: homes.length, name: firstName })}
+          </h2>
+          {homes.length > HOMES_PREVIEW && (
+            <Link
+              href={homesHref}
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline focus-ring whitespace-nowrap"
+            >
+              {t("seeAll", { count: homes.length })} <ChevronRight size={15} />
+            </Link>
+          )}
+        </div>
         <p className="text-muted-foreground mb-5">{t("homesSubtitle")}</p>
         {homes.length === 0 ? (
           <div className="bg-card p-14 text-center anim-fade">
@@ -333,11 +349,28 @@ export function OwnerProfile({
             </p>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
-            {homes.map((l) => (
-              <ListingCard key={l.id} listing={l} />
-            ))}
-          </div>
+          <>
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
+              {homes.slice(0, HOMES_PREVIEW).map((l) => (
+                <ListingCard key={l.id} listing={l} />
+              ))}
+            </div>
+            {homes.length > HOMES_PREVIEW && (
+              <div className="mt-6 flex justify-center">
+                <Button
+                  asChild
+                  variant="secondary"
+                  size="lg"
+                  className="h-11 gap-1.5"
+                >
+                  <Link href={homesHref}>
+                    {t("seeAllHomes", { count: homes.length, name: firstName })}
+                    <ChevronRight size={17} />
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </section>
 

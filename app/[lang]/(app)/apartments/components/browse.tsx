@@ -15,6 +15,7 @@ import { SlidersHorizontal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SkeletonGrid } from "@/components/skeleton-listing-card";
 import { FiltersPanel } from "./filters-panel";
+import { OwnerFilterBanner } from "./owner-filter-banner";
 import { SortMenu } from "./sort-menu";
 import { FilterCountBadge } from "./filter-count-badge";
 import { RememberSearch } from "./remember-search";
@@ -123,6 +124,10 @@ export async function Browse({
               <SortMenu />
             </div>
           </div>
+
+          <Suspense fallback={null}>
+            <OwnerFilterBanner searchParams={searchParams} />
+          </Suspense>
 
           <Suspense fallback={<SkeletonGrid count={6} />}>
             <Results searchParams={searchParams} />
