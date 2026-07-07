@@ -31,9 +31,16 @@ export function BookTourButton({
   const { tour, isLoading } = useActiveTour(listing.id);
   const [open, setOpen] = React.useState(false);
 
+  // Gate the auth-dependent CTA on mount: the server (auth never resolves during
+  // SSR) and the first client render both show the loading skeleton, then the
+  // real book / booked state reveals after mount — avoids a hydration mismatch.
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  const loading = !mounted || isLoading;
+
   return (
     <>
-      {isLoading ? (
+      {loading ? (
         mode === "full" ? (
           <Skeleton className="h-12 w-full" />
         ) : (
