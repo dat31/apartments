@@ -18,11 +18,13 @@ import { ArrowLeftRight, Building2, ChevronDown, Eye, LayoutGrid, LogOut, MapPin
 
 export function AccountMenu({
   profile,
+  userId,
   onManage,
   onSwitchRole,
   onSignOut,
 }: {
   profile: Profile;
+  userId?: string;
   onManage: () => void;
   onSwitchRole: (role: Role) => void;
   onSignOut: () => void;
@@ -109,10 +111,10 @@ export function AccountMenu({
               <LayoutGrid size={18} /> {t("ownerDashboard")}
             </DropdownMenuItem>
           )}
-          {role === "owner" && (
+          {role === "owner" && userId && (
             <DropdownMenuItem
               className="px-4 h-11 text-[15px] rounded-none"
-              onSelect={() => router.push("/owner/you")}
+              onSelect={() => router.push(`/owner/${userId}`)}
             >
               <Eye size={18} /> {t("viewPublic")}
             </DropdownMenuItem>

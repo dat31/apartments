@@ -1,12 +1,8 @@
 import { notFound } from "next/navigation";
 import { OwnerProfile } from "./components/owner-profile";
 import { getListingsByOwner } from "@/lib/services/listings";
-import {
-  getOwner,
-  reviewsFor,
-  SEED_REVIEWS,
-  OWNERS,
-} from "@/lib/data/listings";
+import { getOwnerProfile } from "@/lib/services/owners";
+import { reviewsFor, SEED_REVIEWS, OWNERS } from "@/lib/data/listings";
 
 export function generateStaticParams() {
   return Object.keys(OWNERS).map((id) => ({ id }));
@@ -18,7 +14,7 @@ export default async function OwnerPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const owner = getOwner(id);
+  const owner = await getOwnerProfile(id);
   if (!owner) notFound();
 
   const homes = await getListingsByOwner(id);

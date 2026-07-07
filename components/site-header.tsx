@@ -92,6 +92,7 @@ export function SiteHeader() {
 
               <AccountMenu
                 profile={profile}
+                userId={user?.id}
                 onManage={() => setManageOpen(true)}
                 onSwitchRole={setRole}
                 onSignOut={() => signOut.mutate()}
