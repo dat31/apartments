@@ -350,29 +350,6 @@ textarea::placeholder {
   background: var(--accent);
 }
 
-/* ---- hero (home) — token-driven grid backdrop + step progress ---- */
-.hero-grid {
-  background-image:
-    linear-gradient(to right, var(--border) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
-  background-size: 36px 36px;
-  -webkit-mask-image: radial-gradient(ellipse at 60% 50%, black 35%, transparent 78%);
-  mask-image: radial-gradient(ellipse at 60% 50%, black 35%, transparent 78%);
-}
-
-@keyframes heroProgress {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-.hero-progress {
-  transform-origin: left;
-  animation: heroProgress 4s linear forwards;
-}
-
 /* ---- full-screen loader ---- */
 @keyframes breathe {
   0%,

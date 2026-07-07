@@ -67,7 +67,7 @@ Existing namespaces: `common`, `header`, `landing`, `auth`, `errors`, `account`,
 ### Phase 7 — Currency + cleanup (done, this branch)
 - **Currency: done** — decision was **base USD + fixed rate**. `USD_TO_VND = 25000` lives in `lib/data/listings.ts`; new `useMoney()` hook (`hooks/use-money.ts`) formats via `useFormatter().number(v, {style:"currency", currency})` — VND (converted) for `vi`, USD for `en`, both 0 fraction digits. All 6 `money()` call sites (listing-card, district-tiles, detail-view ×2, book-tour-dialog, listing-row) switched to `useMoney()`; the old `money()` helper **deleted**. Verified both locales (en `$1,450` / vi `36.250.000 ₫`).
 - `availLabel()` — **deleted** (unused since Phase 4).
-- Owner `bio`/`name`/`location`, listing titles/descriptions, and the `landing.hero.*` showcase strings stay as seed/decorative content (intentional).
+- Owner `bio`/`name`/`location` and listing titles/descriptions stay as seed/decorative content (intentional).
 
 ### Phase 8 — Zod validation messages (done, branch `feat/i18n-schema`)
 - **Done** — schema-factory approach. Each form schema is now `createXSchema(t)` where `t` is a translator (typed `(key: string) => string`) scoped to the new `validation.*` namespace; messages moved out of the literals into `messages/{vi,en}.json`. Covers `schemas/auth` (`createSignInSchema`/`createSignUpSchema`/`createForgotSchema`/`createResetPasswordSchema` + the shared `passwordSchema(t)`), `schemas/listing` (`createListingFormSchema`), `schemas/review` (`createReviewFormSchema`), `schemas/tour` (`createTourBookingSchema`/`createTourSignInSchema`). Data-only schemas (`ListingSchema`, `ReviewSchema`, `tourRequestSchema`, `AmenitySchema`) stay static.

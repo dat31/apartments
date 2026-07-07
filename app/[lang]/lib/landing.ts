@@ -1,4 +1,3 @@
-import { PALETTE } from "@/lib/data/listings";
 import { districtLabel, type Listing } from "@/schemas/listing";
 
 /* Pure, server-side derivations for the landing showcase. No React. Fed the
@@ -10,7 +9,6 @@ export type DistrictTile = {
   name: string;
   count: number;
   from: number;
-  color: string;
 };
 
 /** Active listings grouped by district, ranked by availability. */
@@ -28,7 +26,6 @@ export function getDistrictTiles(listings: Listing[]): DistrictTile[] {
         name: districtLabel(l.district),
         count: 1,
         from: l.price,
-        color: PALETTE[l.palette][0],
       });
     }
   }

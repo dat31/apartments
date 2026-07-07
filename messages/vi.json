@@ -16,8 +16,8 @@
     "footer": "Danapa — bản mẫu demo. Không cần tài khoản.",
     "chooser": {
       "eyebrow": "Chào mừng đến Danapa",
-      "headline": "Tìm chỗ ở, hoặc lấp đầy chỗ trống.",
-      "sub": "Một cách thuê nhà nhẹ nhàng, đơn giản tại Đà Nẵng. Chọn cách bạn muốn bắt đầu — đổi bất cứ lúc nào."
+      "headline": "Ngôi nhà tiếp theo của bạn bắt đầu từ đây.",
+      "sub": "Hàng nghìn căn hộ khắp Đà Nẵng. Chọn cách bạn muốn bắt đầu."
     },
     "roles": {
       "rentTitle": "Tôi đang thuê",
@@ -25,16 +25,13 @@
       "listTitle": "Tôi đang cho thuê",
       "listBlurb": "Đăng và quản lý chỗ của bạn."
     },
-    "hero": {
-      "browseLabel": "Tìm nhà",
-      "browseTitle": "47 tin đăng",
-      "browseSub": "Mỹ Khê · Sơn Trà",
-      "detailsLabel": "Xem chi tiết",
-      "detailsTitle": "4.8 ★",
-      "detailsSub": "₫ 8.5tr / tháng",
-      "tourLabel": "Đặt lịch xem",
-      "tourTitle": "Đã xác nhận lịch",
-      "tourSub": "Th 5, 26/6 · 10:00"
+    "stats": {
+      "eyebrow": "Danapa qua những con số",
+      "apartments": "Căn hộ đã đăng",
+      "renters": "Người thuê đang hoạt động",
+      "hosts": "Chủ nhà đã xác minh",
+      "districts": "Quận được phủ sóng",
+      "caption": "Cập nhật mỗi ngày khắp Đà Nẵng"
     },
     "showcase": {
       "districtsTitle": "Xem theo quận",
