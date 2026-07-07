@@ -1,6 +1,17 @@
 import { DashboardHeader } from "./components/dashboard-header";
 import { DashboardStats } from "./components/dashboard-stats";
 import { DashboardNav } from "./components/dashboard-nav";
+import { privateMetadata } from "@/lib/seo";
+
+// Covers every dashboard tab; none of them are public.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  return privateMetadata(lang, "dashboard");
+}
 
 export default function OwnerDashboardLayout({
   children,

@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Lexend } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import "../globals.css";
+import { ogDefaults, SITE_URL } from "@/lib/seo";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Providers } from "@/components/providers";
@@ -16,10 +17,23 @@ const lexend = Lexend({
   weight: ["300", "400", "500", "600", "700"],
 });
 
-export const metadata: Metadata = {
-  title: "Danapa — apartment renting in Da Nang",
-  description: "A calm, simple way to rent in Da Nang.",
-};
+/* Site-wide metadata defaults, localized per [lang]. Pages layer their own
+   title/description/alternates on top; the %s template brands their titles. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  const t = await getTranslations({ locale: lang, namespace: "meta" });
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: { default: t("home.title"), template: t("titleTemplate") },
+    description: t("home.description"),
+    openGraph: ogDefaults(lang),
+    twitter: { card: "summary_large_image" },
+  };
+}
 
 export function generateStaticParams() {
   return routing.locales.map((lang) => ({ lang }));

@@ -5,6 +5,42 @@
     "home": "Trang chủ",
     "toggleTheme": "Đổi giao diện"
   },
+  "meta": {
+    "titleTemplate": "%s — Danapa",
+    "ogHeadline": "Tìm tổ ấm tại <em>Đà Nẵng</em>.",
+    "ogSub": "Xem căn hộ, loft và nhà trên khắp thành phố — đặt lịch xem nhà chỉ trong một chạm.",
+    "home": {
+      "title": "Danapa — thuê căn hộ tại Đà Nẵng",
+      "description": "Cách thuê nhà nhẹ nhàng, đơn giản tại Đà Nẵng. Xem căn hộ ở mọi quận, đặt lịch xem nhà và đăng tin cho thuê."
+    },
+    "apartments": {
+      "title": "Căn hộ cho thuê tại Đà Nẵng",
+      "description": "Khám phá căn hộ, studio và nhà cho thuê khắp Đà Nẵng — lọc theo quận, giá, số phòng ngủ và tiện nghi."
+    },
+    "detail": {
+      "title": "{title} — {district}",
+      "description": "{beds, plural, =0 {Studio} other {# phòng ngủ}} · {baths, plural, other {# phòng tắm}} · {type} {area} m² cho thuê tại {district}, {city} — {price}/tháng trên Danapa."
+    },
+    "owner": {
+      "title": "{name} — chủ nhà trên Danapa",
+      "description": "Xem các căn hộ {name} đang cho thuê trên Danapa và đặt lịch xem nhà."
+    },
+    "saved": {
+      "title": "Nhà đã lưu"
+    },
+    "tours": {
+      "title": "Lịch xem nhà"
+    },
+    "create": {
+      "title": "Đăng tin cho thuê"
+    },
+    "edit": {
+      "title": "Chỉnh sửa tin đăng"
+    },
+    "dashboard": {
+      "title": "Bảng điều khiển chủ nhà"
+    }
+  },
   "header": {
     "tours": "Lịch xem nhà",
     "saved": "Đã lưu",

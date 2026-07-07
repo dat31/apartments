@@ -22,8 +22,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Run on every request except API routes, Next internals, and files with an
-  // extension. This lets next-intl handle locale routing and lets the auth
-  // session refresh before Server Components read it.
-  matcher: "/((?!api|_next|_vercel|.*\\..*).*)",
+  // Run on every request except API routes, Next internals, files with an
+  // extension, and the generated og-image routes (extensionless URLs like
+  // /vi/opengraph-image that must not be locale-redirected). This lets
+  // next-intl handle locale routing and lets the auth session refresh before
+  // Server Components read it.
+  matcher: "/((?!api|_next|_vercel|.*\\..*|.*opengraph-image).*)",
 };
