@@ -18,15 +18,17 @@ const EMPTY_TITLE_KEY: Record<Filter, string> = {
 /* Owner-listing list for the overview / active / drafts tabs. */
 export function ListingsTab({ filter }: { filter: Filter }) {
   const t = useTranslations("dashboard");
-  const { listings, toggleStatus, removeListing } = useListings();
+  const { listings, toggleStatus, removeListing, ready } = useListings();
 
-  const mine = listings.filter((l) => l.owner === "you");
   const shown =
     filter === "active"
-      ? mine.filter((l) => l.status === "active")
+      ? listings.filter((l) => l.status === "active")
       : filter === "drafts"
-        ? mine.filter((l) => l.status === "draft")
-        : mine;
+        ? listings.filter((l) => l.status === "draft")
+        : listings;
+
+  // Avoid flashing the empty state before the owner's listings have loaded.
+  if (!ready) return null;
 
   if (shown.length === 0) {
     return (

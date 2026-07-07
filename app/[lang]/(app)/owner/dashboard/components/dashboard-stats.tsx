@@ -3,22 +3,20 @@
 import { useTranslations } from "next-intl";
 import { StatCard } from "./stat-card";
 import { useListings } from "@/hooks/use-listings";
-import { useTours } from "@/hooks/use-tours";
+import { useOwnerTours } from "@/hooks/use-owner-tours";
 import { Building2, CircleCheck, Calendar, Clock } from "lucide-react";
 
 export function DashboardStats() {
   const t = useTranslations("dashboard.stats");
-  const { listings } = useListings();
-  const { tours } = useTours();
+  const { listings: mine } = useListings();
+  const { items } = useOwnerTours();
 
-  const mine = listings.filter((l) => l.owner === "you");
   const active = mine.filter((l) => l.status === "active");
 
-  const myTours = tours.filter((t) => t.ownerKey === "you");
-  const pending = myTours.filter(
-    (t) => t.status === "pending" || t.status === "reschedule"
+  const pending = items.filter(
+    (m) => m.tour.status === "pending" || m.tour.status === "reschedule"
   );
-  const upcoming = myTours.filter((t) => t.status === "confirmed");
+  const upcoming = items.filter((m) => m.tour.status === "confirmed");
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

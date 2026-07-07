@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useTranslations } from "next-intl";
 import { notFound } from "next/navigation";
+import { toast } from "sonner";
 import { useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -62,11 +63,10 @@ export function ListingForm({
     [tv]
   );
   const router = useRouter();
-  const { getById, addListing, updateListing } = useListings();
+  const { getById, addListing, updateListing, ready } = useListings();
   const isEdit = mode === "edit";
 
   const existing = isEdit && listingId ? getById(listingId) : undefined;
-  if (isEdit && !existing) notFound();
 
   const form = useForm<ListingFormValues>({
     resolver: zodResolver(listingFormSchema),
@@ -87,6 +87,19 @@ export function ListingForm({
     setToday(new Date().toISOString().slice(0, 10));
   }, []);
 
+  // On a direct load / refresh of the edit page the owner's listings may not
+  // be in cache yet, so `existing` arrives after the first render — populate
+  // the form once it does.
+  const hydrated = React.useRef(false);
+  React.useEffect(() => {
+    if (isEdit && existing && !hydrated.current) {
+      hydrated.current = true;
+      form.reset(listingToForm(existing));
+    }
+  }, [isEdit, existing, form]);
+
+  const [saving, setSaving] = React.useState(false);
+
   const values = watch();
 
   // Keep the listing's own district selectable even if it predates the list.
@@ -95,15 +108,35 @@ export function ListingForm({
       ? [...DISTRICTS]
       : [values.district, ...DISTRICTS];
 
-  const save = (v: ListingFormValues, status: "active" | "draft") => {
+  const save = async (v: ListingFormValues, status: "active" | "draft") => {
+    if (saving) return;
+    setSaving(true);
     const core = formToCore(v);
-    if (isEdit && listingId) updateListing(listingId, core, status);
-    else addListing(core, status);
-    router.push(DASHBOARD);
+    try {
+      if (isEdit && listingId) await updateListing(listingId, core, status);
+      else await addListing(core, status);
+      router.push(DASHBOARD);
+    } catch {
+      toast.error(t("saveError"));
+      setSaving(false);
+    }
   };
 
   const setField = (name: keyof ListingFormValues, value: string | string[]) =>
     setValue(name, value as never, { shouldValidate: true, shouldDirty: true });
+
+  // Editing a listing that isn't in the owner's set: wait for the load, then
+  // 404 if it's genuinely absent (or not theirs).
+  if (isEdit && !existing) {
+    if (!ready) {
+      return (
+        <div className="container mx-auto px-5 sm:px-8 py-16 text-center text-muted-foreground anim-fade">
+          {t("loading")}
+        </div>
+      );
+    }
+    notFound();
+  }
 
   return (
     <div className="container mx-auto px-5 sm:px-8 py-8 anim-up">
@@ -323,6 +356,7 @@ export function ListingForm({
               <Button
                 type="button"
                 className="w-full justify-center"
+                disabled={saving}
                 onClick={handleSubmit((v) => save(v, "active"))}
               >
                 {isEdit ? t("publish.saveChanges") : t("publish.publish")}
@@ -332,6 +366,7 @@ export function ListingForm({
                   type="button"
                   variant="secondary"
                   className="w-full justify-center"
+                  disabled={saving}
                   onClick={handleSubmit((v) => save(v, "draft"))}
                 >
                   {t("publish.saveDraft")}

@@ -3,7 +3,7 @@
 import { useTranslations, useFormatter } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useAvailability } from "@/hooks/use-availability";
+import { useMyAvailability } from "@/hooks/use-availability";
 import {
   TOUR_TIMES,
   type WeekTemplate,
@@ -23,32 +23,17 @@ export function AvailabilityEditor() {
     const [h, m] = time.split(":").map(Number);
     return format.dateTime(new Date(2000, 0, 1, h, m), { hour: "numeric" });
   };
-  const { template, setTemplate } = useAvailability();
-
-  const total = Object.values(template).reduce(
-    (sum, times) => sum + (times?.length ?? 0),
-    0
-  );
-
-  const toggle = (wd: number, time: string) => {
-    setTemplate((prev) => {
-      const cur = prev[wd] ?? [];
-      const next = cur.includes(time)
-        ? cur.filter((x) => x !== time)
-        : [...cur, time].sort();
-      return { ...prev, [wd]: next };
-    });
-  };
+  const { template, total, toggle, replaceWeek } = useMyAvailability();
 
   const preset = (kind: "weekday" | "all" | "clear") => {
-    if (kind === "clear") return setTemplate({});
+    if (kind === "clear") return replaceWeek({});
     if (kind === "weekday") {
       const wd = ["10:00", "11:00", "13:00", "14:00", "15:00", "16:00"];
-      return setTemplate({ 1: [...wd], 2: [...wd], 3: [...wd], 4: [...wd], 5: [...wd] });
+      return replaceWeek({ 1: [...wd], 2: [...wd], 3: [...wd], 4: [...wd], 5: [...wd] });
     }
     const all: WeekTemplate = {};
     for (let i = 0; i < 7; i++) all[i] = [...TOUR_TIMES];
-    setTemplate(all);
+    replaceWeek(all);
   };
 
   return (

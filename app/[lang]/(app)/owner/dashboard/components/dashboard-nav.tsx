@@ -5,7 +5,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { Chip } from "@/components/chip";
 import { useListings } from "@/hooks/use-listings";
-import { useTours } from "@/hooks/use-tours";
+import { useOwnerTours } from "@/hooks/use-owner-tours";
 import {
   Calendar,
   CircleCheck,
@@ -24,10 +24,8 @@ type NavItem = {
 
 function useNavItems(): NavItem[] {
   const t = useTranslations("dashboard.nav");
-  const { listings } = useListings();
-  const { tours } = useTours();
-  const mine = listings.filter((l) => l.owner === "you");
-  const myTours = tours.filter((t) => t.ownerKey === "you");
+  const { listings: mine } = useListings();
+  const { items } = useOwnerTours();
   const base = "/owner/dashboard";
 
   return [
@@ -48,8 +46,8 @@ function useNavItems(): NavItem[] {
       href: `${base}/tours`,
       label: t("tours"),
       icon: Calendar,
-      count: myTours.filter(
-        (t) => t.status === "pending" || t.status === "reschedule"
+      count: items.filter(
+        (m) => m.tour.status === "pending" || m.tour.status === "reschedule"
       ).length,
     },
     { href: `${base}/availability`, label: t("availability"), icon: Clock, count: null },

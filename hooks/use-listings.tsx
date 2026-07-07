@@ -1,106 +1,190 @@
 "use client";
 
-import * as React from "react";
-import { SEED_LISTINGS, PALETTE } from "@/lib/data/listings";
+import { useCallback, useMemo } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@/hooks/auth";
+import { toListing, toListingWrite } from "@/lib/services/listings-map";
+import { PALETTE } from "@/lib/data/listings";
 import { type Listing, type ListingCore } from "@/schemas/listing";
+import type { TablesInsert } from "@/lib/database.types";
 
-/* In-memory listings store for the owner flows (dashboard / create / edit).
-   Seeded deterministically from SEED_LISTINGS so server + client render match.
-   Kept in React state (not localStorage) — listing photos are stored as data
-   URLs and would quickly blow past the localStorage quota. State survives
-   client-side navigation between the owner pages while the provider stays
-   mounted in the (app) layout. */
+/* The signed-in owner's listings, backed by the Supabase `listings` table and
+   react-query. Replaces the old in-memory seed store — the dashboard, the
+   create/edit form, and the listing rows all read and write real rows scoped
+   to owner_id (RLS lets an owner see their own drafts alongside active homes,
+   and insert/update/delete only their own).
 
-type ListingsContextValue = {
-  listings: Listing[];
-  getById: (id: string) => Listing | undefined;
-  addListing: (core: ListingCore, status: Listing["status"]) => Listing;
-  updateListing: (
-    id: string,
-    core: ListingCore,
-    status: Listing["status"]
-  ) => void;
-  removeListing: (id: string) => void;
-  toggleStatus: (id: string) => void;
+   Writes invalidate the query so the list reflects immediately. They do NOT
+   revalidate the server-cached public read (getActiveListings, tagged
+   "listings"); a renter browsing the marketplace may see a change up to the
+   cache window later — acceptable for the owner-management flows. */
+
+export const listingKeys = {
+  mine: (userId: string | undefined) => ["listings", "mine", userId ?? "guest"] as const,
 };
 
-const ListingsContext = React.createContext<ListingsContextValue | null>(null);
+export function useListings() {
+  const queryClient = useQueryClient();
+  const { data: user, isPending: userPending } = useUser();
+  const userId = user?.id;
+  const key = listingKeys.mine(userId);
 
-const newId = () =>
-  typeof crypto !== "undefined" && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `l${Date.now()}`;
+  const query = useQuery({
+    queryKey: key,
+    enabled: !userPending,
+    queryFn: async (): Promise<Listing[]> => {
+      if (!userId) return [];
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("listings")
+        .select("*")
+        .eq("owner_id", userId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data.map(toListing);
+    },
+  });
 
-export function ListingsProvider({ children }: { children: React.ReactNode }) {
-  const [listings, setListings] = React.useState<Listing[]>(() => SEED_LISTINGS);
+  const listings = useMemo(() => query.data ?? [], [query.data]);
 
-  const getById = React.useCallback(
+  const getById = useCallback(
     (id: string) => listings.find((l) => l.id === id),
     [listings]
   );
 
-  const addListing = React.useCallback(
-    (core: ListingCore, status: Listing["status"]) => {
-      const listing: Listing = {
-        ...core,
-        id: newId(),
-        owner: "you",
-        views: 0,
-        palette: Math.floor(Math.random() * PALETTE.length),
-        status,
-      };
-      setListings((prev) => [listing, ...prev]);
-      return listing;
-    },
-    []
+  const invalidate = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: key }),
+    [queryClient, key]
   );
 
-  const updateListing = React.useCallback(
-    (id: string, core: ListingCore, status: Listing["status"]) => {
-      setListings((prev) =>
-        prev.map((l) => (l.id === id ? { ...l, ...core, status } : l))
+  const addMutation = useMutation({
+    mutationFn: async ({
+      core,
+      status,
+    }: {
+      core: ListingCore;
+      status: Listing["status"];
+    }): Promise<Listing> => {
+      if (!userId) throw new Error("Not signed in");
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("listings")
+        // ListingCore guarantees the insert-required fields; toListingWrite
+        // widens them to optional (it's shared with the update path), so cast.
+        .insert({
+          ...toListingWrite(core, status),
+          owner_id: userId,
+          palette: Math.floor(Math.random() * PALETTE.length),
+        } as TablesInsert<"listings">)
+        .select("*")
+        .single();
+      if (error) throw error;
+      return toListing(data);
+    },
+    onSuccess: invalidate,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({
+      id,
+      core,
+      status,
+    }: {
+      id: string;
+      core: ListingCore;
+      status: Listing["status"];
+    }) => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("listings")
+        .update(toListingWrite(core, status))
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  /* Flip active ⇄ draft, optimistically. */
+  const toggleMutation = useMutation({
+    mutationFn: async ({ id, next }: { id: string; next: Listing["status"] }) => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("listings")
+        .update({ status: next })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onMutate: async ({ id, next }) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<Listing[]>(key);
+      queryClient.setQueryData<Listing[]>(key, (old) =>
+        old?.map((l) => (l.id === id ? { ...l, status: next } : l))
       );
+      return { previous };
     },
-    []
+    onError: (_e, _v, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(key, ctx.previous);
+    },
+    onSettled: invalidate,
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const supabase = createClient();
+      const { error } = await supabase.from("listings").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<Listing[]>(key);
+      queryClient.setQueryData<Listing[]>(key, (old) =>
+        old?.filter((l) => l.id !== id)
+      );
+      return { previous };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(key, ctx.previous);
+    },
+    onSettled: invalidate,
+  });
+
+  const addListing = useCallback(
+    (core: ListingCore, status: Listing["status"]) =>
+      addMutation.mutateAsync({ core, status }),
+    [addMutation]
   );
 
-  const removeListing = React.useCallback((id: string) => {
-    setListings((prev) => prev.filter((l) => l.id !== id));
-  }, []);
-
-  const toggleStatus = React.useCallback((id: string) => {
-    setListings((prev) =>
-      prev.map((l) =>
-        l.id === id
-          ? { ...l, status: l.status === "active" ? "draft" : "active" }
-          : l
-      )
-    );
-  }, []);
-
-  const value = React.useMemo(
-    () => ({
-      listings,
-      getById,
-      addListing,
-      updateListing,
-      removeListing,
-      toggleStatus,
-    }),
-    [listings, getById, addListing, updateListing, removeListing, toggleStatus]
+  const updateListing = useCallback(
+    (id: string, core: ListingCore, status: Listing["status"]) =>
+      updateMutation.mutateAsync({ id, core, status }),
+    [updateMutation]
   );
 
-  return (
-    <ListingsContext.Provider value={value}>
-      {children}
-    </ListingsContext.Provider>
+  const removeListing = useCallback(
+    (id: string) => removeMutation.mutate(id),
+    [removeMutation]
   );
-}
 
-export function useListings() {
-  const ctx = React.useContext(ListingsContext);
-  if (!ctx) {
-    throw new Error("useListings must be used within a ListingsProvider");
-  }
-  return ctx;
+  const toggleStatus = useCallback(
+    (id: string) => {
+      const cur = listings.find((l) => l.id === id);
+      if (!cur) return;
+      toggleMutation.mutate({
+        id,
+        next: cur.status === "active" ? "draft" : "active",
+      });
+    },
+    [listings, toggleMutation]
+  );
+
+  return {
+    listings,
+    getById,
+    addListing,
+    updateListing,
+    removeListing,
+    toggleStatus,
+    ready: !userPending && !query.isLoading,
+  };
 }

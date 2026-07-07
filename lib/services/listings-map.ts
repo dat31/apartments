@@ -1,5 +1,5 @@
-import type { Tables } from "@/lib/database.types";
-import { District, type Listing } from "@/schemas/listing";
+import type { Tables, TablesUpdate } from "@/lib/database.types";
+import { District, type Listing, type ListingCore } from "@/schemas/listing";
 
 /* Pure row → domain mapping for `listings`, split out of the server-only
    listings service so it can be reused by client-side reads (e.g. the saved
@@ -17,6 +17,11 @@ const TYPE_LABELS: Record<ListingRow["type"], string> = {
   townhouse: "Townhouse",
   house: "House",
 };
+
+/* Reverse of TYPE_LABELS: UI label → DB enum slug, for writes. */
+const TYPE_SLUGS = Object.fromEntries(
+  Object.entries(TYPE_LABELS).map(([slug, label]) => [label, slug])
+) as Record<string, ListingRow["type"]>;
 
 /* Seed owners get stable uuids so the (still seed-backed) owner/review
    pages keep resolving by their "you"/"maya"/"leo" keys. Unknown owners
@@ -51,5 +56,31 @@ export function toListing(row: ListingRow): Listing {
     available: row.available_from ?? "now",
     desc: row.description,
     images: row.images.length ? row.images : undefined,
+  };
+}
+
+/** Map the app's editable `ListingCore` + status to writable `listings`
+    columns (create and edit share this). owner_id / palette / id / views are
+    owned by the caller and set separately on insert. */
+export function toListingWrite(
+  core: ListingCore,
+  status: Listing["status"]
+): TablesUpdate<"listings"> {
+  return {
+    title: core.title,
+    type: TYPE_SLUGS[core.type] ?? (core.type as ListingRow["type"]),
+    price: core.price,
+    beds: core.beds,
+    baths: core.baths,
+    area: core.area,
+    district: core.district,
+    city: core.city,
+    amenities: core.amenities as ListingRow["amenities"],
+    images: core.images ?? [],
+    status,
+    // "now" means immediately available → no stored date.
+    available_from:
+      core.available && core.available !== "now" ? core.available : null,
+    description: core.desc,
   };
 }

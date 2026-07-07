@@ -61,8 +61,16 @@ export function ProposeTimeModal({
   const [date, setDate] = React.useState("");
   const [time, setTime] = React.useState("");
 
+  // Avoid double-booking the owner: exclude the tour being rescheduled, and
+  // scope occupied slots to this owner (their key is "you" for the seed owner,
+  // their uuid otherwise). All `tours` already belong to this owner, so the
+  // key just needs to match what toTourRequest mapped onto them.
   const occupied = React.useMemo(
-    () => occupiedSet(tour ? tours.filter((t) => t.id !== tour.id) : tours, "you"),
+    () =>
+      occupiedSet(
+        tour ? tours.filter((t) => t.id !== tour.id) : tours,
+        tour?.ownerKey ?? "you"
+      ),
     [tours, tour]
   );
   const slots = date ? openSlotsFor(template, date, occupied) : [];
