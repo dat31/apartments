@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BackToResults } from "./components/back-to-results";
 import { DetailContent } from "./components/detail-content";
 import { DetailSkeleton } from "./components/detail-skeleton";
@@ -22,11 +22,12 @@ export default async function ApartmentDetailPage({
   // below the Suspense boundary as a layout-shaped skeleton.
   const { lang, id } = await params;
   setRequestLocale(lang);
+  const t = await getTranslations("detail");
 
   return (
     <div className="container mx-auto px-5 sm:px-8 pt-6 pb-28 md:pb-6">
       <BackToResults />
-      <Suspense fallback={<DetailSkeleton />}>
+      <Suspense fallback={<DetailSkeleton label={t("loadingHome")} />}>
         <DetailContent id={id} />
       </Suspense>
     </div>
