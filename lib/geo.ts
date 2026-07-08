@@ -37,9 +37,10 @@ function hash(s: string): number {
 /* Map a hash to [-1, 1]. */
 const spread = (h: number) => (h % 2000) / 1000 - 1;
 
-/** Approximate coordinates for a listing without a stored pin: district
-    center plus a deterministic ~±650 m offset derived from the listing id. */
-export function listingCoords(l: Pick<Listing, "id" | "district">): LatLng {
+/* Approximate coordinates for a listing without a stored pin: district
+   center plus a deterministic ~±650 m offset derived from the listing id.
+   Internal — consumers go through coordsOf(). */
+function listingCoords(l: Pick<Listing, "id" | "district">): LatLng {
   const [lat, lng] = districtCenter(l.district);
   return [
     lat + spread(hash(l.id)) * 0.006,
