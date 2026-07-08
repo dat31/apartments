@@ -7,7 +7,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import type * as L from "leaflet";
 import { LoaderCircle, LocateFixed, MapPin, Route, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { kmBetween, type LatLng } from "@/lib/geo";
+import { formatDistance, kmBetween, type LatLng } from "@/lib/geo";
 
 /* Leaflet map for the detail page's "Where you'll be" section.
    Client leaf: Leaflet touches `window` at import time, so the module is
@@ -58,14 +58,7 @@ export function LocationMap({
   const [geo, setGeo] = useState<GeoState>({ status: "locating" });
   const [route, setRoute] = useState<RouteState>({ status: "idle" });
 
-  const distanceLabel = (km: number) =>
-    km < 1
-      ? format.number(Math.round(km * 1000), { style: "unit", unit: "meter" })
-      : format.number(km, {
-          style: "unit",
-          unit: "kilometer",
-          maximumFractionDigits: km < 10 ? 1 : 0,
-        });
+  const distanceLabel = (km: number) => formatDistance(format, km);
 
   /* Mount the map. */
   useEffect(() => {

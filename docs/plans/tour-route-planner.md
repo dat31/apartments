@@ -5,9 +5,10 @@
 > records decisions already made with the user, the current state of the map
 > stack, and a working verification recipe.
 >
-> **Status (2026-07-08): Phase A is DONE** — implemented in PR #41
-> (`feat/listing-coordinates`). Phases B–D remain. Section 3 reflects the
-> post-Phase-A state.
+> **Status (2026-07-08): Phases A and B are DONE** — A in PR #41
+> (`feat/listing-coordinates`), B in `feat/tour-day-route` (stacked on #41).
+> Phases C–D remain. Section 3 reflects the post-Phase-A state; see the
+> Phase B section for what B added.
 
 ## 1. Feature summary
 
@@ -141,7 +142,34 @@ same `toListingWrite` used by all fields, but if a "pin doesn't persist"
 bug is reported, look there first and ask the user to do one manual
 create-with-pin check.
 
-### Phase B — per-day route in schedule order (the core feature)
+### Phase B — per-day route in schedule order ✅ DONE (`feat/tour-day-route`)
+
+Landed as planned, with these deltas from the spec below:
+
+- `groupTourDays` returns `{ date, items, stops }` per day — `items` is every
+  upcoming non-declined tour that day (drives the card list, so reschedule /
+  deleted-listing tours still show), `stops` the routeable subset
+  (pending|confirmed with a live listing). `renter-tours.tsx` now renders day
+  sections (localized date heading) plus a "Past & cancelled" history list
+  (`tour.historySection`).
+- `distanceLabel` became `formatDistance(format, km)` in `lib/geo.ts`
+  (follows the `formatMoney(format, …)` pattern); location-map.tsx uses it.
+- The map component owns geolocation + the single OSRM call and renders
+  `RouteLegs` itself. OSRM failure falls back to dashed straight legs with
+  `kmBetween` distances (no minutes) + retry — there is no separate error-only
+  state. Same-coord stops share one pin with stacked numbers ("1·2").
+- i18n lives at `tour.route.*` (the existing namespace is `tour`, not
+  `tours`). `tightGap`/`suggestion` keys deferred to C/D.
+- `legGapMinutes` + `TOUR_DURATION_MIN` are in `route-plan.ts` but unused
+  until Phase C.
+- The lint dodge for auto-fetch: the OSRM effect defers via
+  `setTimeout(fetchRoute, 0)` — calling an async setState-ing function
+  synchronously in an effect body trips `react-hooks/set-state-in-effect`.
+- Verified headlessly (recipe in §6, harness route deleted): schedule order,
+  reschedule exclusion, numbered pins + user dot, legs/total text vi+en,
+  gmaps waypoint count, geolocation-denied path, OSRM-down fallback.
+
+Original spec, kept for reference:
 
 New route-local files under `app/[lang]/(app)/tour/`:
 

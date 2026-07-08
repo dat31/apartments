@@ -1,3 +1,4 @@
+import type { createFormatter } from "next-intl";
 import { District, type Listing } from "@/schemas/listing";
 
 /* ============================================================
@@ -56,6 +57,22 @@ export function coordsOf(
   if (typeof l.lat === "number" && typeof l.lng === "number")
     return [l.lat, l.lng];
   return listingCoords(l);
+}
+
+/* next-intl's formatter shape — what useFormatter() (components) and
+   getFormatter() (metadata, actions) both return. */
+type NumberFormatter = Pick<ReturnType<typeof createFormatter>, "number">;
+
+/** Locale-aware distance label: meters under 1 km, kilometers above
+    (1 decimal until 10 km). Shared by the detail map and the tour route. */
+export function formatDistance(format: NumberFormatter, km: number): string {
+  return km < 1
+    ? format.number(Math.round(km * 1000), { style: "unit", unit: "meter" })
+    : format.number(km, {
+        style: "unit",
+        unit: "kilometer",
+        maximumFractionDigits: km < 10 ? 1 : 0,
+      });
 }
 
 /** Great-circle distance (km) between two points. */

@@ -608,7 +608,24 @@
     "at": "at",
     "acceptNewTime": "Accept new time",
     "decline": "Decline",
-    "cancelTour": "Cancel tour"
+    "cancelTour": "Cancel tour",
+    "historySection": "Past & cancelled",
+    "route": {
+      "viewRoute": "View route for this day",
+      "hideRoute": "Hide route",
+      "yourLocation": "Your location",
+      "stop": "Stop {n}",
+      "leg": "{from} → {to}",
+      "total": "Total",
+      "minutes": "{minutes, plural, one {# min} other {# min}}",
+      "openInGoogleMaps": "Open in Google Maps",
+      "locating": "Finding your location…",
+      "locationDenied": "Your location isn't available — the route starts at stop 1.",
+      "loadingRoute": "Loading the driving route…",
+      "routeError": "Couldn't load the driving route — distances below are as the crow flies.",
+      "retry": "Retry",
+      "ariaMap": "Map of this day's tour route"
+    }
   },
   "validation": {
     "email": {
