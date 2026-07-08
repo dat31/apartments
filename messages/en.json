@@ -304,6 +304,21 @@
       "close": "Close photos",
       "photo": "Photo {n}"
     },
+    "map": {
+      "title": "Where you'll be",
+      "ariaMap": "Map showing the area around {place}",
+      "approx": "Approximate location",
+      "approxNote": "Exact address is shared once your tour is confirmed.",
+      "locating": "Locating…",
+      "denied": "Location blocked — retry",
+      "unavailable": "Couldn't locate — try again",
+      "away": "{distance} away",
+      "awayHint": "Straight-line distance from your current location",
+      "yourLocation": "Your location",
+      "directions": "Show directions",
+      "directionsError": "Route unavailable — retry",
+      "routeSummary": "{distance} · {minutes, plural, one {# min} other {# min}} drive"
+    },
     "reviews": {
       "title": "Reviews",
       "count": "{count, plural, one {# review} other {# reviews}}",
