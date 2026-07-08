@@ -3,7 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Gallery } from "./gallery";
-import { LocationMap } from "./location-map";
+import { LocationMapLazy } from "./location-map-lazy";
 import { Reviews } from "./reviews";
 import { SaveHomeButton } from "./save-home-button";
 import { BookTourButton } from "./book-tour-button";
@@ -157,7 +157,7 @@ export function DetailView({
           </div>
 
           {/* Location — approximate coords derived from the district */}
-          <LocationMap
+          <LocationMapLazy
             key={listing.id}
             lat={coords[0]}
             lng={coords[1]}
