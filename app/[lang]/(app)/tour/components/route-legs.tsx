@@ -16,6 +16,9 @@ export type RouteLeg = {
   km: number;
   /** Drive time — absent on the straight-line fallback. */
   minutes?: number;
+  /** Set when the drive takes longer than the free time between the two
+      tours (gap already clamped to ≥0 for display). */
+  tightGap?: { gap: number; drive: number };
 };
 
 export function RouteLegs({
@@ -59,14 +62,19 @@ export function RouteLegs({
       )}
       <ol className="divide-y divide-border border border-border bg-card text-sm">
         {legs.map((leg, i) => (
-          <li
-            key={i}
-            className="flex items-center justify-between gap-3 px-3 py-2"
-          >
-            <span className="min-w-0 truncate text-muted-foreground">
-              {t("leg", { from: leg.from, to: leg.to })}
-            </span>
-            {metric(leg.km, leg.minutes)}
+          <li key={i} className="px-3 py-2">
+            <div className="flex items-center justify-between gap-3">
+              <span className="min-w-0 truncate text-muted-foreground">
+                {t("leg", { from: leg.from, to: leg.to })}
+              </span>
+              {metric(leg.km, leg.minutes)}
+            </div>
+            {leg.tightGap && (
+              <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-destructive">
+                <TriangleAlert size={13} className="shrink-0" />
+                {t("tightGap", leg.tightGap)}
+              </p>
+            )}
           </li>
         ))}
         <li className="flex items-center justify-between gap-3 px-3 py-2 font-medium">
