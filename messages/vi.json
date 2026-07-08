@@ -608,7 +608,24 @@
     "at": "lúc",
     "acceptNewTime": "Chấp nhận thời gian mới",
     "decline": "Từ chối",
-    "cancelTour": "Hủy lịch xem"
+    "cancelTour": "Hủy lịch xem",
+    "historySection": "Đã qua & đã hủy",
+    "route": {
+      "viewRoute": "Xem lộ trình ngày này",
+      "hideRoute": "Ẩn lộ trình",
+      "yourLocation": "Vị trí của bạn",
+      "stop": "Điểm {n}",
+      "leg": "{from} → {to}",
+      "total": "Tổng cộng",
+      "minutes": "{minutes, plural, other {# phút}}",
+      "openInGoogleMaps": "Mở trong Google Maps",
+      "locating": "Đang xác định vị trí của bạn…",
+      "locationDenied": "Không có vị trí của bạn — lộ trình bắt đầu từ điểm 1.",
+      "loadingRoute": "Đang tải lộ trình lái xe…",
+      "routeError": "Không tải được lộ trình lái xe — khoảng cách bên dưới là đường chim bay.",
+      "retry": "Thử lại",
+      "ariaMap": "Bản đồ lộ trình các lịch xem trong ngày"
+    }
   },
   "validation": {
     "email": {
