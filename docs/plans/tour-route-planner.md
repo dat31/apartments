@@ -5,10 +5,10 @@
 > records decisions already made with the user, the current state of the map
 > stack, and a working verification recipe.
 >
-> **Status (2026-07-08): Phases A and B are DONE** — A in PR #41
-> (`feat/listing-coordinates`), B in `feat/tour-day-route` (stacked on #41).
-> Phases C–D remain. Section 3 reflects the post-Phase-A state; see the
-> Phase B section for what B added.
+> **Status (2026-07-08): Phases A, B and C are DONE** — A merged in PR #41,
+> B in PR #42 (`feat/tour-day-route`), C in `feat/tour-tight-gaps` (stacked
+> on #42). Only Phase D remains. Section 3 reflects the post-Phase-A state;
+> see each phase section for what it added.
 
 ## 1. Feature summary
 
@@ -222,7 +222,22 @@ Durations/distances via `useFormatter` (`style: "unit"`, `unit: "kilometer"`
 / minutes as plain number + ICU) — copy `distanceLabel` from
 location-map.tsx into the shared lib rather than duplicating a third time.
 
-### Phase C — feasibility warnings (small delta on B)
+### Phase C — feasibility warnings ✅ DONE (`feat/tour-tight-gaps`)
+
+Landed as specced, with the per-leg-geometry question resolved: **one OSRM
+call with `steps=true&overview=false`** — each leg's polyline is the concat
+of its steps' geojson geometries, so no N−1 pair calls and no annotations.
+`RouteLeg` gained `tightGap?: { gap, drive }` (gap clamped to ≥0 for display
+— overlapping bookings would otherwise read "-15 phút"); the warning row
+renders in `route-legs.tsx` under the leg, and the tight leg's polyline uses
+`--destructive` (resolved at mount next to `--primary`). Legs from the
+renter's location (leg 0 when geolocation granted) have no gap to check. The
+straight-line fallback stays a single dashed polyline with no warnings (no
+drive times to compare). Verified headlessly: 09:00 → 09:31 cross-district
+schedule produced exactly one red polyline (leg 1→2) + one warning row with
+the right minutes, comfortable legs stayed primary.
+
+Original spec, kept for reference:
 
 After the OSRM response: for each consecutive pair, compare
 `legGapMinutes(a, b, TOUR_DURATION_MIN)` with `legs[i].duration / 60`. If

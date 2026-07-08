@@ -624,6 +624,7 @@
       "loadingRoute": "Đang tải lộ trình lái xe…",
       "routeError": "Không tải được lộ trình lái xe — khoảng cách bên dưới là đường chim bay.",
       "retry": "Thử lại",
+      "tightGap": "Chỉ có {gap} phút giữa hai lịch — lái xe mất {drive} phút",
       "ariaMap": "Bản đồ lộ trình các lịch xem trong ngày"
     }
   },

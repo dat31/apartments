@@ -8,14 +8,20 @@ import type * as L from "leaflet";
 import { LoaderCircle, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { kmBetween, type LatLng } from "@/lib/geo";
-import { gmapsDirectionsUrl, type TourStop } from "../lib/route-plan";
+import {
+  gmapsDirectionsUrl,
+  legGapMinutes,
+  type TourStop,
+} from "../lib/route-plan";
 import { RouteLegs, type RouteLeg } from "./route-legs";
 
 /* Leaflet map of one day's tour route: numbered pins for every stop in
    schedule order, the renter's own location when granted, and the OSRM
-   driving route between them with per-leg times listed below. Client leaf —
-   Leaflet touches `window` at import, so it's loaded dynamically inside the
-   mount effect (same stack as the detail-page LocationMap). */
+   driving route between them with per-leg times listed below. When the drive
+   between two tours takes longer than the free gap in the schedule, that leg
+   is flagged and drawn in the destructive color. Client leaf — Leaflet
+   touches `window` at import, so it's loaded dynamically inside the mount
+   effect (same stack as the detail-page LocationMap). */
 
 type GeoState =
   | { status: "locating" }
@@ -43,13 +49,17 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
   const mapRef = useRef<L.Map | null>(null);
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
   const userLayerRef = useRef<L.Marker | null>(null);
-  const routeLayerRef = useRef<L.Polyline | null>(null);
+  const routeLayerRef = useRef<L.FeatureGroup | L.Polyline | null>(null);
   // Guards a stale OSRM response (e.g. a location retry mid-flight) from
   // overwriting a fresher one.
   const requestRef = useRef(0);
   // Leaflet writes SVG presentation attributes, which don't evaluate var() —
   // resolve the design tokens to concrete colors once the map mounts.
-  const colorsRef = useRef({ primary: "#1c1c1c", bg: "#ffffff" });
+  const colorsRef = useRef({
+    primary: "#1c1c1c",
+    bg: "#ffffff",
+    destructive: "#b91c1c",
+  });
 
   const [ready, setReady] = useState(false);
   const [geo, setGeo] = useState<GeoState>({ status: "locating" });
@@ -67,7 +77,9 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
       const cs = getComputedStyle(nodeRef.current);
       const primary = cs.getPropertyValue("--primary").trim() || "#1c1c1c";
       const bg = cs.getPropertyValue("--background").trim() || "#ffffff";
-      colorsRef.current = { primary, bg };
+      const destructive =
+        cs.getPropertyValue("--destructive").trim() || "#b91c1c";
+      colorsRef.current = { primary, bg, destructive };
 
       const map = leaflet.map(nodeRef.current, {
         scrollWheelZoom: false, // avoid hijacking page scroll — click to focus
@@ -211,57 +223,94 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
       .slice(0, -1)
       .map((_, i) => ({ from: label(i), to: label(i + 1) }));
 
-    const draw = (path: LatLng[], dashed: boolean) => {
+    const drawFallback = (path: LatLng[]) => {
       routeLayerRef.current?.remove();
       const line = leaflet
-        .polyline(
-          path,
-          dashed
-            ? {
-                color: colorsRef.current.primary,
-                weight: 2,
-                opacity: 0.55,
-                dashArray: "4 8",
-              }
-            : { color: colorsRef.current.primary, weight: 4, opacity: 0.8 }
-        )
+        .polyline(path, {
+          color: colorsRef.current.primary,
+          weight: 2,
+          opacity: 0.55,
+          dashArray: "4 8",
+        })
         .addTo(map);
       routeLayerRef.current = line;
       map.fitBounds(line.getBounds().pad(0.2), { maxZoom: 15 });
     };
 
     try {
+      // steps=true so each leg carries its own geometry (concatenated step
+      // paths) — that's what lets a tight leg get its own polyline color
+      // while keeping the whole day in a single OSRM request.
       const res = await fetch(
         `${OSRM}/${points.map(([lat, lng]) => `${lng},${lat}`).join(";")}` +
-          "?overview=full&geometries=geojson&steps=false"
+          "?overview=false&geometries=geojson&steps=true"
       );
       if (!res.ok) throw new Error(`OSRM ${res.status}`);
       const data = (await res.json()) as {
         routes?: {
           distance: number;
           duration: number;
-          geometry: { coordinates: [number, number][] };
-          legs: { distance: number; duration: number }[];
+          legs: {
+            distance: number;
+            duration: number;
+            steps: { geometry: { coordinates: [number, number][] } }[];
+          }[];
         }[];
       };
       const r = data.routes?.[0];
       if (!r || r.legs.length !== legLabels.length) throw new Error("no route");
       if (requestRef.current !== request || !mapRef.current) return;
 
-      draw(r.geometry.coordinates.map(([lng, lat]) => [lat, lng] as LatLng), false);
+      // Leg i connects points[i] → points[i+1]; when the renter's location
+      // leads the list, stop-to-stop legs start at leg 1. Only those have a
+      // schedule gap to compare the drive against.
+      const legs: RouteLeg[] = r.legs.map((leg, i) => {
+        const minutes = Math.max(1, Math.round(leg.duration / 60));
+        const pair = fromUser ? i - 1 : i;
+        const gap =
+          pair >= 0 ? legGapMinutes(stops[pair], stops[pair + 1]) : null;
+        return {
+          ...legLabels[i],
+          km: leg.distance / 1000,
+          minutes,
+          tightGap:
+            gap !== null && minutes > gap
+              ? { gap: Math.max(0, gap), drive: minutes }
+              : undefined,
+        };
+      });
+
+      routeLayerRef.current?.remove();
+      const group = leaflet
+        .featureGroup(
+          r.legs.map((leg, i) =>
+            leaflet.polyline(
+              leg.steps.flatMap((s) =>
+                s.geometry.coordinates.map(([lng, lat]) => [lat, lng] as LatLng)
+              ),
+              {
+                color: legs[i].tightGap
+                  ? colorsRef.current.destructive
+                  : colorsRef.current.primary,
+                weight: 4,
+                opacity: 0.8,
+              }
+            )
+          )
+        )
+        .addTo(map);
+      routeLayerRef.current = group;
+      map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 15 });
+
       setRoute({
         status: "shown",
-        legs: legLabels.map((leg, i) => ({
-          ...leg,
-          km: r.legs[i].distance / 1000,
-          minutes: Math.max(1, Math.round(r.legs[i].duration / 60)),
-        })),
+        legs,
         totalKm: r.distance / 1000,
         totalMinutes: Math.max(1, Math.round(r.duration / 60)),
       });
     } catch {
       if (requestRef.current !== request || !mapRef.current) return;
-      draw(points, true);
+      drawFallback(points);
       setRoute({
         status: "estimate",
         legs: legLabels.map((leg, i) => ({

@@ -624,6 +624,7 @@
       "loadingRoute": "Loading the driving route…",
       "routeError": "Couldn't load the driving route — distances below are as the crow flies.",
       "retry": "Retry",
+      "tightGap": "Only {gap} min between these tours — the drive takes {drive} min",
       "ariaMap": "Map of this day's tour route"
     }
   },
