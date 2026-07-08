@@ -5,7 +5,7 @@ import "@/app/leaflet-theme.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type * as L from "leaflet";
-import { LoaderCircle, LocateFixed } from "lucide-react";
+import { Lightbulb, LoaderCircle, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { kmBetween, type LatLng } from "@/lib/geo";
 import {
@@ -40,7 +40,29 @@ type RouteState =
   /* OSRM failed — dashed straight lines + crow-flies distances. */
   | { status: "estimate"; legs: RouteLeg[]; totalKm: number };
 
+/* A cheaper visiting order found by the OSRM trip service — only computed
+   for flexible days (≥3 stops, at least one time still pending) and only
+   surfaced when it saves more than 5 minutes. Suggest-only: it never
+   touches bookings. */
+type Suggestion = {
+  /** Stop numbers (0-based, schedule order) in the suggested visiting order. */
+  order: number[];
+  savedMinutes: number;
+  legs: RouteLeg[];
+  totalKm: number;
+  totalMinutes: number;
+  /** Route points in suggested order — for the Google Maps link. */
+  points: LatLng[];
+  /** Trip geometry for the preview polyline. */
+  path: LatLng[];
+};
+
 const OSRM = "https://router.project-osrm.org/route/v1/driving";
+const OSRM_TRIP = "https://router.project-osrm.org/trip/v1/driving";
+
+/* ① ② ③ … for the suggestion sentence; plain numbers past ⑨. */
+const circled = (n: number) =>
+  n >= 1 && n <= 9 ? String.fromCodePoint(0x245f + n) : String(n);
 
 export function TourRouteMap({ stops }: { stops: TourStop[] }) {
   const t = useTranslations("tour.route");
@@ -50,6 +72,8 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
   const userLayerRef = useRef<L.Marker | null>(null);
   const routeLayerRef = useRef<L.FeatureGroup | L.Polyline | null>(null);
+  // Built lazily from suggestion.path on first preview; add/remove toggles it.
+  const suggestionLayerRef = useRef<L.Polyline | null>(null);
   // Guards a stale OSRM response (e.g. a location retry mid-flight) from
   // overwriting a fresher one.
   const requestRef = useRef(0);
@@ -64,6 +88,8 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
   const [ready, setReady] = useState(false);
   const [geo, setGeo] = useState<GeoState>({ status: "locating" });
   const [route, setRoute] = useState<RouteState>({ status: "loading" });
+  const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
+  const [previewing, setPreviewing] = useState(false);
 
   /* Mount the map with the day's numbered stop pins. */
   useEffect(() => {
@@ -148,6 +174,7 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
       mapRef.current = null;
       userLayerRef.current = null;
       routeLayerRef.current = null;
+      suggestionLayerRef.current = null;
     };
   }, [stops]);
 
@@ -261,6 +288,13 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
       if (!r || r.legs.length !== legLabels.length) throw new Error("no route");
       if (requestRef.current !== request || !mapRef.current) return;
 
+      // A refetch (location retry, manual retry) invalidates any previous
+      // order suggestion and its preview.
+      suggestionLayerRef.current?.remove();
+      suggestionLayerRef.current = null;
+      setSuggestion(null);
+      setPreviewing(false);
+
       // Leg i connects points[i] → points[i+1]; when the renter's location
       // leads the list, stop-to-stop legs start at leg 1. Only those have a
       // schedule gap to compare the drive against.
@@ -308,8 +342,67 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
         totalKm: r.distance / 1000,
         totalMinutes: Math.max(1, Math.round(r.duration / 60)),
       });
+
+      // On a flexible day (≥3 stops, at least one time still pending) ask
+      // the OSRM trip service whether another visiting order is meaningfully
+      // faster. Best-effort: any failure just means no hint. The nested
+      // try keeps a trip error from tripping the outer route fallback.
+      if (stops.length < 3 || !stops.some((s) => s.tour.status === "pending"))
+        return;
+      try {
+        const tripRes = await fetch(
+          `${OSRM_TRIP}/${points.map(([lat, lng]) => `${lng},${lat}`).join(";")}` +
+            "?roundtrip=false&source=first&overview=full&geometries=geojson"
+        );
+        if (!tripRes.ok) return;
+        const tripData = (await tripRes.json()) as {
+          trips?: {
+            distance: number;
+            duration: number;
+            geometry: { coordinates: [number, number][] };
+            legs: { distance: number; duration: number }[];
+          }[];
+          waypoints?: { waypoint_index: number }[];
+        };
+        const trip = tripData.trips?.[0];
+        if (!trip || tripData.waypoints?.length !== points.length) return;
+        if (requestRef.current !== request || !mapRef.current) return;
+
+        const savedMinutes = Math.round((r.duration - trip.duration) / 60);
+        if (savedMinutes <= 5) return;
+
+        // waypoint_index = each input point's position in the optimized trip.
+        const visitOrder = tripData.waypoints
+          .map((w, input) => ({ input, position: w.waypoint_index }))
+          .sort((a, b) => a.position - b.position)
+          .map((x) => x.input);
+        setSuggestion({
+          order: visitOrder
+            .filter((i) => !fromUser || i > 0)
+            .map((i) => i - (fromUser ? 1 : 0)),
+          savedMinutes,
+          legs: trip.legs.map((leg, k) => ({
+            from: label(visitOrder[k]),
+            to: label(visitOrder[k + 1]),
+            km: leg.distance / 1000,
+            minutes: Math.max(1, Math.round(leg.duration / 60)),
+          })),
+          totalKm: trip.distance / 1000,
+          totalMinutes: Math.max(1, Math.round(trip.duration / 60)),
+          points: visitOrder.map((i) => points[i]),
+          path: trip.geometry.coordinates.map(
+            ([lng, lat]) => [lat, lng] as LatLng
+          ),
+        });
+      } catch {
+        /* suggestion is best-effort */
+      }
     } catch {
       if (requestRef.current !== request || !mapRef.current) return;
+      suggestionLayerRef.current?.remove();
+      suggestionLayerRef.current = null;
+      setSuggestion(null);
+      setPreviewing(false);
       drawFallback(points);
       setRoute({
         status: "estimate",
@@ -338,6 +431,36 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
     fetchRoute();
   };
 
+  /* Swap the drawn route between schedule order and the suggested order.
+     The schedule layer group is kept intact and re-added, so tight-gap
+     coloring survives a round trip through the preview. */
+  const togglePreview = () => {
+    const map = mapRef.current;
+    const leaflet = leafletRef.current;
+    if (!map || !leaflet || !suggestion) return;
+    if (previewing) {
+      suggestionLayerRef.current?.remove();
+      routeLayerRef.current?.addTo(map);
+      setPreviewing(false);
+      return;
+    }
+    routeLayerRef.current?.remove();
+    if (!suggestionLayerRef.current) {
+      // Dotted to read as hypothetical, unlike the solid booked route.
+      suggestionLayerRef.current = leaflet.polyline(suggestion.path, {
+        color: colorsRef.current.primary,
+        weight: 4,
+        opacity: 0.8,
+        dashArray: "1 7",
+      });
+    }
+    suggestionLayerRef.current.addTo(map);
+    map.fitBounds(suggestionLayerRef.current.getBounds().pad(0.2), {
+      maxZoom: 15,
+    });
+    setPreviewing(true);
+  };
+
   return (
     <div>
       <div className="relative isolate z-0 overflow-hidden border border-border bg-secondary">
@@ -364,12 +487,39 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
         )
       )}
 
+      {route.status === "shown" && suggestion && (
+        <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+          <Lightbulb size={15} className="shrink-0 text-primary" />
+          <span>
+            {t("suggestion", {
+              order: suggestion.order.map((n) => circled(n + 1)).join(" → "),
+              minutes: suggestion.savedMinutes,
+            })}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7"
+            onClick={togglePreview}
+          >
+            {t(previewing ? "previewOff" : "preview")}
+          </Button>
+        </p>
+      )}
+
       {route.status === "loading" ? (
         geo.status !== "locating" && (
           <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
             <LoaderCircle size={15} className="animate-spin" /> {t("loadingRoute")}
           </p>
         )
+      ) : previewing && suggestion ? (
+        <RouteLegs
+          legs={suggestion.legs}
+          totalKm={suggestion.totalKm}
+          totalMinutes={suggestion.totalMinutes}
+          href={gmapsDirectionsUrl(suggestion.points)}
+        />
       ) : (
         <RouteLegs
           legs={route.legs}

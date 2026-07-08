@@ -625,6 +625,9 @@
       "routeError": "Không tải được lộ trình lái xe — khoảng cách bên dưới là đường chim bay.",
       "retry": "Thử lại",
       "tightGap": "Chỉ có {gap} phút giữa hai lịch — lái xe mất {drive} phút",
+      "suggestion": "Đi theo thứ tự {order} sẽ tiết kiệm ~{minutes} phút lái xe",
+      "preview": "Xem thử",
+      "previewOff": "Về thứ tự theo lịch",
       "ariaMap": "Bản đồ lộ trình các lịch xem trong ngày"
     }
   },
