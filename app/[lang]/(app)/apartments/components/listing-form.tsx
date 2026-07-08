@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { PhotoUploader } from "./photo-uploader";
 import { AmenityPicker } from "./amenity-picker";
+import { LocationPicker } from "./location-picker";
 import { useListings } from "@/hooks/use-listings";
 import { TYPES } from "@/schemas/listing";
 import {
@@ -329,6 +330,26 @@ export function ListingForm({
               {...register("desc")}
             />
           </Field>
+        </section>
+
+        {/* Location pin */}
+        <section className="bg-card p-6">
+          <h2 className="font-semibold mb-1">{t("location.heading")}</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            {t("location.blurb")}
+          </p>
+          <LocationPicker
+            district={values.district}
+            value={
+              values.lat != null && values.lng != null
+                ? { lat: values.lat, lng: values.lng }
+                : null
+            }
+            onChange={(p) => {
+              setValue("lat", p?.lat ?? null, { shouldDirty: true });
+              setValue("lng", p?.lng ?? null, { shouldDirty: true });
+            }}
+          />
         </section>
 
         {/* Amenities */}

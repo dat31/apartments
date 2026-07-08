@@ -56,6 +56,8 @@ export function toListing(row: ListingRow): Listing {
     available: row.available_from ?? "now",
     desc: row.description,
     images: row.images.length ? row.images : undefined,
+    lat: row.lat ?? undefined,
+    lng: row.lng ?? undefined,
   };
 }
 
@@ -82,5 +84,7 @@ export function toListingWrite(
     available_from:
       core.available && core.available !== "now" ? core.available : null,
     description: core.desc,
+    lat: core.lat ?? null,
+    lng: core.lng ?? null,
   };
 }

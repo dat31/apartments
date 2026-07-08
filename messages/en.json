@@ -405,6 +405,14 @@
     }
   },
   "listingForm": {
+    "location": {
+      "heading": "Location on the map",
+      "blurb": "Renters see this exact pin on your listing page and use it for distance and directions.",
+      "ariaMap": "Map for picking the home's location",
+      "hint": "Click the map to drop a pin on your home, then drag it to fine-tune.",
+      "pinSet": "Pin set at {lat}, {lng} — drag to adjust.",
+      "clear": "Remove pin"
+    },
     "backToDashboard": "Back to dashboard",
     "editTitle": "Edit listing",
     "newTitle": "New listing",

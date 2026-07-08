@@ -20,7 +20,7 @@ import {
 import { AMENITY_ICONS } from "@/components/icons";
 import { PALETTE, AMENITIES } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
-import { listingCoords } from "../lib/geo";
+import { coordsOf } from "@/lib/geo";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { type Review } from "@/schemas/review";
 import { type Owner } from "@/schemas/owner";
@@ -40,7 +40,7 @@ export function DetailView({
   const ta = useTranslations("apartments");
   const money = useMoney();
   const colors = PALETTE[listing.palette];
-  const coords = listingCoords(listing);
+  const coords = coordsOf(listing);
   const ams = AMENITIES.filter((a) => listing.amenities.includes(a.id));
   // "You" covers the signed-in host viewing their own listing, plus the seed
   // "you" demo owner used by the sample data.
@@ -161,6 +161,7 @@ export function DetailView({
             key={listing.id}
             lat={coords[0]}
             lng={coords[1]}
+            approx={listing.lat == null || listing.lng == null}
             place={`${districtLabel(listing.district)}, ${listing.city}`}
           />
 

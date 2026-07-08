@@ -27,6 +27,8 @@ export type Database = {
           district: Database["public"]["Enums"]["district"]
           id: string
           images: string[]
+          lat: number | null
+          lng: number | null
           owner_id: string
           palette: number
           price: number
@@ -48,6 +50,8 @@ export type Database = {
           district: Database["public"]["Enums"]["district"]
           id?: string
           images?: string[]
+          lat?: number | null
+          lng?: number | null
           owner_id: string
           palette?: number
           price: number
@@ -69,6 +73,8 @@ export type Database = {
           district?: Database["public"]["Enums"]["district"]
           id?: string
           images?: string[]
+          lat?: number | null
+          lng?: number | null
           owner_id?: string
           palette?: number
           price?: number

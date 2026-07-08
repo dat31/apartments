@@ -1,9 +1,13 @@
 # Plan: Tour Route Planner ("best route for my tour day")
 
-> Handover doc for a future session. Written 2026-07-08 on branch
-> `feat/detail-location-map` (PR #40 — the detail-page Leaflet map). Read this
-> whole file before writing code; it records decisions already made with the
-> user, the current state of the map stack, and a working verification recipe.
+> Handover doc for a future session. Written 2026-07-08 alongside PR #40 (the
+> detail-page Leaflet map). Read this whole file before writing code; it
+> records decisions already made with the user, the current state of the map
+> stack, and a working verification recipe.
+>
+> **Status (2026-07-08): Phase A is DONE** — implemented in PR #41
+> (`feat/listing-coordinates`). Phases B–D remain. Section 3 reflects the
+> post-Phase-A state.
 
 ## 1. Feature summary
 
@@ -18,9 +22,9 @@ suggestions and real per-listing coordinates.
 
 - **No privacy gating on listing location.** The user decided owners are
   service providers and publish their location. Show exact pins everywhere
-  once real coordinates exist. The detail map's "approximate location" circle
-  and `detail.map.approx*` copy can be dropped when phase A lands (ask the
-  user first — it's their design copy).
+  once real coordinates exist. *(Applied in Phase A: the detail map shows the
+  exact pin with no circle/"approximate" copy when `lat`/`lng` are stored;
+  the approximate presentation remains only for legacy rows without a pin.)*
 - **Suggest-only optimization.** Phase D suggests a better visiting order; it
   does NOT rebook or touch owner availability.
 - **Route view lives inline on `/tour`** (expandable per-day section), not a
@@ -45,15 +49,21 @@ suggestions and real per-listing coordinates.
 - `app/[lang]/(app)/apartments/[id]/components/location-map-skeleton.tsx` —
   section-shaped skeleton (uses `Skeleton` from `components/ui/skeleton` +
   the repo's `.skeleton` shimmer class).
-- `app/[lang]/(app)/apartments/[id]/components/leaflet-theme.css` — map chrome
-  themed with design tokens + dark-mode tile invert
-  (`.dark .leaflet-tile { filter: invert(1) hue-rotate(180deg) ... }`).
-  Imported by location-map.tsx so it ships only with routes that render a map.
-  The tour route map should import this same file (it stays global-CSS by
-  nature; scoping comes from the import site).
-- `app/[lang]/(app)/apartments/[id]/lib/geo.ts` — `listingCoords(listing)`
-  (district centroid + deterministic ±650 m jitter from listing id, because
-  the DB has **no lat/lng column**), `kmBetween`, `LatLng` type.
+- `app/leaflet-theme.css` — map chrome themed with design tokens + dark-mode
+  tile invert (`.dark .leaflet-tile { filter: invert(1) hue-rotate(180deg)
+  ... }`). Imported by each map component so it ships only with routes that
+  render a map. The tour route map should import this same file (it stays
+  global-CSS by nature; scoping comes from the import site).
+- `lib/geo.ts` (shared) — **`coordsOf(listing)`: use this for every stop's
+  coordinates.** Returns the owner-set `lat`/`lng` when stored, else a
+  synthesized fallback (district centroid + deterministic ±650 m jitter from
+  the listing id). Also exports `districtCenter(district)`, `kmBetween`, and
+  the `LatLng` type.
+- `app/[lang]/(app)/apartments/components/location-picker.tsx` — the owner's
+  pin picker (click to set, drag to adjust, clear, district recenter). A
+  working example of a Leaflet map with interactive editing; the "latest
+  props in refs synced via an effect" pattern in it exists because the React
+  Compiler lint forbids writing refs during render.
 - **Gotcha:** globals.css enforces `* { border-radius: 0 !important;
   box-shadow: none !important }` (flat "Hearth" system). Round map markers
   need inline `!important` on `border-radius` in the divIcon HTML strings —
@@ -67,8 +77,8 @@ suggestions and real per-listing coordinates.
 - `hooks/use-my-tours.ts` → `useMyTours()` returns
   `items: { tour: TourRequest; listing: Listing | null }[]` — the listing is
   already joined (`select("*, listing:listings(*)")`). Coordinates for each
-  stop are therefore one `listingCoords(listing)` call away. React-query,
-  keyed on user id.
+  stop are therefore one `coordsOf(listing)` call away. React-query, keyed
+  on user id.
 - Renter tour UI: `app/[lang]/(app)/tour/page.tsx` →
   `components/renter-tours.tsx` (client, uses `useMyTours`) →
   `components/renter-tour-card.tsx`.
@@ -76,10 +86,13 @@ suggestions and real per-listing coordinates.
 
 ### Listings data
 
-- Supabase `listings` table columns (see `lib/database.types.ts`): no
-  address, no lat/lng. Row → domain mapping in
-  `lib/services/listings-map.ts` (`toListing`), domain type in
-  `schemas/listing/index.ts` (`ListingSchema`). Districts are a Postgres enum
+- Supabase `listings` table (see `lib/database.types.ts`): has nullable
+  `lat`/`lng` (`double precision`, migration `add_listing_coordinates`) — set
+  by the owner via the form's pin picker; null on legacy/seed rows. Row →
+  domain mapping in `lib/services/listings-map.ts` (`toListing` /
+  `toListingWrite`), domain type in `schemas/listing/index.ts`
+  (`ListingSchema`, optional `lat`/`lng`; form schema keeps them nullable
+  numbers, wired through `ListingCore`). Districts are a Postgres enum
   matching the `District` enum slugs.
 - Listing create/edit form: `app/[lang]/(app)/apartments/components/listing-form.tsx`
   (client, react-hook-form + `createListingFormSchema` in
@@ -107,35 +120,26 @@ suggestions and real per-listing coordinates.
 
 ## 4. Phases
 
-Recommended order: A can ship independently; B–D depend on nothing in A
-(they work with synthesized coords) but are much more useful after A.
+A is done. Recommended remaining order: B → C → D (C is a small delta on B;
+D is independent of C). All of them work for legacy rows too via the
+`coordsOf()` fallback.
 
-### Phase A — real listing coordinates
+### Phase A — real listing coordinates ✅ DONE (PR #41)
 
-1. Migration (via supabase MCP `apply_migration` or SQL):
-   ```sql
-   alter table public.listings
-     add column lat double precision,
-     add column lng double precision;
-   ```
-   Nullable on purpose — old rows fall back to `listingCoords()`.
-2. Regenerate `lib/database.types.ts` (supabase MCP
-   `generate_typescript_types`).
-3. Move `app/[lang]/(app)/apartments/[id]/lib/geo.ts` → `lib/geo.ts` (shared;
-   two routes need it now). Update the two imports in
-   `location-map.tsx`/`detail-view.tsx`.
-4. `ListingSchema`: add `lat: z.number().optional()`, `lng: z.number().optional()`.
-   `toListing`: map the columns. Add a shared helper
-   `coordsOf(listing): LatLng` = real coords if present else
-   `listingCoords(listing)` — every consumer goes through it.
-5. Listing form: add a pin-picker section — a lazy Leaflet map (reuse the
-   lazy + skeleton pattern) centered on the selected district's centroid;
-   click/drag a marker to set `lat`/`lng`; changing district recenters if no
-   pin set yet. Form schema: keep as numbers-in-strings like the other
-   numeric fields or as a `{lat,lng} | null`; wire through `formToCore` and
-   the create/edit submit paths (find them via `formToCore` usages).
-6. Detail map: use `coordsOf`; optionally drop the privacy circle/copy (ask).
-7. Optional backfill: leave old rows null (fallback covers them).
+Everything landed as planned: migration `add_listing_coordinates`
+(nullable `lat`/`lng`), regenerated types, shared `lib/geo.ts` with
+`coordsOf()`, `LocationPicker` in the listing form (new "Location on the
+map" section; strings under `listingForm.location.*` in vi+en), exact-pin
+display on the detail map (`approx` prop on `LocationMap` gates the circle
++ badge + footnote). Old rows stay null and fall back — no backfill.
+
+**Known gap:** the authenticated save → DB roundtrip (signed-in owner
+submits the form with a pin) was NOT driven end-to-end — headless
+verification can't sign in (credential entry is off-limits;
+`/apartments/create` is middleware-gated to signin). The mapping is the
+same `toListingWrite` used by all fields, but if a "pin doesn't persist"
+bug is reported, look there first and ask the user to do one manual
+create-with-pin check.
 
 ### Phase B — per-day route in schedule order (the core feature)
 
@@ -253,10 +257,24 @@ await page.setExtraHTTPHeaders({ "accept-language": "vi" }); // headless default
 - Dev server: `pnpm dev` (background), wait for "Ready in". Kill leftovers:
   the `pnpm dev` wrapper survives TaskStop — find the listener with
   `Get-NetTCPConnection -LocalPort 3000` and Stop-Process it.
-- `/tour` requires a signed-in renter with tours. Seed via the book-tour flow
-  in the browser, or insert `tours` rows directly (supabase MCP
-  `execute_sql`) for a test renter; you need 2–3 tours on one date with
-  different listings/districts to see a multi-stop route.
+- **Auth-gated pages can't be driven headlessly** (entering credentials is
+  off-limits; the middleware redirects to `/signin?next=…`). Two workarounds
+  used in Phase A: (1) exercise data-dependent display by inserting a temp
+  row via supabase MCP `execute_sql` (bypasses RLS; server cache keys by id,
+  so a *new* id is fetched fresh while list pages stay cached) and deleting
+  it after; (2) mount the component on a throwaway unauthenticated route
+  (e.g. `app/[lang]/(app)/apartments/picker-test/page.tsx`), drive it, and
+  delete the route before committing.
+- `/tour` requires a signed-in renter with tours. Seed via `execute_sql`
+  (insert `tours` rows for a test renter — 2–3 tours on one date with
+  different listings/districts to see a multi-stop route); the tours query
+  is client-side react-query (no server cache), but it filters by the
+  signed-in `renter_id`, so a headless run still can't see them — plan for
+  a component-level harness route as above, feeding it fixture MyTour data.
+- Windows shell gotchas hit before: PowerShell treats `[lang]` in paths as a
+  wildcard (`Remove-Item` needs `-LiteralPath`); bash inside `node -e "…"`
+  eats `page.$('…')` as command substitution — put puppeteer scripts in
+  files, not inline strings.
 - Assert: numbered pins present, one polyline per leg, legs list text, tight-
   gap warning when you seed e.g. 14:00 and 14:15 tours in different
   districts, Google Maps href waypoint count.
@@ -267,11 +285,16 @@ await page.setExtraHTTPHeaders({ "accept-language": "vi" }); // headless default
 
 ## 7. Open items to confirm with the user before/while implementing
 
-1. Drop the "approximate location" circle + copy on the detail map once real
-   coords exist? (They said ignore privacy, but the copy is design-sourced.)
+1. ~~Drop the "approximate location" circle + copy once real coords exist?~~
+   **Resolved in Phase A:** exact pins render without the circle/copy; the
+   approximate presentation remains only for rows without a stored pin.
 2. `TOUR_DURATION_MIN = 30` assumption for gap math — confirm.
-3. Phase A pin-picker: required or optional field on the listing form?
-   (Plan assumes optional with district-centroid fallback.)
+3. ~~Pin-picker required or optional?~~ **Resolved in Phase A:** optional,
+   with the district-centroid fallback. If the user later wants it required,
+   add a zod refinement on the form schema, not a DB constraint (legacy rows
+   are null).
 4. Motorbike vs car: a motorbike/car dual estimate was implemented and then
-   reverted (git history `fa8ad2b`/`6d2ff5e` before squash — reverted by user
-   choice). Route legs use car only unless the user asks again.
+   reverted (reverted by user choice; squashed away — see PR #40 discussion).
+   Route legs use car only unless the user asks again.
+5. After PR #41 merges: ask the user to do one manual signed-in
+   create-with-pin check (see the Phase A known gap).
