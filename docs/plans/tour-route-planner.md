@@ -6,10 +6,12 @@
 > stack, and a working verification recipe.
 >
 > **Status (2026-07-08): ALL PHASES (A–D) ARE DONE** — A merged in PR #41,
-> B merged in PR #42, C in PR #43 (`feat/tour-tight-gaps`), D in
-> `feat/tour-order-suggestion` (stacked on #43). Section 3 reflects the
-> post-Phase-A state; see each phase section for what it added. Remaining
-> open item: `TOUR_DURATION_MIN = 30` is still an unconfirmed assumption.
+> B merged in PR #42, C merged in PR #43, D in PR #45
+> (`feat/tour-order-suggestion`, based on main; #44 was the same change but
+> GitHub auto-closed it, unreopenable, when the #43 merge deleted its stacked
+> base branch). Section 3 reflects the post-Phase-A state; see each phase
+> section for what it added. Remaining open item: `TOUR_DURATION_MIN = 30`
+> is still an unconfirmed assumption.
 
 ## 1. Feature summary
 
