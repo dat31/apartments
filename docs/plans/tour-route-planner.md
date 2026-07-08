@@ -5,10 +5,13 @@
 > records decisions already made with the user, the current state of the map
 > stack, and a working verification recipe.
 >
-> **Status (2026-07-08): Phases A, B and C are DONE** — A merged in PR #41,
-> B in PR #42 (`feat/tour-day-route`), C in `feat/tour-tight-gaps` (stacked
-> on #42). Only Phase D remains. Section 3 reflects the post-Phase-A state;
-> see each phase section for what it added.
+> **Status (2026-07-08): ALL PHASES (A–D) ARE DONE** — A merged in PR #41,
+> B merged in PR #42, C merged in PR #43, D in PR #45
+> (`feat/tour-order-suggestion`, based on main; #44 was the same change but
+> GitHub auto-closed it, unreopenable, when the #43 merge deleted its stacked
+> base branch). Section 3 reflects the post-Phase-A state; see each phase
+> section for what it added. Remaining open item: `TOUR_DURATION_MIN = 30`
+> is still an unconfirmed assumption.
 
 ## 1. Feature summary
 
@@ -252,7 +255,29 @@ Check `routes[0].legs[].steps` is not needed; geometry slicing by waypoint
 indices requires `annotations` — evaluate, but N−1 pair calls for N≤6 is
 fine and simpler).
 
-### Phase D — "better order" suggestion (flexible days)
+### Phase D — "better order" suggestion ✅ DONE (`feat/tour-order-suggestion`)
+
+Landed as specced, all inside `tour-route-map.tsx`. Notes:
+
+- The trip call runs best-effort after the route call succeeds (nested
+  try/catch so a trip failure can't trip the route's fallback path); when
+  geolocation is denied the trip runs over stops only with `source=first`
+  pinning stop 1 (no free-start optimization without an origin).
+- `Suggestion` state holds the stop order, saved minutes, suggested legs
+  (labeled, no tightGap — times would shift), totals, reordered points for
+  the Google Maps link, and the trip geometry.
+- Preview: the schedule layer group is removed (not destroyed) and a lazily
+  built **dotted** polyline (`dashArray: "1 7"`) is added, so toggling back
+  restores tight-gap coloring intact. Legs list + gmaps href swap to the
+  suggested order while previewing.
+- Circled digits (①–⑨, plain past 9) via `String.fromCodePoint(0x245f + n)`.
+- Any refetch (location/route retry) clears suggestion + preview; so does
+  the route fallback path.
+- Verified headlessly: zigzag NHS→LienChieu→CamLe schedule with one pending
+  → "① → ③ → ②, ~10 phút" hint; preview showed one dotted polyline,
+  reordered legs/href; toggle-back restored all three solid polylines.
+
+Original spec, kept for reference:
 
 Only when a day has ≥3 stops and at least one `pending` (i.e. time not
 owner-confirmed): call OSRM trip service
