@@ -1,4 +1,4 @@
-# Design handoff: /tour day-route map ("Xem lộ trình ngày này")
+# Design handoff: /tour day-route map ("View route for this day")
 
 > Flow + state handoff for redesigning the tour route view in Claude Design.
 > The rest of the Claude Design project already mirrors the codebase; this
@@ -8,22 +8,22 @@
 
 ## 1. Where it lives — page anatomy
 
-`/tour` (renter's "Lịch xem của tôi") groups **upcoming** tours into day
+`/tour` (renter's "My tours") groups **upcoming** tours into day
 sections, each headed by the date (weekday + day + month); past/declined
-tours sit below in a "Đã qua & đã hủy" history list.
+tours sit below in a "Past & cancelled" history list.
 
 ```
 ┌ /tour ──────────────────────────────────────────────┐
-│ H1 "Lịch xem của tôi" · count · [Xem nhà]            │
+│ H1 "My tours" · count · [Browse homes]               │
 │                                                      │
-│ THỨ TƯ, 9 THÁNG 7          ← day heading (uppercase) │
+│ WEDNESDAY, JULY 9          ← day heading (uppercase) │
 │   [tour card 09:00]                                  │
 │   [tour card 09:31]                                  │
 │   [tour card 14:00]                                  │
-│   [⚏ Xem lộ trình ngày này]   ← THE FEATURE          │
+│   [⚏ View route for this day]  ← THE FEATURE         │
 │     └ (expanded) map + status rows + legs list       │
 │                                                      │
-│ ĐÃ QUA & ĐÃ HỦY                                      │
+│ PAST & CANCELLED                                     │
 │   [card] [card] …                                    │
 └──────────────────────────────────────────────────────┘
 ```
@@ -81,9 +81,9 @@ Top → bottom, all `text-sm`, 12px gaps:
    fetching)
 4. **Legs list**: bordered card-background ordered list, one row per leg:
    - left (muted, truncates): `leg` = "{from} → {to}" where from/to are
-     `yourLocation` or `stop` ("Điểm {n}")
+     `yourLocation` or `stop` ("Stop {n}")
    - right (tabular numerals): distance (`m` under 1 km, `km` above,
-     1 decimal < 10 km) — and `· {minutes} phút` when OSRM succeeded
+     1 decimal < 10 km) — and `· {minutes} min` when OSRM succeeded
    - **tight-gap legs** get a second line under the row, destructive
      color, 12px, warning triangle: `tightGap`
    - last row = `total`, medium weight, same metrics
@@ -99,7 +99,7 @@ Each stop→stop leg's OSRM drive time is compared with the free minutes
 between the two bookings (tour assumed to take **30 min** —
 `TOUR_DURATION_MIN`). Drive > gap ⇒ that leg's polyline turns
 `--destructive` and its row gets the `tightGap` line. Displayed gap is
-clamped to ≥0 (overlapping bookings show "0 phút"). The leg from the
+clamped to ≥0 (overlapping bookings show "0 min"). The leg from the
 user's location is never flagged (no schedule constraint).
 
 ## 6. Order suggestion (flexible days)
@@ -108,14 +108,14 @@ Gate: **≥3 stops AND ≥1 `pending`** stop (a time the owner hasn't
 confirmed). After the route loads, one OSRM trip-service call checks the
 optimal visiting order; a hint appears only when it saves **>5 minutes**:
 
-> 💡 Đi theo thứ tự ① → ③ → ② sẽ tiết kiệm ~10 phút lái xe  [Xem thử]
+> 💡 Visiting in the order ① → ③ → ② would save ~10 min of driving  [Preview]
 
 - Order rendered with circled digits ①–⑨ referring to the **original**
   schedule numbers on the pins (pins never renumber).
-- **Xem thử (preview)**: schedule polylines swap for one dotted line in
+- **Preview**: schedule polylines swap for one dotted line in
   the suggested order; the legs list and Google Maps link swap to the
   suggested order too (no tight-gap flags — the times would shift).
-  Toggle label becomes `previewOff` ("Về thứ tự theo lịch"); toggling
+  Toggle label becomes `previewOff` ("Back to schedule order"); toggling
   back restores the schedule view exactly, red legs included.
 - Suggest-only: **no booking is ever changed** (locked product decision).
 
@@ -142,26 +142,26 @@ Valid on-screen combinations a redesign must cover:
 
 | key | copy |
 |---|---|
-| viewRoute | Xem lộ trình ngày này |
-| hideRoute | Ẩn lộ trình |
-| yourLocation | Vị trí của bạn |
-| stop | Điểm {n} |
+| viewRoute | View route for this day |
+| hideRoute | Hide route |
+| yourLocation | Your location |
+| stop | Stop {n} |
 | leg | {from} → {to} |
-| total | Tổng cộng |
-| minutes | {minutes} phút |
-| openInGoogleMaps | Mở trong Google Maps |
-| locating | Đang xác định vị trí của bạn… |
-| locationDenied | Không có vị trí của bạn — lộ trình bắt đầu từ điểm 1. |
-| loadingRoute | Đang tải lộ trình lái xe… |
-| routeError | Không tải được lộ trình lái xe — khoảng cách bên dưới là đường chim bay. |
-| retry | Thử lại |
-| tightGap | Chỉ có {gap} phút giữa hai lịch — lái xe mất {drive} phút |
-| suggestion | Đi theo thứ tự {order} sẽ tiết kiệm ~{minutes} phút lái xe |
-| preview | Xem thử |
-| previewOff | Về thứ tự theo lịch |
-| ariaMap | Bản đồ lộ trình các lịch xem trong ngày |
+| total | Total |
+| minutes | {minutes} min |
+| openInGoogleMaps | Open in Google Maps |
+| locating | Finding your location… |
+| locationDenied | Your location isn't available — the route starts at stop 1. |
+| loadingRoute | Loading the driving route… |
+| routeError | Couldn't load the driving route — distances below are as the crow flies. |
+| retry | Retry |
+| tightGap | Only {gap} min between these tours — the drive takes {drive} min |
+| suggestion | Visiting in the order {order} would save ~{minutes} min of driving |
+| preview | Preview |
+| previewOff | Back to schedule order |
+| ariaMap | Map of this day's tour route |
 
-Plus `tour.historySection` ("Đã qua & đã hủy") for the page restructure.
+Plus `tour.historySection` ("Past & cancelled") for the page restructure.
 
 ## 9. Fixed vs. free
 
@@ -192,8 +192,8 @@ are the spots that most deserve design attention:
   each a clear slot.
 - **The tight-gap warning is easy to skim past.** A red polyline plus a
   12px second line inside one row undersells "you physically cannot make
-  this booking". Consider elevating it to the day-section level ("1 lịch
-  khó kịp") or onto the affected cards.
+  this booking". Consider elevating it to the day-section level ("1 tour
+  hard to make") or onto the affected cards.
 - **Preview mode is under-communicated.** The only signals that you're
   looking at the hypothetical order are the dotted line and a changed
   button label; the pins still show schedule numbers, and the legs list
@@ -201,14 +201,14 @@ are the spots that most deserve design attention:
   or re-badged pins) would help.
 - **The map ↔ list link is implicit.** Rows and legs correspond 1:1 but
   nothing connects them (no hover highlight, no shared numbering in the
-  list rows). The list uses "Điểm {n}" text where numbered badges matching
+  list rows). The list uses "Stop {n}" text where numbered badges matching
   the pins would scan faster.
 - **Suggestion sentence carries a lot.** Circled digits + savings + toggle
   in one sentence; on narrow screens it wraps awkwardly around the ghost
   button.
-- **The toggle gives no scent.** "Xem lộ trình ngày này" doesn't hint at
+- **The toggle gives no scent.** "View route for this day" doesn't hint at
   total drive time or warnings before opening; a summary in the collapsed
-  state (e.g. "3 điểm · ~18 phút lái xe · 1 cảnh báo") could earn the tap.
+  state (e.g. "3 stops · ~18 min driving · 1 warning") could earn the tap.
 
 ## 11. Reference
 
