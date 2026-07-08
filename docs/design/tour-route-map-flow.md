@@ -3,16 +3,14 @@
 > Flow + state handoff for redesigning the tour route view in Claude Design.
 > The rest of the Claude Design project already mirrors the codebase; this
 > doc covers the one out-of-sync area — the map view and route functionality
-> on `/tour` — as implemented in PRs #42 (route), #43 (tight-gap warnings),
-> #45 (order suggestion). Source of truth for behavior:
-> `app/[lang]/(app)/tour/components/{tour-day-route,tour-route-map,route-legs,tour-route-skeleton}.tsx`
-> and copy in `messages/{vi,en}.json` under `tour.route.*`.
+> on `/tour`. Source of truth for behavior:
+> `app/[lang]/(app)/tour/components/{tour-day-route,tour-route-map,route-legs,tour-route-skeleton}.tsx`.
 
 ## 1. Where it lives — page anatomy
 
 `/tour` (renter's "Lịch xem của tôi") groups **upcoming** tours into day
-sections, each headed by a localized date; past/declined tours sit below in
-a "Đã qua & đã hủy" history list.
+sections, each headed by the date (weekday + day + month); past/declined
+tours sit below in a "Đã qua & đã hủy" history list.
 
 ```
 ┌ /tour ──────────────────────────────────────────────┐
@@ -140,40 +138,40 @@ Valid on-screen combinations a redesign must cover:
 8. map + routeError note + dashed lines + distance-only legs + retry
 9. Combinations: 4+5, 4+6 (denied + suggestion) etc. — rows stack, never replace each other except loading→legs.
 
-## 8. Copy inventory (`tour.route.*` — vi is source of truth)
+## 8. Copy inventory (`tour.route.*`)
 
-| key | vi | en |
-|---|---|---|
-| viewRoute | Xem lộ trình ngày này | View route for this day |
-| hideRoute | Ẩn lộ trình | Hide route |
-| yourLocation | Vị trí của bạn | Your location |
-| stop | Điểm {n} | Stop {n} |
-| leg | {from} → {to} | {from} → {to} |
-| total | Tổng cộng | Total |
-| minutes | {minutes} phút | {minutes} min |
-| openInGoogleMaps | Mở trong Google Maps | Open in Google Maps |
-| locating | Đang xác định vị trí của bạn… | Finding your location… |
-| locationDenied | Không có vị trí của bạn — lộ trình bắt đầu từ điểm 1. | Your location isn't available — the route starts at stop 1. |
-| loadingRoute | Đang tải lộ trình lái xe… | Loading the driving route… |
-| routeError | Không tải được lộ trình lái xe — khoảng cách bên dưới là đường chim bay. | Couldn't load the driving route — distances below are as the crow flies. |
-| retry | Thử lại | Retry |
-| tightGap | Chỉ có {gap} phút giữa hai lịch — lái xe mất {drive} phút | Only {gap} min between these tours — the drive takes {drive} min |
-| suggestion | Đi theo thứ tự {order} sẽ tiết kiệm ~{minutes} phút lái xe | Visiting in the order {order} would save ~{minutes} min of driving |
-| preview | Xem thử | Preview |
-| previewOff | Về thứ tự theo lịch | Back to schedule order |
-| ariaMap | Bản đồ lộ trình các lịch xem trong ngày | Map of this day's tour route |
+| key | copy |
+|---|---|
+| viewRoute | Xem lộ trình ngày này |
+| hideRoute | Ẩn lộ trình |
+| yourLocation | Vị trí của bạn |
+| stop | Điểm {n} |
+| leg | {from} → {to} |
+| total | Tổng cộng |
+| minutes | {minutes} phút |
+| openInGoogleMaps | Mở trong Google Maps |
+| locating | Đang xác định vị trí của bạn… |
+| locationDenied | Không có vị trí của bạn — lộ trình bắt đầu từ điểm 1. |
+| loadingRoute | Đang tải lộ trình lái xe… |
+| routeError | Không tải được lộ trình lái xe — khoảng cách bên dưới là đường chim bay. |
+| retry | Thử lại |
+| tightGap | Chỉ có {gap} phút giữa hai lịch — lái xe mất {drive} phút |
+| suggestion | Đi theo thứ tự {order} sẽ tiết kiệm ~{minutes} phút lái xe |
+| preview | Xem thử |
+| previewOff | Về thứ tự theo lịch |
+| ariaMap | Bản đồ lộ trình các lịch xem trong ngày |
 
-Plus `tour.historySection` ("Đã qua & đã hủy" / "Past & cancelled") for the
-page restructure. Design for vi first — strings run ~30% longer than en.
+Plus `tour.historySection` ("Đã qua & đã hủy") for the page restructure.
 
 ## 9. Fixed vs. free
 
 **Behavior contracts (keep):** the state machine and gating rules above;
 stop numbering = schedule order, never renumbered; suggest-only (no
 rebooking affordances); route inline on /tour per day (not a separate
-page); vi+en, no hardcoded strings; wheel-zoom-after-click; accessibility
-(`role="application"`, `ariaMap` label, `aria-expanded` on the toggle);
-flat design system (no radius/shadows) except round map markers.
+page); all copy from the keys in §8, no hardcoded strings;
+wheel-zoom-after-click; accessibility (`role="application"`, `ariaMap`
+label, `aria-expanded` on the toggle); flat design system (no
+radius/shadows) except round map markers.
 
 **Free to redesign:** layout and hierarchy of the below-map stack; how the
 legs list, warnings, totals and suggestion are presented (rows vs cards vs
@@ -182,7 +180,37 @@ route section sits below the day's cards or beside them on wide screens;
 empty/edge presentations (single-warning emphasis, etc.). Map tiles stay
 OSM/Leaflet — chrome around them is fair game.
 
-## 10. Reference
+## 10. Known rough edges — where the redesign can win
+
+The current below-map stack is functional but grew state by state; these
+are the spots that most deserve design attention:
+
+- **Stacked status rows compete.** Locating, location-denied, suggestion,
+  and the fallback note are all similar-weight text rows above the legs
+  list; with several active at once nothing establishes hierarchy. A
+  redesign could fold them into the map (overlay chips/banners) or give
+  each a clear slot.
+- **The tight-gap warning is easy to skim past.** A red polyline plus a
+  12px second line inside one row undersells "you physically cannot make
+  this booking". Consider elevating it to the day-section level ("1 lịch
+  khó kịp") or onto the affected cards.
+- **Preview mode is under-communicated.** The only signals that you're
+  looking at the hypothetical order are the dotted line and a changed
+  button label; the pins still show schedule numbers, and the legs list
+  swaps silently. A visible "preview" state (banner, tinted list header,
+  or re-badged pins) would help.
+- **The map ↔ list link is implicit.** Rows and legs correspond 1:1 but
+  nothing connects them (no hover highlight, no shared numbering in the
+  list rows). The list uses "Điểm {n}" text where numbered badges matching
+  the pins would scan faster.
+- **Suggestion sentence carries a lot.** Circled digits + savings + toggle
+  in one sentence; on narrow screens it wraps awkwardly around the ghost
+  button.
+- **The toggle gives no scent.** "Xem lộ trình ngày này" doesn't hint at
+  total drive time or warnings before opening; a summary in the collapsed
+  state (e.g. "3 điểm · ~18 phút lái xe · 1 cảnh báo") could earn the tap.
+
+## 11. Reference
 
 - Screens: dark-mode screenshots of states 3, 5, 7 exist from headless
   verification (ask in-session or re-run the recipe in
