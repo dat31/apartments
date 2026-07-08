@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Gallery } from "./gallery";
+import { LocationMap } from "./location-map";
 import { Reviews } from "./reviews";
 import { SaveHomeButton } from "./save-home-button";
 import { BookTourButton } from "./book-tour-button";
@@ -19,6 +20,7 @@ import {
 import { AMENITY_ICONS } from "@/components/icons";
 import { PALETTE, AMENITIES } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
+import { listingCoords } from "../lib/geo";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { type Review } from "@/schemas/review";
 import { type Owner } from "@/schemas/owner";
@@ -38,6 +40,7 @@ export function DetailView({
   const ta = useTranslations("apartments");
   const money = useMoney();
   const colors = PALETTE[listing.palette];
+  const coords = listingCoords(listing);
   const ams = AMENITIES.filter((a) => listing.amenities.includes(a.id));
   // "You" covers the signed-in host viewing their own listing, plus the seed
   // "you" demo owner used by the sample data.
@@ -152,6 +155,14 @@ export function DetailView({
               })}
             </div>
           </div>
+
+          {/* Location — approximate coords derived from the district */}
+          <LocationMap
+            key={listing.id}
+            lat={coords[0]}
+            lng={coords[1]}
+            place={`${districtLabel(listing.district)}, ${listing.city}`}
+          />
 
           {/* Owner — inline on mobile */}
           <div className="md:hidden mt-8 bg-card p-5">{renderOwner("")}</div>

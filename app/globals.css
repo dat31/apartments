@@ -219,6 +219,38 @@ textarea::placeholder {
   background: transparent;
 }
 
+/* ---- leaflet (listing detail location map) ----
+   Theme the map chrome with design tokens; invert OSM tiles in dark mode
+   since the raster tiles only ship a light style. */
+.leaflet-container {
+  font: inherit;
+  background: var(--secondary);
+}
+.leaflet-bar a,
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
+  background: var(--popover);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.leaflet-bar a:hover {
+  background: var(--secondary);
+}
+.leaflet-bar a.leaflet-disabled {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+.leaflet-control-attribution {
+  background: color-mix(in oklch, var(--popover) 85%, transparent) !important;
+  color: var(--muted-foreground);
+}
+.leaflet-control-attribution a {
+  color: var(--primary);
+}
+.dark .leaflet-tile {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}
+
 /* ---- animations (gentle) ---- */
 @keyframes riseSm {
   from {

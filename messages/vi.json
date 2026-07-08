@@ -304,6 +304,21 @@
       "close": "Đóng ảnh",
       "photo": "Ảnh {n}"
     },
+    "map": {
+      "title": "Vị trí",
+      "ariaMap": "Bản đồ khu vực quanh {place}",
+      "approx": "Vị trí gần đúng",
+      "approxNote": "Địa chỉ chính xác sẽ được chia sẻ khi lịch xem được xác nhận.",
+      "locating": "Đang định vị…",
+      "denied": "Quyền vị trí bị chặn — thử lại",
+      "unavailable": "Không định vị được — thử lại",
+      "away": "cách bạn {distance}",
+      "awayHint": "Khoảng cách đường chim bay từ vị trí hiện tại của bạn",
+      "yourLocation": "Vị trí của bạn",
+      "directions": "Chỉ đường trên bản đồ",
+      "directionsError": "Không tải được tuyến đường — thử lại",
+      "routeSummary": "{distance} · lái xe {minutes, plural, other {# phút}}"
+    },
     "reviews": {
       "title": "Đánh giá",
       "count": "{count, plural, other {# đánh giá}}",
