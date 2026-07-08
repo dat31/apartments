@@ -1,13 +1,13 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import "./leaflet-theme.css";
+import "@/app/leaflet-theme.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import type * as L from "leaflet";
 import { LoaderCircle, LocateFixed, MapPin, Route, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { kmBetween, type LatLng } from "../lib/geo";
+import { kmBetween, type LatLng } from "@/lib/geo";
 
 /* Leaflet map for the detail page's "Where you'll be" section.
    Client leaf: Leaflet touches `window` at import time, so the module is
@@ -33,10 +33,14 @@ export function LocationMap({
   lat,
   lng,
   place,
+  approx,
 }: {
   lat: number;
   lng: number;
   place: string;
+  /** True when the coords are synthesized from the district (no owner pin) —
+      shows the privacy circle and the "approximate location" note. */
+  approx: boolean;
 }) {
   const t = useTranslations("detail.map");
   const format = useFormatter();
@@ -96,17 +100,19 @@ export function LocationMap({
         })
         .addTo(map);
 
-      // Approximate-location privacy circle — exact address shared after booking.
-      leaflet
-        .circle(center, {
-          radius: 350,
-          color: primary,
-          weight: 1.5,
-          opacity: 0.5,
-          fillColor: primary,
-          fillOpacity: 0.12,
-        })
-        .addTo(map);
+      // Approximate-location circle for listings without an owner-set pin.
+      if (approx) {
+        leaflet
+          .circle(center, {
+            radius: 350,
+            color: primary,
+            weight: 1.5,
+            opacity: 0.5,
+            fillColor: primary,
+            fillOpacity: 0.12,
+          })
+          .addTo(map);
+      }
 
       // The pin keeps its teardrop shape via inline !important — the global
       // flat-system reset (`* { border-radius: 0 !important }`) would
@@ -141,7 +147,7 @@ export function LocationMap({
       userLayerRef.current = null;
       routeLayerRef.current = null;
     };
-  }, [lat, lng]);
+  }, [lat, lng, approx]);
 
   /* setState only happens inside the geolocation callbacks, so this is safe
      to call from the mount effect (no sync setState in an effect body). */
@@ -326,11 +332,15 @@ export function LocationMap({
           role="application"
           aria-label={t("ariaMap", { place })}
         />
-        <div className="pointer-events-none absolute left-3 top-3 z-[1000] flex items-center gap-1.5 border border-border bg-popover/95 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur">
-          <ShieldCheck size={13} className="text-primary" /> {t("approx")}
-        </div>
+        {approx && (
+          <div className="pointer-events-none absolute left-3 top-3 z-[1000] flex items-center gap-1.5 border border-border bg-popover/95 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur">
+            <ShieldCheck size={13} className="text-primary" /> {t("approx")}
+          </div>
+        )}
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">{t("approxNote")}</p>
+      {approx && (
+        <p className="mt-2 text-xs text-muted-foreground">{t("approxNote")}</p>
+      )}
     </div>
   );
 }

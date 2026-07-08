@@ -59,6 +59,10 @@ export const ListingSchema = z.object({
   available: z.string(),
   desc: z.string(),
   images: z.array(z.string()).optional(),
+  // Exact location, set by the owner via the form's map pin. Absent on
+  // legacy rows and seed data — display falls back to lib/geo coordsOf().
+  lat: z.number().optional(),
+  lng: z.number().optional(),
 });
 export type Listing = z.infer<typeof ListingSchema>;
 
@@ -79,6 +83,8 @@ export type ListingCore = Pick<
   | "amenities"
   | "images"
   | "available"
+  | "lat"
+  | "lng"
 >;
 
 /* Listing form schema — shared by the create and edit pages.
@@ -99,6 +105,9 @@ export const createListingFormSchema = (t: (key: string) => string) =>
     amenities: z.array(z.string()),
     images: z.array(z.string()),
     available: z.string(),
+    // Map pin — kept as numbers (set by the picker, not typed by hand).
+    lat: z.number().nullable(),
+    lng: z.number().nullable(),
   });
 
 export type ListingFormValues = z.infer<
@@ -117,6 +126,8 @@ export const blankListingForm: ListingFormValues = {
   amenities: [],
   images: [],
   available: "now",
+  lat: null,
+  lng: null,
 };
 
 /* Populate the form from an existing listing (edit mode). */
@@ -133,6 +144,8 @@ export function listingToForm(l: Listing): ListingFormValues {
     amenities: l.amenities ?? [],
     images: l.images ?? [],
     available: l.available || "now",
+    lat: l.lat ?? null,
+    lng: l.lng ?? null,
   };
 }
 
@@ -151,5 +164,7 @@ export function formToCore(v: ListingFormValues): ListingCore {
     amenities: v.amenities,
     images: v.images,
     available: v.available,
+    lat: v.lat ?? undefined,
+    lng: v.lng ?? undefined,
   };
 }

@@ -405,6 +405,14 @@
     }
   },
   "listingForm": {
+    "location": {
+      "heading": "Vị trí trên bản đồ",
+      "blurb": "Người thuê sẽ thấy ghim chính xác này trên trang tin đăng và dùng nó để xem khoảng cách, chỉ đường.",
+      "ariaMap": "Bản đồ chọn vị trí căn nhà",
+      "hint": "Nhấn vào bản đồ để ghim vị trí căn nhà, sau đó kéo ghim để tinh chỉnh.",
+      "pinSet": "Đã ghim tại {lat}, {lng} — kéo để điều chỉnh.",
+      "clear": "Xóa ghim"
+    },
     "backToDashboard": "Quay lại bảng điều khiển",
     "editTitle": "Chỉnh sửa tin đăng",
     "newTitle": "Tin đăng mới",
