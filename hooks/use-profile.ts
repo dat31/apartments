@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { authKeys, useUser } from "@/hooks/auth";
-import { type Profile, type Role, DEFAULT_PROFILE } from "@/schemas/profile";
+import { type Profile, type Role, DEFAULT_PROFILE } from "@/schemas/profile/constants";
 
 /* The signed-in user's profile, sourced from the Supabase `profiles` table and
    merged with the auth email. Backed by react-query and keyed on the user id,

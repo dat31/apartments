@@ -1,25 +1,8 @@
 import { z } from "zod";
 
-export const roleSchema = z.enum(["renter", "owner"]);
-export type Role = z.infer<typeof roleSchema>;
-
-/* The signed-in renter/owner profile persisted on the client. */
-export const profileSchema = z.object({
-  name: z.string(),
-  email: z.string(),
-  bio: z.string(),
-  palette: z.number(),
-  role: roleSchema,
-});
-export type Profile = z.infer<typeof profileSchema>;
-
-export const DEFAULT_PROFILE: Profile = {
-  name: "",
-  email: "",
-  bio: "",
-  palette: 1,
-  role: "renter",
-};
+/* Zod-free shape + defaults live in ./constants — import from there in client
+   code that doesn't validate, so zod stays out of those bundles. */
+export { DEFAULT_PROFILE, type Profile, type Role } from "./constants";
 
 /* The edit-profile form (a subset of the profile, with validation). */
 export const manageProfileSchema = z.object({

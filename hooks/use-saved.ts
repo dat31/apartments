@@ -8,7 +8,7 @@ import {
   savedListingsKeys,
   type SavedFacets,
   type SavedListingsPage,
-} from "@/hooks/use-saved-listings";
+} from "@/hooks/saved-listings-keys";
 
 /* Persisted shortlist of saved listing ids.
 
