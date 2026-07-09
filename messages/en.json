@@ -46,7 +46,11 @@
     "saved": "Saved",
     "owner": "Owner",
     "renter": "Renter",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "browse": "Browse",
+    "account": "Account"
   },
   "landing": {
     "footer": "Danapa — a demo prototype. No account required.",
