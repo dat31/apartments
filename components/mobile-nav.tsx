@@ -17,19 +17,15 @@ import {
 } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
 import { ProfileAvatar } from "@/components/profile-avatar";
-import { type Profile, type Role } from "@/schemas/profile";
+import { type Profile } from "@/schemas/profile";
 import {
-  ArrowLeftRight,
-  Building2,
   Calendar,
   Eye,
   Heart,
   LayoutGrid,
   LogOut,
-  MapPin,
   Menu,
   Moon,
-  Search,
   Settings,
   Sun,
   X,
@@ -60,7 +56,6 @@ export function MobileNav({
   savedActive,
   toursActive,
   onManage,
-  onSwitchRole,
   onSignOut,
   className,
 }: {
@@ -70,7 +65,6 @@ export function MobileNav({
   savedActive: boolean;
   toursActive: boolean;
   onManage: () => void;
-  onSwitchRole: (role: Role) => void;
   onSignOut: () => void;
   className?: string;
 }) {
@@ -119,21 +113,6 @@ export function MobileNav({
         </DrawerHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto">
-          {/* role + location */}
-          <div className="px-5 py-3 flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-secondary text-secondary-foreground">
-              {isOwner ? <Building2 size={13} /> : <Search size={13} />}
-              {isOwner ? t("owner") : t("renter")}
-            </span>
-            {profile.location && (
-              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground truncate">
-                <MapPin size={13} /> {profile.location}
-              </span>
-            )}
-          </div>
-
-          <Separator />
-
           {!isOwner && (
             <>
               <div className="py-1.5">
@@ -211,18 +190,6 @@ export function MobileNav({
                 </Link>
               </DrawerClose>
             )}
-            <DrawerClose asChild>
-              <button
-                type="button"
-                className={navRow()}
-                onClick={() => onSwitchRole(isOwner ? "renter" : "owner")}
-              >
-                <ArrowLeftRight size={19} className="shrink-0 opacity-90" />
-                <span className="flex-1 leading-tight truncate">
-                  {isOwner ? t("switchToRenting") : t("switchToListing")}
-                </span>
-              </button>
-            </DrawerClose>
             {/* Theme toggle keeps the drawer open, mirroring the desktop menu. */}
             <button
               type="button"

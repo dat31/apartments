@@ -66,9 +66,9 @@ SEED_LISTINGS.forEach((l) => {
 });
 
 export const OWNERS: Record<string, Owner> = {
-  you: { key: "you", name: "Jordan Rivera", palette: 1, joined: "2021-03", location: "Da Nang", verified: true, superhost: true, responseRate: 99, responseTime: "within an hour", languages: ["English", "Vietnamese"], bio: "Da Nang local renting out a small, well-loved collection of homes across the city. I look after each place like it's my own — quick to fix things, slow to cut corners." },
-  maya: { key: "maya", name: "Maya Okonkwo", palette: 5, joined: "2019-08", location: "Da Nang", verified: true, superhost: true, responseRate: 97, responseTime: "within a few hours", languages: ["English", "French"], bio: "Architect by training, host by habit. I restore older Da Nang buildings and rent them with the original character intact — good light, honest materials, room to breathe." },
-  leo: { key: "leo", name: "Leo Hartmann", palette: 4, joined: "2022-11", location: "Da Nang", verified: true, superhost: false, responseRate: 92, responseTime: "within a day", languages: ["English", "German"], bio: "I keep a handful of bright, low-fuss rentals near the river and the beach. Straightforward leases, fair prices, and a neighborhood guide waiting on the counter." },
+  you: { key: "you", name: "Jordan Rivera", palette: 1, joined: "2021-03", verified: true, superhost: true, responseRate: 99, responseTime: "within an hour", languages: ["English", "Vietnamese"], bio: "Da Nang local renting out a small, well-loved collection of homes across the city. I look after each place like it's my own — quick to fix things, slow to cut corners." },
+  maya: { key: "maya", name: "Maya Okonkwo", palette: 5, joined: "2019-08", verified: true, superhost: true, responseRate: 97, responseTime: "within a few hours", languages: ["English", "French"], bio: "Architect by training, host by habit. I restore older Da Nang buildings and rent them with the original character intact — good light, honest materials, room to breathe." },
+  leo: { key: "leo", name: "Leo Hartmann", palette: 4, joined: "2022-11", verified: true, superhost: false, responseRate: 92, responseTime: "within a day", languages: ["English", "German"], bio: "I keep a handful of bright, low-fuss rentals near the river and the beach. Straightforward leases, fair prices, and a neighborhood guide waiting on the counter." },
 };
 
 export const SEED_REVIEWS: Review[] = [

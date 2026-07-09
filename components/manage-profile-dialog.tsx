@@ -56,7 +56,6 @@ export function ManageProfileDialog({
     defaultValues: {
       name: profile.name,
       email: profile.email,
-      location: profile.location,
       bio: profile.bio,
       palette: profile.palette,
     },
@@ -67,14 +66,12 @@ export function ManageProfileDialog({
       reset({
         name: profile.name,
         email: profile.email,
-        location: profile.location,
         bio: profile.bio,
         palette: profile.palette,
       });
   }, [open, profile, reset]);
 
   const name = watch("name");
-  const location = watch("location");
   const palette = watch("palette");
   const roleLabel = profile.role === "owner" ? t("owner") : t("renter");
   const isMobile = useIsMobile();
@@ -97,7 +94,6 @@ export function ManageProfileDialog({
               </p>
               <p className="text-xs text-muted-foreground truncate mt-0.5">
                 {roleLabel}
-                {location?.trim() ? ` · ${location.trim()}` : ""}
               </p>
             </div>
           </div>
@@ -159,16 +155,6 @@ export function ManageProfileDialog({
               <FieldError errors={[errors.email]} />
             </Field>
           </div>
-
-          <Field>
-            <FieldLabel htmlFor="location">{t("location")}</FieldLabel>
-            <Input
-              id="location"
-              placeholder={t("locationPlaceholder")}
-              className={FILLED_INPUT}
-              {...register("location")}
-            />
-          </Field>
 
           <Field>
             <FieldLabel htmlFor="bio">{t("about")}</FieldLabel>

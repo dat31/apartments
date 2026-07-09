@@ -166,7 +166,6 @@ export type Database = {
           bio: string
           created_at: string
           id: string
-          location: string
           name: string
           palette: number
           role: Database["public"]["Enums"]["user_role"]
@@ -176,7 +175,6 @@ export type Database = {
           bio?: string
           created_at?: string
           id: string
-          location?: string
           name?: string
           palette?: number
           role?: Database["public"]["Enums"]["user_role"]
@@ -186,7 +184,6 @@ export type Database = {
           bio?: string
           created_at?: string
           id?: string
-          location?: string
           name?: string
           palette?: number
           role?: Database["public"]["Enums"]["user_role"]

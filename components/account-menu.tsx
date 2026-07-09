@@ -13,21 +13,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { useTheme } from "next-themes";
-import { type Profile, type Role } from "@/schemas/profile";
-import { ArrowLeftRight, Building2, ChevronDown, Eye, LayoutGrid, LogOut, MapPin, Moon, Search, Settings, Sun } from "lucide-react";
+import { type Profile } from "@/schemas/profile";
+import { ChevronDown, Eye, LayoutGrid, LogOut, Moon, Settings, Sun } from "lucide-react";
 
 export function AccountMenu({
   profile,
   userId,
   onManage,
-  onSwitchRole,
   onSignOut,
   className,
 }: {
   profile: Profile;
   userId?: string;
   onManage: () => void;
-  onSwitchRole: (role: Role) => void;
   onSignOut: () => void;
   className?: string;
 }) {
@@ -84,19 +82,6 @@ export function AccountMenu({
           </div>
         </div>
 
-        {/* role pill row */}
-        <div className="px-4 py-3 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-secondary text-secondary-foreground">
-            {role === "owner" ? <Building2 size={13} /> : <Search size={13} />}
-            {role === "owner" ? t("owner") : t("renter")}
-          </span>
-          {profile.location && (
-            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground truncate">
-              <MapPin size={13} /> {profile.location}
-            </span>
-          )}
-        </div>
-
         <DropdownMenuSeparator className="mx-0" />
 
         <div className="py-1.5">
@@ -122,13 +107,6 @@ export function AccountMenu({
               <Eye size={18} /> {t("viewPublic")}
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem
-            className="px-4 h-11 text-[15px] rounded-none"
-            onSelect={() => onSwitchRole(role === "owner" ? "renter" : "owner")}
-          >
-            <ArrowLeftRight size={18} />{" "}
-            {role === "owner" ? t("switchToRenting") : t("switchToListing")}
-          </DropdownMenuItem>
           <DropdownMenuItem
             className="px-4 h-11 text-[15px] rounded-none"
             onSelect={(e) => {

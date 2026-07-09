@@ -13,11 +13,11 @@ import { ManageProfileDialog } from "@/components/manage-profile-dialog";
 import { useSaved } from "@/hooks/use-saved";
 import { useProfile } from "@/hooks/use-profile";
 import { useUser, useSignOut } from "@/hooks/auth";
-import { Building2, Calendar, Heart, Search } from "lucide-react";
+import { Calendar, Heart } from "lucide-react";
 
 export function SiteHeader() {
   const { saved } = useSaved();
-  const { profile, updateProfile, setRole } = useProfile();
+  const { profile, updateProfile } = useProfile();
   const { data: user } = useUser();
   const signOut = useSignOut();
   const header = useTranslations("header");
@@ -84,11 +84,6 @@ export function SiteHeader() {
                     )}
                   </Link>
                 </Button>
-
-                <span className="inline-flex items-center gap-2 h-9 px-3 bg-secondary text-secondary-foreground text-sm font-medium">
-                  {isOwner ? <Building2 size={16} /> : <Search size={16} />}
-                  {isOwner ? header("owner") : header("renter")}
-                </span>
               </div>
 
               <LanguageSwitcher />
@@ -98,7 +93,6 @@ export function SiteHeader() {
                 profile={profile}
                 userId={user?.id}
                 onManage={() => setManageOpen(true)}
-                onSwitchRole={setRole}
                 onSignOut={() => signOut.mutate()}
               />
 
@@ -110,7 +104,6 @@ export function SiteHeader() {
                 savedActive={savedActive}
                 toursActive={toursActive}
                 onManage={() => setManageOpen(true)}
-                onSwitchRole={setRole}
                 onSignOut={() => signOut.mutate()}
               />
             </>
