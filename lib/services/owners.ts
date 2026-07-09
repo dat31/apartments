@@ -22,10 +22,10 @@ const UUID_RE =
 
 type ProfileRow = Pick<
   Tables<"profiles">,
-  "id" | "name" | "location" | "bio" | "palette" | "created_at"
+  "id" | "name" | "bio" | "palette" | "created_at"
 >;
 
-/* Real profiles only carry name/location/bio/palette/joined. The remaining
+/* Real profiles only carry name/bio/palette/joined. The remaining
    host-stats fields have no DB backing yet, so fill them with neutral
    defaults so the owner page's badges and stat grid still render. */
 function profileToOwner(row: ProfileRow): Owner {
@@ -34,7 +34,6 @@ function profileToOwner(row: ProfileRow): Owner {
     name: row.name || "Host",
     palette: row.palette,
     joined: row.created_at.slice(0, 7), // ISO timestamp → "YYYY-MM"
-    location: row.location,
     verified: true,
     superhost: false,
     responseRate: 100,
@@ -59,7 +58,7 @@ export async function getOwnerProfile(id: string): Promise<Owner | null> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, name, location, bio, palette, created_at")
+    .select("id, name, bio, palette, created_at")
     .eq("id", id)
     .maybeSingle();
 

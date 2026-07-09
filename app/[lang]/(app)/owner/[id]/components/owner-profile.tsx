@@ -23,7 +23,7 @@ import {
   reviewsForPage,
 } from "@/app/[lang]/(app)/apartments/[id]/lib/reviews";
 import { ReviewModal } from "./review-modal";
-import { Building2, Calendar, Check, ChevronLeft, ChevronRight, Clock, Globe, MapPin, MessageSquare, ShieldCheck, Star } from "lucide-react";
+import { Building2, Calendar, Check, ChevronLeft, ChevronRight, Clock, Globe, MessageSquare, ShieldCheck, Star } from "lucide-react";
 import { PALETTE, initialsOf, avgOf } from "@/lib/data/listings";
 import { type Listing } from "@/schemas/listing";
 import { type Owner } from "@/schemas/owner";
@@ -160,9 +160,6 @@ export function OwnerProfile({
               {displayName}
             </h1>
             <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <MapPin size={16} /> {owner.location}
-              </span>
               <span className="flex items-center gap-1.5">
                 <Calendar size={16} /> {t("joined", { date: joinedLabel })}
               </span>

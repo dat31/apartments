@@ -6,7 +6,6 @@ export const OwnerSchema = z.object({
   name: z.string(),
   palette: z.number(),
   joined: z.string(),
-  location: z.string(),
   verified: z.boolean(),
   superhost: z.boolean(),
   responseRate: z.number(),

@@ -25,7 +25,7 @@ export function useProfile() {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("profiles")
-        .select("name, location, bio, palette, role")
+        .select("name, bio, palette, role")
         .eq("id", userId!)
         .maybeSingle();
       if (error) throw error;
@@ -35,7 +35,6 @@ export function useProfile() {
       return {
         name: data?.name || (meta.name as string) || "",
         email: user?.email ?? "",
-        location: data?.location ?? DEFAULT_PROFILE.location,
         bio: data?.bio ?? "",
         palette: data?.palette ?? DEFAULT_PROFILE.palette,
         role: data?.role ?? (meta.role as Role) ?? DEFAULT_PROFILE.role,
@@ -59,7 +58,7 @@ export function useProfile() {
         .eq("id", userId);
       if (error) throw error;
     },
-    // Optimistic update so role switches / edits feel instant.
+    // Optimistic update so profile edits feel instant.
     onMutate: async (patch) => {
       if (!userId) return;
       const key = [...authKeys.profile, userId];
@@ -86,18 +85,9 @@ export function useProfile() {
     [userId, updateMutation]
   );
 
-  const setRole = useCallback(
-    (role: Role) => {
-      if (!userId) return;
-      updateMutation.mutate({ role });
-    },
-    [userId, updateMutation]
-  );
-
   return {
     profile,
     updateProfile,
-    setRole,
     ready: !userPending && !query.isLoading,
   };
 }
