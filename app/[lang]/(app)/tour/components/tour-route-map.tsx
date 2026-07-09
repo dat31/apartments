@@ -5,23 +5,28 @@ import "@/app/leaflet-theme.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type * as L from "leaflet";
-import { Lightbulb, LoaderCircle, LocateFixed } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Eye, LoaderCircle, LocateFixed, TriangleAlert } from "lucide-react";
 import { kmBetween, type LatLng } from "@/lib/geo";
 import {
   gmapsDirectionsUrl,
   legGapMinutes,
   type TourStop,
 } from "../lib/route-plan";
-import { RouteLegs, type RouteLeg } from "./route-legs";
+import { RouteLegs, type RouteLeg, type RoutePoint } from "./route-legs";
+import { RouteSuggestionCard } from "./route-suggestion-card";
 
-/* Leaflet map of one day's tour route: numbered pins for every stop in
-   schedule order, the renter's own location when granted, and the OSRM
-   driving route between them with per-leg times listed below. When the drive
-   between two tours takes longer than the free gap in the schedule, that leg
-   is flagged and drawn in the destructive color. Client leaf — Leaflet
-   touches `window` at import, so it's loaded dynamically inside the mount
-   effect (same stack as the detail-page LocationMap). */
+/* One day's tour route, side by side on wide screens: the Leaflet map on the
+   left, and the stack (status rows, suggestion card, legs timeline) on the
+   right. Numbered pins mark every stop in schedule order, the renter's own
+   location shows when granted, and the OSRM driving route connects them.
+   When the drive between two tours takes longer than the free gap in the
+   schedule, that leg is flagged: its polyline turns destructive and a
+   day-level banner counts the tours at risk. Hovering a leg in the timeline
+   thickens its polyline and lifts its endpoint pins. Transient states
+   (locating, location off, estimated route) also surface as chips overlaid
+   on the map. Client leaf — Leaflet touches `window` at import, so it's
+   loaded dynamically inside the mount effect (same stack as the detail-page
+   LocationMap). */
 
 type GeoState =
   | { status: "locating" }
@@ -29,16 +34,26 @@ type GeoState =
   | { status: "denied" }
   | { status: "unavailable" };
 
+/* Points/legs are snapshotted into the route state when a fetch lands so the
+   timeline never pairs fresh nodes with stale legs mid-refetch. */
 type RouteState =
   | { status: "loading" }
   | {
       status: "shown";
+      points: RoutePoint[];
       legs: RouteLeg[];
       totalKm: number;
       totalMinutes: number;
+      latlngs: LatLng[];
     }
   /* OSRM failed — dashed straight lines + crow-flies distances. */
-  | { status: "estimate"; legs: RouteLeg[]; totalKm: number };
+  | {
+      status: "estimate";
+      points: RoutePoint[];
+      legs: RouteLeg[];
+      totalKm: number;
+      latlngs: LatLng[];
+    };
 
 /* A cheaper visiting order found by the OSRM trip service — only computed
    for flexible days (≥3 stops, at least one time still pending) and only
@@ -48,11 +63,12 @@ type Suggestion = {
   /** Stop numbers (0-based, schedule order) in the suggested visiting order. */
   order: number[];
   savedMinutes: number;
+  points: RoutePoint[];
   legs: RouteLeg[];
   totalKm: number;
   totalMinutes: number;
   /** Route points in suggested order — for the Google Maps link. */
-  points: LatLng[];
+  latlngs: LatLng[];
   /** Trip geometry for the preview polyline. */
   path: LatLng[];
 };
@@ -60,9 +76,8 @@ type Suggestion = {
 const OSRM = "https://router.project-osrm.org/route/v1/driving";
 const OSRM_TRIP = "https://router.project-osrm.org/trip/v1/driving";
 
-/* ① ② ③ … for the suggestion sentence; plain numbers past ⑨. */
-const circled = (n: number) =>
-  n >= 1 && n <= 9 ? String.fromCodePoint(0x245f + n) : String(n);
+const CHIP =
+  "pointer-events-auto inline-flex items-center gap-1.5 border border-border bg-background/95 px-2.5 py-1.5 text-xs font-medium";
 
 export function TourRouteMap({ stops }: { stops: TourStop[] }) {
   const t = useTranslations("tour.route");
@@ -74,6 +89,12 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
   const routeLayerRef = useRef<L.FeatureGroup | L.Polyline | null>(null);
   // Built lazily from suggestion.path on first preview; add/remove toggles it.
   const suggestionLayerRef = useRef<L.Polyline | null>(null);
+  // Hover targets: one polyline per schedule leg (with its base style, to
+  // restore after a hover) and the marker element behind each stop number.
+  const legLinesRef = useRef<
+    { line: L.Polyline; base: { color: string; weight: number; opacity: number } }[]
+  >([]);
+  const markerElsRef = useRef<Record<string, HTMLElement>>({});
   // Guards a stale OSRM response (e.g. a location retry mid-flight) from
   // overwriting a fresher one.
   const requestRef = useRef(0);
@@ -90,11 +111,13 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
   const [route, setRoute] = useState<RouteState>({ status: "loading" });
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
   const [previewing, setPreviewing] = useState(false);
+  const [hovered, setHovered] = useState<number | null>(null);
 
   /* Mount the map with the day's numbered stop pins. */
   useEffect(() => {
     let cancelled = false;
     let resizeTimer: ReturnType<typeof setTimeout> | undefined;
+    let observer: ResizeObserver | undefined;
     (async () => {
       const leaflet = await import("leaflet");
       if (cancelled || !nodeRef.current || mapRef.current) return;
@@ -124,8 +147,7 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
         .addTo(map);
 
       // One pin per distinct location; two tours at the same address share a
-      // pin and stack their stop numbers ("1·2"). Teardrop shape via inline
-      // !important — the global flat-system reset would square it off.
+      // pin and stack their stop numbers ("1·2").
       const pins = new Map<string, { coords: LatLng; nums: number[]; titles: string[] }>();
       stops.forEach((s, i) => {
         const key = s.coords.join(",");
@@ -137,28 +159,41 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
           pins.set(key, { coords: s.coords, nums: [i + 1], titles: [s.listing.title] });
         }
       });
+      const dayMarkers: { marker: L.Marker; nums: number[] }[] = [];
       for (const { coords, nums, titles } of pins.values()) {
         const icon = leaflet.divIcon({
-          className: "",
+          className: "route-marker",
           html:
             '<span style="display:block;width:30px;height:30px;position:relative;">' +
-            `<span style="position:absolute;inset:0;border-radius:50% 50% 50% 0 !important;transform:rotate(-45deg);background:${primary};"></span>` +
+            `<span class="route-teardrop" style="position:absolute;inset:0;transform:rotate(-45deg);background:${primary};"></span>` +
             `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:${bg};font-size:${nums.length > 1 ? 10 : 13}px;font-weight:700;">${nums.join("·")}</span>` +
             "</span>",
           iconSize: [30, 30],
           iconAnchor: [15, 28],
         });
-        leaflet
+        const marker = leaflet
           .marker(coords, { icon, keyboard: false, title: titles.join(" · ") })
           .addTo(map);
+        dayMarkers.push({ marker, nums });
       }
       map.fitBounds(
         leaflet.latLngBounds(stops.map((s) => s.coords)).pad(0.2),
         { maxZoom: 15 }
       );
+      // The map had no view until fitBounds, and Leaflet defers every
+      // layer's onAdd (which builds the icon element) until then — so the
+      // hover registry can only be filled afterwards.
+      markerElsRef.current = {};
+      for (const { marker, nums } of dayMarkers) {
+        const el = marker.getElement();
+        if (el) for (const n of nums) markerElsRef.current[n] = el;
+      }
 
-      // Leaflet mis-measures when it mounts inside an animating/flex ancestor.
+      // Leaflet mis-measures when it mounts inside an animating/flex ancestor,
+      // and the side-by-side column resizes as status rows come and go.
       resizeTimer = setTimeout(() => map.invalidateSize(), 250);
+      observer = new ResizeObserver(() => map.invalidateSize());
+      observer.observe(nodeRef.current);
 
       // Enable wheel-zoom only after the user clicks into the map.
       map.on("focus", () => map.scrollWheelZoom.enable());
@@ -170,11 +205,14 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
     return () => {
       cancelled = true;
       clearTimeout(resizeTimer);
+      observer?.disconnect();
       mapRef.current?.remove();
       mapRef.current = null;
       userLayerRef.current = null;
       routeLayerRef.current = null;
       suggestionLayerRef.current = null;
+      legLinesRef.current = [];
+      markerElsRef.current = {};
     };
   }, [stops]);
 
@@ -211,7 +249,8 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
     requestPosition();
   };
 
-  /* Draw the "you are here" dot once both the map and the location exist. */
+  /* Draw the "you are here" dot (with its pulse) once both the map and the
+     location exist. */
   useEffect(() => {
     const map = mapRef.current;
     const leaflet = leafletRef.current;
@@ -219,14 +258,21 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
     const { primary, bg } = colorsRef.current;
     userLayerRef.current?.remove();
     const dot = leaflet.divIcon({
-      className: "",
-      html: `<span style="display:block;width:18px;height:18px;border-radius:50% !important;background:${primary};border:3px solid ${bg};"></span>`,
+      className: "route-marker",
+      html:
+        '<span style="display:block;width:18px;height:18px;position:relative;">' +
+        `<span class="route-pulse" style="position:absolute;inset:0;background:${primary};opacity:.5;"></span>` +
+        `<span class="route-dot" style="position:absolute;inset:0;box-sizing:border-box;background:${primary};border:3px solid ${bg};"></span>` +
+        "</span>",
       iconSize: [18, 18],
       iconAnchor: [9, 9],
     });
-    userLayerRef.current = leaflet
+    const marker = leaflet
       .marker(geo.point, { icon: dot, keyboard: false, title: t("yourLocation") })
       .addTo(map);
+    userLayerRef.current = marker;
+    const el = marker.getElement();
+    if (el) markerElsRef.current.user = el;
   }, [ready, geo, t]);
 
   /* Fetch the whole day's driving route in one OSRM call (all waypoints in
@@ -239,19 +285,18 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
     const request = ++requestRef.current;
 
     const fromUser = geo.status === "done";
-    const points: LatLng[] = fromUser
+    const latlngs: LatLng[] = fromUser
       ? [geo.point, ...stops.map((s) => s.coords)]
       : stops.map((s) => s.coords);
-    const label = (i: number) =>
+    const point = (i: number): RoutePoint =>
       fromUser && i === 0
-        ? t("yourLocation")
-        : t("stop", { n: i + (fromUser ? 0 : 1) });
-    const legLabels = points
-      .slice(0, -1)
-      .map((_, i) => ({ from: label(i), to: label(i + 1) }));
+        ? { kind: "user" }
+        : { kind: "stop", n: i + (fromUser ? 0 : 1) };
+    const points = latlngs.map((_, i) => point(i));
 
     const drawFallback = (path: LatLng[]) => {
       routeLayerRef.current?.remove();
+      legLinesRef.current = [];
       const line = leaflet
         .polyline(path, {
           color: colorsRef.current.primary,
@@ -269,7 +314,7 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
       // paths) — that's what lets a tight leg get its own polyline color
       // while keeping the whole day in a single OSRM request.
       const res = await fetch(
-        `${OSRM}/${points.map(([lat, lng]) => `${lng},${lat}`).join(";")}` +
+        `${OSRM}/${latlngs.map(([lat, lng]) => `${lng},${lat}`).join(";")}` +
           "?overview=false&geometries=geojson&steps=true"
       );
       if (!res.ok) throw new Error(`OSRM ${res.status}`);
@@ -285,7 +330,7 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
         }[];
       };
       const r = data.routes?.[0];
-      if (!r || r.legs.length !== legLabels.length) throw new Error("no route");
+      if (!r || r.legs.length !== points.length - 1) throw new Error("no route");
       if (requestRef.current !== request || !mapRef.current) return;
 
       // A refetch (location retry, manual retry) invalidates any previous
@@ -294,6 +339,7 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
       suggestionLayerRef.current = null;
       setSuggestion(null);
       setPreviewing(false);
+      setHovered(null);
 
       // Leg i connects points[i] → points[i+1]; when the renter's location
       // leads the list, stop-to-stop legs start at leg 1. Only those have a
@@ -304,7 +350,6 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
         const gap =
           pair >= 0 ? legGapMinutes(stops[pair], stops[pair + 1]) : null;
         return {
-          ...legLabels[i],
           km: leg.distance / 1000,
           minutes,
           tightGap:
@@ -315,32 +360,36 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
       });
 
       routeLayerRef.current?.remove();
-      const group = leaflet
-        .featureGroup(
-          r.legs.map((leg, i) =>
-            leaflet.polyline(
-              leg.steps.flatMap((s) =>
-                s.geometry.coordinates.map(([lng, lat]) => [lat, lng] as LatLng)
-              ),
-              {
-                color: legs[i].tightGap
-                  ? colorsRef.current.destructive
-                  : colorsRef.current.primary,
-                weight: 4,
-                opacity: 0.8,
-              }
-            )
-          )
-        )
-        .addTo(map);
+      const lines = r.legs.map((leg, i) => {
+        const base = {
+          color: legs[i].tightGap
+            ? colorsRef.current.destructive
+            : colorsRef.current.primary,
+          weight: 4,
+          opacity: 0.8,
+        };
+        return {
+          line: leaflet.polyline(
+            leg.steps.flatMap((s) =>
+              s.geometry.coordinates.map(([lng, lat]) => [lat, lng] as LatLng)
+            ),
+            base
+          ),
+          base,
+        };
+      });
+      const group = leaflet.featureGroup(lines.map((l) => l.line)).addTo(map);
       routeLayerRef.current = group;
+      legLinesRef.current = lines;
       map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 15 });
 
       setRoute({
         status: "shown",
+        points,
         legs,
         totalKm: r.distance / 1000,
         totalMinutes: Math.max(1, Math.round(r.duration / 60)),
+        latlngs,
       });
 
       // On a flexible day (≥3 stops, at least one time still pending) ask
@@ -351,7 +400,7 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
         return;
       try {
         const tripRes = await fetch(
-          `${OSRM_TRIP}/${points.map(([lat, lng]) => `${lng},${lat}`).join(";")}` +
+          `${OSRM_TRIP}/${latlngs.map(([lat, lng]) => `${lng},${lat}`).join(";")}` +
             "?roundtrip=false&source=first&overview=full&geometries=geojson"
         );
         if (!tripRes.ok) return;
@@ -381,15 +430,14 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
             .filter((i) => !fromUser || i > 0)
             .map((i) => i - (fromUser ? 1 : 0)),
           savedMinutes,
-          legs: trip.legs.map((leg, k) => ({
-            from: label(visitOrder[k]),
-            to: label(visitOrder[k + 1]),
+          points: visitOrder.map((i) => point(i)),
+          legs: trip.legs.map((leg) => ({
             km: leg.distance / 1000,
             minutes: Math.max(1, Math.round(leg.duration / 60)),
           })),
           totalKm: trip.distance / 1000,
           totalMinutes: Math.max(1, Math.round(trip.duration / 60)),
-          points: visitOrder.map((i) => points[i]),
+          latlngs: visitOrder.map((i) => latlngs[i]),
           path: trip.geometry.coordinates.map(
             ([lng, lat]) => [lat, lng] as LatLng
           ),
@@ -403,19 +451,21 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
       suggestionLayerRef.current = null;
       setSuggestion(null);
       setPreviewing(false);
-      drawFallback(points);
+      setHovered(null);
+      drawFallback(latlngs);
       setRoute({
         status: "estimate",
-        legs: legLabels.map((leg, i) => ({
-          ...leg,
-          km: kmBetween(points[i], points[i + 1]),
+        points,
+        legs: points.slice(1).map((_, i) => ({
+          km: kmBetween(latlngs[i], latlngs[i + 1]),
         })),
-        totalKm: points
+        totalKm: latlngs
           .slice(1)
-          .reduce((sum, p, i) => sum + kmBetween(points[i], p), 0),
+          .reduce((sum, p, i) => sum + kmBetween(latlngs[i], p), 0),
+        latlngs,
       });
     }
-  }, [geo, stops, t]);
+  }, [geo, stops]);
 
   /* Route once the map is up and geolocation has settled either way; a
      successful location retry re-runs this with the renter as origin.
@@ -438,6 +488,7 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
     const map = mapRef.current;
     const leaflet = leafletRef.current;
     if (!map || !leaflet || !suggestion) return;
+    setHovered(null);
     if (previewing) {
       suggestionLayerRef.current?.remove();
       routeLayerRef.current?.addTo(map);
@@ -461,79 +512,178 @@ export function TourRouteMap({ stops }: { stops: TourStop[] }) {
     setPreviewing(true);
   };
 
+  /* Map ↔ timeline link: thicken the hovered leg's polyline and lift its
+     endpoint markers. The preview and fallback draw one shared line, so
+     there only the markers respond. */
+  useEffect(() => {
+    for (const [i, { line, base }] of legLinesRef.current.entries()) {
+      line.setStyle(
+        i === hovered && !previewing
+          ? { ...base, weight: base.weight + 3, opacity: 1 }
+          : base
+      );
+    }
+    for (const el of Object.values(markerElsRef.current))
+      el.classList.remove("is-hi");
+    const points =
+      previewing && suggestion
+        ? suggestion.points
+        : route.status !== "loading"
+          ? route.points
+          : [];
+    if (hovered === null) return;
+    for (const p of [points[hovered], points[hovered + 1]]) {
+      if (!p) continue;
+      markerElsRef.current[p.kind === "user" ? "user" : p.n]?.classList.add(
+        "is-hi"
+      );
+    }
+  }, [hovered, previewing, suggestion, route]);
+
+  const showingPreview = previewing && !!suggestion;
+  const tightCount =
+    route.status === "shown"
+      ? route.legs.filter((l) => l.tightGap).length
+      : 0;
+
   return (
-    <div>
-      <div className="relative isolate z-0 overflow-hidden border border-border bg-secondary">
-        <div
-          ref={nodeRef}
-          className="h-72 sm:h-80 w-full bg-secondary"
-          role="application"
-          aria-label={t("ariaMap")}
-        />
-      </div>
-
-      {geo.status === "locating" ? (
-        <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-          <LoaderCircle size={15} className="animate-spin" /> {t("locating")}
-        </p>
-      ) : (
-        geo.status !== "done" && (
-          <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <LocateFixed size={15} className="shrink-0" /> {t("locationDenied")}
-            <Button variant="ghost" size="sm" className="h-7" onClick={retryLocation}>
-              {t("retry")}
-            </Button>
+    <div className="flex flex-col gap-3">
+      {/* Day-level banners — the loud, hard-to-skip signals */}
+      {tightCount > 0 && !showingPreview && (
+        <div className="anim-fade flex items-start gap-2.5 bg-destructive/10 p-3 text-destructive">
+          <TriangleAlert size={17} className="mt-px shrink-0" />
+          <p className="text-sm font-medium">
+            {t("tightDay", { count: tightCount })}
           </p>
-        )
+        </div>
       )}
-
-      {route.status === "shown" && suggestion && (
-        <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-          <Lightbulb size={15} className="shrink-0 text-primary" />
-          <span>
-            {t("suggestion", {
-              order: suggestion.order.map((n) => circled(n + 1)).join(" → "),
-              minutes: suggestion.savedMinutes,
-            })}
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7"
+      {showingPreview && (
+        <div className="anim-fade flex items-center gap-2.5 bg-primary p-3 text-primary-foreground">
+          <Eye size={17} className="shrink-0" />
+          <p className="flex-1 text-sm font-medium">{t("previewBanner")}</p>
+          <button
             onClick={togglePreview}
+            className="focus-ring shrink-0 text-sm font-semibold underline underline-offset-2"
           >
-            {t(previewing ? "previewOff" : "preview")}
-          </Button>
-        </p>
+            {t("previewOff")}
+          </button>
+        </div>
       )}
 
-      {route.status === "loading" ? (
-        geo.status !== "locating" && (
-          <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-            <LoaderCircle size={15} className="animate-spin" /> {t("loadingRoute")}
-          </p>
-        )
-      ) : previewing && suggestion ? (
-        <RouteLegs
-          legs={suggestion.legs}
-          totalKm={suggestion.totalKm}
-          totalMinutes={suggestion.totalMinutes}
-          href={gmapsDirectionsUrl(suggestion.points)}
-        />
-      ) : (
-        <RouteLegs
-          legs={route.legs}
-          totalKm={route.totalKm}
-          totalMinutes={route.status === "shown" ? route.totalMinutes : undefined}
-          href={gmapsDirectionsUrl(
-            geo.status === "done"
-              ? [geo.point, ...stops.map((s) => s.coords)]
-              : stops.map((s) => s.coords)
+      <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr] lg:items-stretch">
+        {/* Map + overlaid status chips */}
+        <div className="relative isolate z-0 h-72 overflow-hidden border border-border bg-secondary sm:h-80 lg:h-auto lg:min-h-80">
+          <div
+            ref={nodeRef}
+            className="h-full w-full bg-secondary"
+            role="application"
+            aria-label={t("ariaMap")}
+          />
+          <div className="pointer-events-none absolute top-3 left-3 z-[1100] flex flex-col items-start gap-2">
+            {geo.status === "locating" && (
+              <span className={CHIP}>
+                <LoaderCircle size={13} className="animate-spin text-primary" />
+                {t("locating")}
+              </span>
+            )}
+            {(geo.status === "denied" || geo.status === "unavailable") && (
+              <span className={CHIP}>
+                <LocateFixed size={13} className="text-muted-foreground" />
+                <span className="text-muted-foreground">{t("locationOff")}</span>
+                <button
+                  onClick={retryLocation}
+                  className="focus-ring font-semibold text-primary hover:underline"
+                >
+                  {t("retry")}
+                </button>
+              </span>
+            )}
+            {route.status === "estimate" && (
+              <span className={CHIP}>
+                <TriangleAlert size={13} className="text-destructive" />
+                {t("estimatedRoute")}
+                <button
+                  onClick={retryRoute}
+                  className="focus-ring font-semibold text-primary hover:underline"
+                >
+                  {t("retry")}
+                </button>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Stack: status rows, suggestion, legs timeline */}
+        <div className="flex min-w-0 flex-col gap-3">
+          {geo.status === "locating" ? (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <LoaderCircle size={15} className="animate-spin" /> {t("locating")}
+            </p>
+          ) : (
+            geo.status !== "done" && (
+              <p className="flex items-start gap-2 text-sm text-muted-foreground">
+                <LocateFixed size={15} className="mt-0.5 shrink-0" />
+                {t("locationDenied")}
+              </p>
+            )
           )}
-          estimated={route.status === "estimate"}
-          onRetry={route.status === "estimate" ? retryRoute : undefined}
-        />
-      )}
+
+          {route.status === "estimate" && (
+            <div className="flex items-start gap-2 bg-secondary p-3 text-sm">
+              <TriangleAlert size={15} className="mt-0.5 shrink-0 text-destructive" />
+              <span className="flex-1 text-muted-foreground">
+                {t("routeError")}
+              </span>
+              <button
+                onClick={retryRoute}
+                className="focus-ring font-semibold text-primary hover:underline"
+              >
+                {t("retry")}
+              </button>
+            </div>
+          )}
+
+          {route.status === "shown" && suggestion && (
+            <RouteSuggestionCard
+              savedMinutes={suggestion.savedMinutes}
+              order={suggestion.order}
+              previewing={showingPreview}
+              onToggle={togglePreview}
+            />
+          )}
+
+          {route.status === "loading" ? (
+            geo.status !== "locating" && (
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <LoaderCircle size={15} className="animate-spin" />
+                {t("loadingRoute")}
+              </p>
+            )
+          ) : showingPreview && suggestion ? (
+            <RouteLegs
+              points={suggestion.points}
+              legs={suggestion.legs}
+              totalKm={suggestion.totalKm}
+              totalMinutes={suggestion.totalMinutes}
+              href={gmapsDirectionsUrl(suggestion.latlngs)}
+              hovered={hovered}
+              onHover={setHovered}
+            />
+          ) : (
+            <RouteLegs
+              points={route.points}
+              legs={route.legs}
+              totalKm={route.totalKm}
+              totalMinutes={
+                route.status === "shown" ? route.totalMinutes : undefined
+              }
+              href={gmapsDirectionsUrl(route.latlngs)}
+              hovered={hovered}
+              onHover={setHovered}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

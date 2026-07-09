@@ -11,6 +11,7 @@ import { type TourRequest } from "@/schemas/tour";
 import { parseYmd } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { Calendar, Search } from "lucide-react";
 import { RenterTourCard } from "./renter-tour-card";
+import { RouteStopBadge } from "./route-stop-badge";
 import { TourDayRoute } from "./tour-day-route";
 import { groupTourDays } from "../lib/route-plan";
 
@@ -123,36 +124,61 @@ export function RenterTours() {
         </div>
       ) : (
         <div className="flex flex-col gap-8">
-          {days.map((day) => (
-            <section key={day.date}>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                {format.dateTime(parseYmd(day.date), {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </h2>
-              <div className="flex flex-col gap-3 stagger">
-                {day.items.map(({ tour, listing }) => (
-                  <RenterTourCard
-                    key={tour.id}
-                    tour={tour}
-                    listing={listing}
-                    onAcceptNew={acceptNew}
-                    onDecline={decline}
-                    onCancel={cancel}
-                  />
-                ))}
-              </div>
-              {day.stops.length >= 2 && <TourDayRoute stops={day.stops} />}
-            </section>
-          ))}
+          {days.map((day) => {
+            const hasRoute = day.stops.length >= 2;
+            return (
+              <section key={day.date}>
+                <div className="mb-3 flex items-center gap-3">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                    {format.dateTime(parseYmd(day.date), {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </h2>
+                  <span className="h-px flex-1 bg-border" />
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {t("dayCount", { count: day.items.length })}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-3 stagger">
+                  {day.items.map(({ tour, listing }) => {
+                    /* On days with a route, mirror the map's numbered pin
+                       beside each routeable card (wide screens only). */
+                    const stop = hasRoute
+                      ? day.stops.findIndex((s) => s.tour.id === tour.id)
+                      : -1;
+                    return (
+                      <div key={tour.id} className="relative">
+                        {stop >= 0 && (
+                          <span className="absolute top-5 -left-0.5 z-10 hidden -translate-x-full pr-2 xl:block">
+                            <RouteStopBadge n={stop + 1} size={26} />
+                          </span>
+                        )}
+                        <RenterTourCard
+                          tour={tour}
+                          listing={listing}
+                          onAcceptNew={acceptNew}
+                          onDecline={decline}
+                          onCancel={cancel}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                {hasRoute && <TourDayRoute stops={day.stops} />}
+              </section>
+            );
+          })}
           {history.length > 0 && (
             <section>
               {days.length > 0 && (
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t("historySection")}
-                </h2>
+                <div className="mb-3 flex items-center gap-3">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                    {t("historySection")}
+                  </h2>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
               )}
               <div className="flex flex-col gap-3 stagger">
                 {history.map(({ tour, listing }) => (

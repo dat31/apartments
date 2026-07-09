@@ -31,3 +31,14 @@
 .dark .leaflet-tile {
   filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
 }
+
+/* Tour route: hovering a leg in the list lifts its endpoint markers.
+   Leaflet positions the marker element itself with a translate3d, so the
+   scale goes on the divIcon's inner wrapper, never the marker element. */
+.route-marker > span {
+  transition: transform 0.15s ease;
+  transform-origin: bottom center;
+}
+.route-marker.is-hi > span {
+  transform: scale(1.18);
+}
