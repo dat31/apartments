@@ -46,7 +46,11 @@
     "saved": "Đã lưu",
     "owner": "Chủ nhà",
     "renter": "Người thuê",
-    "signIn": "Đăng nhập"
+    "signIn": "Đăng nhập",
+    "openMenu": "Mở menu",
+    "closeMenu": "Đóng menu",
+    "browse": "Khám phá",
+    "account": "Tài khoản"
   },
   "landing": {
     "footer": "Danapa — bản mẫu demo. Không cần tài khoản.",

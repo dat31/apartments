@@ -22,12 +22,14 @@ export function AccountMenu({
   onManage,
   onSwitchRole,
   onSignOut,
+  className,
 }: {
   profile: Profile;
   userId?: string;
   onManage: () => void;
   onSwitchRole: (role: Role) => void;
   onSignOut: () => void;
+  className?: string;
 }) {
   const router = useRouter();
   const t = useTranslations("account");
@@ -46,7 +48,8 @@ export function AccountMenu({
           type="button"
           className={cn(
             "flex items-center gap-2 h-11 pl-1.5 pr-2.5 transition-colors focus-ring cursor-pointer active:scale-[.98]",
-            open ? "bg-muted" : "hover:bg-muted"
+            open ? "bg-muted" : "hover:bg-muted",
+            className
           )}
         >
           <ProfileAvatar name={profile.name} palette={profile.palette} size={32} />
