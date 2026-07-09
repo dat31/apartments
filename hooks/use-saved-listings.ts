@@ -3,12 +3,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { toListing } from "@/lib/services/listings-map";
-import {
-  DISTRICTS,
-  districtLabel,
-  TYPES,
-  type Listing,
-} from "@/schemas/listing";
+import { DISTRICTS, districtLabel, TYPES } from "@/schemas/listing";
 import { type Filters, type SortKey } from "@/schemas/filters";
 import type { Database } from "@/lib/database.types";
 
@@ -68,26 +63,12 @@ function textOr(q: string): string | null {
   return conds.join(",");
 }
 
-export type SavedListingsPage = { listings: Listing[]; total: number };
-export type SavedFacets = { districts: string[]; total: number };
-
-/* Keys are scoped per user ("guest" for anon) + filters/sort/page — deliberately
-   NOT by the saved-id set. That way toggling a save doesn't re-key the query and
-   trigger a refetch; instead useSaved patches the cached data in place (drop the
-   card, decrement totals), so removing a saved home updates the list without a
-   flash or layout shift. The saved ids still scope the DB query via a closure. */
-export const savedListingsKeys = {
-  /** Prefixes for cache-patching every cached page / facets entry at once. */
-  pages: ["saved-listings", "page"] as const,
-  facetsAll: ["saved-listings", "facets"] as const,
-  page: (
-    scope: string,
-    filters: Filters,
-    sort: SortKey,
-    page: number
-  ) => ["saved-listings", "page", scope, filters, sort, page] as const,
-  facets: (scope: string) => ["saved-listings", "facets", scope] as const,
-};
+export {
+  savedListingsKeys,
+  type SavedListingsPage,
+  type SavedFacets,
+} from "./saved-listings-keys";
+import { savedListingsKeys, type SavedListingsPage, type SavedFacets } from "./saved-listings-keys";
 
 /** One filtered, sorted, paginated page of the user's saved listings, plus the
     total matching count so the pager knows how many pages there are. */
