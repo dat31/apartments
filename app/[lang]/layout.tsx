@@ -13,7 +13,10 @@ import { routing } from "@/i18n/routing";
 
 const lexend = Lexend({
   variable: "--font-lexend",
-  subsets: ["latin"],
+  // vi is the default locale — preload every subset the UI actually renders,
+  // otherwise the Vietnamese/latin-ext files are discovered late (after CSS)
+  // and the font swap repaint pushes LCP out on slow connections.
+  subsets: ["latin", "latin-ext", "vietnamese"],
   weight: ["300", "400", "500", "600", "700"],
 });
 
