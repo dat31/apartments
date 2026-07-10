@@ -4,7 +4,7 @@ import { DetailView } from "./detail-view";
 import { JsonLd } from "@/components/json-ld";
 import { listingJsonLd } from "../lib/json-ld";
 import { createClient } from "@/lib/supabase/server";
-import { getListingById, getSimilarListings } from "@/lib/services/listings";
+import { getListingById } from "@/lib/services/listings";
 import { getOwnerProfile } from "@/lib/services/owners";
 import { getListing, reviewsFor, SEED_REVIEWS } from "@/lib/data/listings";
 import type { Locale } from "@/i18n/routing";
@@ -20,13 +20,10 @@ export async function DetailContent({ id }: { id: string }) {
   const listing = live ?? getListing(id);
   if (!listing) notFound();
 
-  // "Similar homes" row + owner load in parallel; both depend only on the
-  // resolved listing. getSimilarListings runs its own district/city-scoped
-  // Supabase query (cached per listing), not a scan of every active listing.
-  const [owner, similar] = await Promise.all([
-    getOwnerProfile(listing.owner),
-    getSimilarListings(listing),
-  ]);
+  // Owner feeds the host card + reviews in the main column, so it's awaited
+  // here. The "Similar homes" row fetches its own data below its own Suspense
+  // boundary (see DetailView), so its query doesn't block the main content.
+  const owner = await getOwnerProfile(listing.owner);
   const reviews = reviewsFor(SEED_REVIEWS, listing.owner);
 
   // Is the viewer the host of this listing? Real listings store the owner's
@@ -56,7 +53,6 @@ export async function DetailContent({ id }: { id: string }) {
         reviews={reviews}
         owner={owner}
         isOwner={isOwner}
-        similar={similar}
       />
     </>
   );

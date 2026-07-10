@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -5,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Gallery } from "./gallery";
 import { LocationMapLazy } from "./location-map-lazy";
 import { Reviews } from "./reviews";
-import { SimilarHomes } from "./similar-homes";
+import { SimilarHomes, SimilarHomesSkeleton } from "./similar-homes";
 import { SaveHomeButton } from "./save-home-button";
 import { BookTourButton } from "./book-tour-button";
 import { AvailabilityLabel } from "./availability-label";
@@ -25,20 +26,17 @@ import { coordsOf } from "@/lib/geo";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { type Review } from "@/schemas/review";
 import { type Owner } from "@/schemas/owner";
-import type { SimilarResult } from "@/lib/services/listings";
 
 export function DetailView({
   listing,
   reviews,
   owner,
   isOwner = false,
-  similar,
 }: {
   listing: Listing;
   reviews: Review[];
   owner: Owner | null;
   isOwner?: boolean;
-  similar: SimilarResult;
 }) {
   const t = useTranslations("detail");
   const ta = useTranslations("apartments");
@@ -197,8 +195,12 @@ export function DetailView({
         </aside>
       </div>
 
-      {/* Similar homes — full width below the two-column layout */}
-      <SimilarHomes listing={listing} similar={similar} />
+      {/* Similar homes — full width below the two-column layout. Streams in its
+          own Suspense boundary so its district/city query doesn't block the
+          main listing content above. */}
+      <Suspense fallback={<SimilarHomesSkeleton />}>
+        <SimilarHomes listing={listing} />
+      </Suspense>
 
       {/* Mobile sticky booking bar */}
       <div

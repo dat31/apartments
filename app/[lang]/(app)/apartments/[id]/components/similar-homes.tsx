@@ -1,27 +1,28 @@
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { ListingCard } from "@/components/listing-card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonListingCard } from "@/components/skeleton-listing-card";
 import { districtLabel, type Listing } from "@/schemas/listing";
-import type { SimilarResult } from "@/lib/services/listings";
+import { getSimilarListings } from "@/lib/services/listings";
 
 /* "Similar homes" row, shown full-width below the detail two-column layout.
-   Renders the ranked picks (from getSimilarListings) as the exact browse
-   ListingCard — so save buttons, price formatting, and availability labels all
-   come along for free. Each card opens its own detail page (which shows its
-   own row), letting renters hop laterally through comparable inventory instead
-   of returning to browse.
 
-   Purely presentational: the query + ranking happen server-side in the
-   listings service, and this renders inside the detail page's existing
-   Suspense stream. */
-export function SimilarHomes({
-  listing,
-  similar,
-}: {
-  listing: Listing;
-  similar: SimilarResult;
-}) {
-  const t = useTranslations("detail.similar");
-  const { picks, districtScoped } = similar;
+   Async server component that owns its data: it runs its own district/city-
+   scoped Supabase query (getSimilarListings) and renders the ranked picks as
+   the exact browse ListingCard — so save buttons, price formatting, and
+   availability labels all come along for free. Each card opens its own detail
+   page (which shows its own row), letting renters hop laterally through
+   comparable inventory instead of returning to browse.
+
+   Lives behind its own <Suspense> in DetailView (SimilarHomesSkeleton
+   fallback), so the main listing content paints as soon as the listing + owner
+   resolve and this heavier below-the-fold query streams in underneath rather
+   than blocking the whole page. */
+export async function SimilarHomes({ listing }: { listing: Listing }) {
+  const [t, { picks, districtScoped }] = await Promise.all([
+    getTranslations("detail.similar"),
+    getSimilarListings(listing),
+  ]);
   if (!picks.length) return null;
 
   const district = districtLabel(listing.district);
@@ -40,6 +41,24 @@ export function SimilarHomes({
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
         {picks.map((l) => (
           <ListingCard key={l.id} listing={l} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* Fallback while the similar query streams — mirrors the heading + 3-card grid
+   so the page doesn't shift when the row lands. */
+export function SimilarHomesSkeleton() {
+  return (
+    <section className="mt-14" aria-busy="true" aria-label="Loading similar homes">
+      <div className="mb-5">
+        <Skeleton className="skeleton h-8 w-64 max-w-full" />
+        <Skeleton className="skeleton mt-2 h-4 w-80 max-w-full" />
+      </div>
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <SkeletonListingCard key={i} />
         ))}
       </div>
     </section>
