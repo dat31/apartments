@@ -59,6 +59,9 @@ export const ListingSchema = z.object({
   available: z.string(),
   desc: z.string(),
   images: z.array(z.string()).optional(),
+  // Row creation timestamp (ISO), used by the "Newest" sort. Absent on
+  // legacy seed objects, which are never sorted for browse.
+  createdAt: z.string().optional(),
   // Exact location, set by the owner via the form's map pin. Absent on
   // legacy rows and seed data — display falls back to lib/geo coordsOf().
   lat: z.number().optional(),

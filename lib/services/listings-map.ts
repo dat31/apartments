@@ -55,6 +55,7 @@ export function toListing(row: ListingRow): Listing {
     views: row.views,
     available: row.available_from ?? "now",
     desc: row.description,
+    createdAt: row.created_at,
     images: row.images.length ? row.images : undefined,
     lat: row.lat ?? undefined,
     lng: row.lng ?? undefined,

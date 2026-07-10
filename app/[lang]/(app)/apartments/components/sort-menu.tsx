@@ -14,7 +14,7 @@ import { type SortKey } from "@/schemas/filters";
 import { parseSort } from "../lib/query";
 import { useFilterNav } from "./use-filter-nav";
 
-const SORT_KEYS: SortKey[] = ["featured", "low", "high", "area"];
+const SORT_KEYS: SortKey[] = ["featured", "newest", "low", "high", "area"];
 
 /* Reads the active sort from the URL itself so the server shell that renders it
    stays static (no searchParams access above the Suspense boundary). */

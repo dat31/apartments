@@ -1,5 +1,13 @@
 # 6. Filter gaps — availability date, area range, "newest" sort
 
+> **Status: ✅ completed 2026-07-10 (PR #53, branch `feat/filter-sort-options`).**
+> Shipped against the Claude Design spec, which turned 6b/6c into chip rows:
+> a cumulative "Move-in by" horizon (`avail=now|1w|2w|1m` — "now" passes every
+> window) instead of the date input, and min-area threshold chips
+> (`minArea=20|30|40|50`) instead of a min/max pair. "Newest" sorts on a new
+> `Listing.createdAt` mapped from the row's `created_at`. Both predicate paths
+> (in-memory `filterListings` + the Saved page's Supabase query) are in sync.
+
 **Impact: medium, effort: small.** Three additions to the existing
 filter/sort system that each remove a real renter dead-end. All three ride
 the existing URL-param architecture — no new patterns.

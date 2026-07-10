@@ -26,7 +26,7 @@ informed without re-checking pages**, and **what happens after the tour**.
 ## Medium impact, low effort
 
 5. [Add-to-calendar for tours](05-tour-add-to-calendar.md) — `.ics` / Google Calendar link
-6. [Filter gaps](06-filter-gaps.md) — availability date, area range, "newest" sort
+6. ~~[Filter gaps](06-filter-gaps.md)~~ — **done** (PR #53): availability + min-area chips, "Newest" sort
 7. [Similar listings](07-similar-listings.md) — "more like this" on the detail page
 8. [Recently viewed](08-recently-viewed.md) — localStorage strip on browse
 9. [Share listing](09-share-listing.md) — copy link / native share on detail

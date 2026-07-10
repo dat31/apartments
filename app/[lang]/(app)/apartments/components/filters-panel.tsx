@@ -10,6 +10,7 @@ import { Check, Search } from "lucide-react";
 import { AMENITY_ICONS } from "@/components/icons";
 import { AMENITIES } from "@/lib/data/listings";
 import { TYPES, districtLabel } from "@/schemas/listing";
+import { AVAIL_KEYS, MIN_AREA_OPTIONS } from "@/schemas/filters";
 import { FILLED_INPUT } from "@/app/[lang]/(auth)/components/password-field";
 import { parseFilters } from "../lib/query";
 import { useFilterNav } from "./use-filter-nav";
@@ -102,6 +103,21 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
       </div>
 
       <div>
+        <h4 className={heading}>{t("filtersPanel.moveInBy")}</h4>
+        <div className="flex flex-wrap gap-2">
+          {AVAIL_KEYS.map((k) => (
+            <Chip
+              key={k}
+              active={filters.avail === k}
+              onClick={() => setParams({ avail: k === "any" ? null : k })}
+            >
+              {t(`filtersPanel.avail.${k}`)}
+            </Chip>
+          ))}
+        </div>
+      </div>
+
+      <div>
         <h4 className={heading}>{t("filtersPanel.district")}</h4>
         <div className="flex flex-wrap gap-2">
           {["All", ...districts].map((d) => (
@@ -153,6 +169,21 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
                 : b === "Studio"
                   ? t("filtersPanel.studio")
                   : b}
+            </Chip>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h4 className={heading}>{t("filtersPanel.minArea")}</h4>
+        <div className="flex flex-wrap gap-2">
+          {MIN_AREA_OPTIONS.map((v) => (
+            <Chip
+              key={v || "any"}
+              active={filters.minArea === v}
+              onClick={() => setParams({ minArea: v || null })}
+            >
+              {v ? `${v} m²+` : t("filtersPanel.any")}
             </Chip>
           ))}
         </div>

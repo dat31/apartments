@@ -228,6 +228,7 @@
     "showHomesShort": "Show homes",
     "sortOptions": {
       "featured": "Featured",
+      "newest": "Newest",
       "low": "Price: low to high",
       "high": "Price: high to low",
       "area": "Largest area"
@@ -244,6 +245,15 @@
       "bedrooms": "Bedrooms",
       "any": "Any",
       "studio": "Studio",
+      "moveInBy": "Move-in by",
+      "avail": {
+        "any": "Any time",
+        "now": "Available now",
+        "1w": "Within 1 week",
+        "2w": "Within 2 weeks",
+        "1m": "Within 1 month"
+      },
+      "minArea": "Minimum area",
       "amenities": "Amenities",
       "reset": "Reset filters"
     },
