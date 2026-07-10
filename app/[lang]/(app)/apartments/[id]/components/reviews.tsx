@@ -5,7 +5,6 @@ import { ReviewCard } from "@/components/review-card";
 import { StarRow } from "@/components/star-row";
 import { avgOf } from "@/lib/data/listings";
 import { type Review } from "@/schemas/review";
-import { type Owner } from "@/schemas/owner";
 import { reviewPageCount, reviewsForPage } from "../lib/reviews";
 import { ReviewPager } from "./review-pager";
 
@@ -13,11 +12,9 @@ import { ReviewPager } from "./review-pager";
    server (static HTML); the client pager takes over for any further pages. */
 export function Reviews({
   reviews,
-  owner,
   ownerKey,
 }: {
   reviews: Review[];
-  owner: Owner | null;
   ownerKey: string;
 }) {
   const t = useTranslations("detail.reviews");
@@ -39,14 +36,12 @@ export function Reviews({
             </p>
           )}
         </div>
-        {owner && (
-          <Link
-            href={`/owner/${ownerKey}`}
-            className="text-sm font-medium text-primary hover:underline focus-ring"
-          >
-            {t("seeHostProfile")} →
-          </Link>
-        )}
+        <Link
+          href={`/owner/${ownerKey}`}
+          className="text-sm font-medium text-primary hover:underline focus-ring"
+        >
+          {t("seeHostProfile")} →
+        </Link>
       </div>
 
       {reviews.length === 0 ? (
