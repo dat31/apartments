@@ -1,5 +1,15 @@
 # 7. Similar listings on the detail page
 
+> **Status: ✅ completed 2026-07-10 (PR #54, branch `feat/similar-homes`).**
+> Shipped a full-width "Similar homes" row below the detail layout. The picks
+> come from a dedicated, per-listing Supabase query (`getSimilarListings`)
+> scoped to the same district, broadening to the city only when the district
+> can't fill the row, then ranked by likeness (type, price, beds, area) — not a
+> scan of every active listing. Rendered as the exact browse `ListingCard`, and
+> streamed in its own `<Suspense>` boundary (alongside the now-split owner card)
+> so it never blocks the main content. Heading scopes to the district when
+> enough same-district matches exist, else the city.
+
 **Impact: medium, effort: small.** A detail page is where interest peaks —
 and where the journey currently dead-ends if this particular home isn't
 right. "Back to results" is the only continuation.
@@ -32,18 +42,19 @@ inventory a transparent scorer is better and debuggable.
 
 ## Integration points
 
-- **Data:** `getActiveListings()` in `lib/services/listings.ts` is already
-  cached (`"use cache"`, `cacheTag("listings")`) — the similar-row
-  computation is a cheap in-memory scan on top of it, done server-side in
-  `DetailContent` (`apartments/[id]/components/detail-content.tsx`) and
-  passed to a small presentational component.
+- **Data:** `getSimilarListings(listing)` in `lib/services/listings.ts` runs a
+  dedicated, per-listing Supabase query — active listings in the same district,
+  broadening to the same city only when the district can't fill the row — then
+  ranks the candidates and returns the top 3. It is `"use cache"`d and tagged
+  `similar:<id>` (plus the shared `listings` tag), so it refreshes whenever a
+  listing changes, and it reads only the relevant slice rather than scanning
+  every active listing. Called server-side in `DetailContent`
+  (`apartments/[id]/components/detail-content.tsx`) — in parallel with the
+  owner load — and passed to a small presentational component.
 - **Streaming:** the detail page already streams below a Suspense boundary;
   the similar row lives inside the same boundary (it needs no extra
   round-trips) or its own — same boundary is simpler.
 - **Cards:** `components/listing-card.tsx` + `listing-card-link.tsx` as-is.
-- **Seed fallback:** detail pages for seed ids (`l1`…) should compute
-  similarity over the same pool the page itself came from — mirror the
-  existing "Supabase, else seed" fallback at the top of `DetailContent`.
 
 ## Scope notes
 

@@ -336,6 +336,13 @@
       "next": "Next",
       "stayedAt": "Stayed at {place}",
       "outOf": "{value} out of 5"
+    },
+    "similar": {
+      "aria": "Similar homes",
+      "headingDistrict": "More in {district}",
+      "headingCity": "Similar homes in {city}",
+      "subDistrict": "Other homes in the same district, ready to compare side by side.",
+      "subCity": "More places around {city} with a similar size and price."
     }
   },
   "tours": {

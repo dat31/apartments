@@ -1,39 +1,29 @@
+import { Suspense } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Gallery } from "./gallery";
 import { LocationMapLazy } from "./location-map-lazy";
 import { Reviews } from "./reviews";
+import { SimilarHomes, SimilarHomesSkeleton } from "./similar-homes";
+import { OwnerCard, OwnerCardSkeleton } from "./owner-card";
 import { SaveHomeButton } from "./save-home-button";
 import { BookTourButton } from "./book-tour-button";
 import { AvailabilityLabel } from "./availability-label";
-import {
-  Bath,
-  BedDouble,
-  Check,
-  Clock,
-  MapPin,
-  Maximize,
-  User,
-} from "lucide-react";
+import { Bath, BedDouble, Clock, MapPin, Maximize } from "lucide-react";
 import { AMENITY_ICONS } from "@/components/icons";
 import { PALETTE, AMENITIES } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { coordsOf } from "@/lib/geo";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { type Review } from "@/schemas/review";
-import { type Owner } from "@/schemas/owner";
 
 export function DetailView({
   listing,
   reviews,
-  owner,
   isOwner = false,
 }: {
   listing: Listing;
   reviews: Review[];
-  owner: Owner | null;
   isOwner?: boolean;
 }) {
   const t = useTranslations("detail");
@@ -42,49 +32,6 @@ export function DetailView({
   const colors = PALETTE[listing.palette];
   const coords = coordsOf(listing);
   const ams = AMENITIES.filter((a) => listing.amenities.includes(a.id));
-  // "You" covers the signed-in host viewing their own listing, plus the seed
-  // "you" demo owner used by the sample data.
-  const isYou = isOwner || listing.owner === "you";
-  const ownerLabel = isYou ? t("you") : owner?.name ?? listing.owner;
-
-  const renderOwner = (cls: string) => (
-    <Link
-      href={`/owner/${listing.owner}`}
-      className={cn(
-        "w-full flex items-center gap-3 text-left group focus-ring",
-        cls
-      )}
-    >
-      <span
-        className="inline-flex items-center justify-center w-11 h-11 shrink-0 font-semibold text-sm text-background/95"
-        style={{
-          background:
-            PALETTE[(owner ? owner.palette : listing.palette) % PALETTE.length][0],
-        }}
-      >
-        {isYou ? (
-          <User size={20} className="text-background/95" />
-        ) : (
-          ownerLabel
-            .split(/\s+/)
-            .slice(0, 2)
-            .map((w) => w[0])
-            .join("")
-            .toUpperCase()
-        )}
-      </span>
-      <div className="min-w-0">
-        <p className="text-sm text-muted-foreground">{t("listedBy")}</p>
-        <p className="font-medium capitalize group-hover:text-primary transition-colors flex items-center gap-1.5">
-          {ownerLabel}{" "}
-          {owner?.verified && <Check size={14} className="text-primary" />}
-        </p>
-        <p className="text-xs text-muted-foreground mt-0.5 group-hover:text-primary transition-colors">
-          {t("viewProfile")} →
-        </p>
-      </div>
-    </Link>
-  );
 
   return (
     <div>
@@ -165,11 +112,19 @@ export function DetailView({
             place={`${districtLabel(listing.district)}, ${listing.city}`}
           />
 
-          {/* Owner — inline on mobile */}
-          <div className="md:hidden mt-8 bg-card p-5">{renderOwner("")}</div>
+          {/* Owner — inline on mobile. Streams in its own boundary. */}
+          <div className="md:hidden mt-8 bg-card p-5">
+            <Suspense fallback={<OwnerCardSkeleton />}>
+              <OwnerCard
+                ownerKey={listing.owner}
+                fallbackPalette={listing.palette}
+                isOwner={isOwner}
+              />
+            </Suspense>
+          </div>
 
           {/* Reviews — first page server-rendered, further pages client-side. */}
-          <Reviews reviews={reviews} owner={owner} ownerKey={listing.owner} />
+          <Reviews reviews={reviews} ownerKey={listing.owner} />
         </div>
 
         {/* Sticky booking card (tablet / desktop) */}
@@ -188,10 +143,24 @@ export function DetailView({
               {!isOwner && <BookTourButton listing={listing} mode="full" />}
               <SaveHomeButton id={listing.id} mode="full" />
             </div>
-            {renderOwner("mt-6 pt-6")}
+            <Suspense fallback={<OwnerCardSkeleton className="mt-6 pt-6" />}>
+              <OwnerCard
+                ownerKey={listing.owner}
+                fallbackPalette={listing.palette}
+                isOwner={isOwner}
+                className="mt-6 pt-6"
+              />
+            </Suspense>
           </div>
         </aside>
       </div>
+
+      {/* Similar homes — full width below the two-column layout. Streams in its
+          own Suspense boundary so its district/city query doesn't block the
+          main listing content above. */}
+      <Suspense fallback={<SimilarHomesSkeleton />}>
+        <SimilarHomes listing={listing} />
+      </Suspense>
 
       {/* Mobile sticky booking bar */}
       <div

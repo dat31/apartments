@@ -336,6 +336,13 @@
       "next": "Sau",
       "stayedAt": "Đã ở tại {place}",
       "outOf": "{value} trên 5"
+    },
+    "similar": {
+      "aria": "Nhà tương tự",
+      "headingDistrict": "Thêm nhà ở {district}",
+      "headingCity": "Nhà tương tự ở {city}",
+      "subDistrict": "Những căn khác trong cùng khu vực, sẵn sàng để so sánh cạnh nhau.",
+      "subCity": "Thêm lựa chọn quanh {city} với diện tích và mức giá tương tự."
     }
   },
   "tours": {
