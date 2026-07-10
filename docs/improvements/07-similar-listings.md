@@ -1,5 +1,15 @@
 # 7. Similar listings on the detail page
 
+> **Status: ✅ completed 2026-07-10 (PR #54, branch `feat/similar-homes`).**
+> Shipped a full-width "Similar homes" row below the detail layout. The picks
+> come from a dedicated, per-listing Supabase query (`getSimilarListings`)
+> scoped to the same district, broadening to the city only when the district
+> can't fill the row, then ranked by likeness (type, price, beds, area) — not a
+> scan of every active listing. Rendered as the exact browse `ListingCard`, and
+> streamed in its own `<Suspense>` boundary (alongside the now-split owner card)
+> so it never blocks the main content. Heading scopes to the district when
+> enough same-district matches exist, else the city.
+
 **Impact: medium, effort: small.** A detail page is where interest peaks —
 and where the journey currently dead-ends if this particular home isn't
 right. "Back to results" is the only continuation.
