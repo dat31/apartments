@@ -228,6 +228,7 @@
     "showHomesShort": "Xem nhà",
     "sortOptions": {
       "featured": "Nổi bật",
+      "newest": "Mới nhất",
       "low": "Giá: thấp đến cao",
       "high": "Giá: cao đến thấp",
       "area": "Diện tích lớn nhất"
@@ -244,6 +245,15 @@
       "bedrooms": "Phòng ngủ",
       "any": "Bất kỳ",
       "studio": "Studio",
+      "moveInBy": "Thời điểm chuyển vào",
+      "avail": {
+        "any": "Bất kỳ lúc nào",
+        "now": "Còn trống ngay",
+        "1w": "Trong vòng 1 tuần",
+        "2w": "Trong vòng 2 tuần",
+        "1m": "Trong vòng 1 tháng"
+      },
+      "minArea": "Diện tích tối thiểu",
       "amenities": "Tiện nghi",
       "reset": "Đặt lại bộ lọc"
     },

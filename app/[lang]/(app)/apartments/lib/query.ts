@@ -1,9 +1,13 @@
 import { districtLabel, type Listing } from "@/schemas/listing";
 import {
+  AVAIL_KEYS,
+  availCutoffISO,
   DEFAULT_FILTERS,
+  type AvailKey,
   type Filters,
   type SortKey,
 } from "@/schemas/filters";
+import { availInfo } from "@/lib/data/listings";
 
 /* Server-side reading of the listing query from the URL. The URL search
    params are the single source of truth for filter/sort/page state. */
@@ -17,6 +21,7 @@ const first = (v: string | string[] | undefined) =>
 
 export function parseFilters(sp: SearchParams): Filters {
   const amenities = first(sp.amenities);
+  const avail = first(sp.avail) as AvailKey | undefined;
   return {
     q: first(sp.q) ?? DEFAULT_FILTERS.q,
     type: first(sp.type) ?? DEFAULT_FILTERS.type,
@@ -26,10 +31,12 @@ export function parseFilters(sp: SearchParams): Filters {
     beds: first(sp.beds) ?? DEFAULT_FILTERS.beds,
     amenities: amenities ? amenities.split(",").filter(Boolean) : [],
     owner: first(sp.owner) ?? DEFAULT_FILTERS.owner,
+    avail: avail && AVAIL_KEYS.includes(avail) ? avail : DEFAULT_FILTERS.avail,
+    minArea: first(sp.minArea) ?? DEFAULT_FILTERS.minArea,
   };
 }
 
-const SORTS: SortKey[] = ["featured", "low", "high", "area"];
+const SORTS: SortKey[] = ["featured", "newest", "low", "high", "area"];
 export function parseSort(sp: SearchParams): SortKey {
   const s = first(sp.sort) as SortKey | undefined;
   return s && SORTS.includes(s) ? s : "featured";
@@ -64,11 +71,25 @@ export function filterListings(
     else if (filters.beds === "3+") r = r.filter((l) => l.beds >= 3);
     else r = r.filter((l) => l.beds === +filters.beds);
   }
+  if (filters.minArea) r = r.filter((l) => l.area >= +filters.minArea);
+  if (filters.avail !== "any") {
+    // Cumulative window: "available now" passes every horizon; a dated
+    // listing passes when its date is on or before the cutoff.
+    const cutoff = new Date(availCutoffISO(filters.avail) + "T00:00:00");
+    r = r.filter((l) => {
+      const info = availInfo(l);
+      return info.kind === "now" || info.date <= cutoff;
+    });
+  }
   if (filters.amenities.length)
     r = r.filter((l) => filters.amenities.every((a) => l.amenities.includes(a)));
   if (sort === "low") r = [...r].sort((a, b) => a.price - b.price);
   else if (sort === "high") r = [...r].sort((a, b) => b.price - a.price);
   else if (sort === "area") r = [...r].sort((a, b) => b.area - a.area);
+  else if (sort === "newest")
+    r = [...r].sort((a, b) =>
+      (b.createdAt ?? "").localeCompare(a.createdAt ?? "")
+    );
   return r;
 }
 
@@ -88,6 +109,8 @@ export function activeFilterCount(f: Filters): number {
     Number(!!f.minPrice) +
     Number(!!f.maxPrice) +
     Number(f.beds !== "Any") +
+    Number(f.avail !== "any") +
+    Number(!!f.minArea) +
     f.amenities.length
   );
 }

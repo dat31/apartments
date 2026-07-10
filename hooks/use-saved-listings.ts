@@ -4,7 +4,11 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { toListing } from "@/lib/services/listings-map";
 import { DISTRICTS, districtLabel, TYPES } from "@/schemas/listing";
-import { type Filters, type SortKey } from "@/schemas/filters";
+import {
+  availCutoffISO,
+  type Filters,
+  type SortKey,
+} from "@/schemas/filters";
 import type { Database } from "@/lib/database.types";
 
 /* Backend pagination for the Saved page.
@@ -114,6 +118,13 @@ export function useSavedListingsPage({
         else if (filters.beds === "3+") query = query.gte("beds", 3);
         else query = query.eq("beds", Number(filters.beds));
       }
+      if (filters.minArea) query = query.gte("area", Number(filters.minArea));
+      // Mirrors filterListings' availability window: null available_from
+      // means "available now" and passes every horizon.
+      if (filters.avail !== "any")
+        query = query.or(
+          `available_from.is.null,available_from.lte.${availCutoffISO(filters.avail)}`
+        );
       if (filters.amenities.length)
         query = query.contains("amenities", filters.amenities as AmenitySlug[]);
 
@@ -122,6 +133,8 @@ export function useSavedListingsPage({
         query = query.order("price", { ascending: false });
       else if (sort === "area")
         query = query.order("area", { ascending: false, nullsFirst: false });
+      else if (sort === "newest")
+        query = query.order("created_at", { ascending: false });
       else query = query.order("created_at", { ascending: true });
 
       const from = (page - 1) * SAVED_PAGE_SIZE;
