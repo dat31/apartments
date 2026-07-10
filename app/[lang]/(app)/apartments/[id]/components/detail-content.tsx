@@ -4,14 +4,9 @@ import { DetailView } from "./detail-view";
 import { JsonLd } from "@/components/json-ld";
 import { listingJsonLd } from "../lib/json-ld";
 import { createClient } from "@/lib/supabase/server";
-import { getActiveListings, getListingById } from "@/lib/services/listings";
+import { getListingById, getSimilarListings } from "@/lib/services/listings";
 import { getOwnerProfile } from "@/lib/services/owners";
-import {
-  getListing,
-  reviewsFor,
-  SEED_LISTINGS,
-  SEED_REVIEWS,
-} from "@/lib/data/listings";
+import { getListing, reviewsFor, SEED_REVIEWS } from "@/lib/data/listings";
 import type { Locale } from "@/i18n/routing";
 
 /* The listing-dependent half of the detail page. Lives below a Suspense
@@ -25,13 +20,13 @@ export async function DetailContent({ id }: { id: string }) {
   const listing = live ?? getListing(id);
   if (!listing) notFound();
 
-  // Pool for the "Similar homes" row — computed over the same source the page
-  // itself came from: the cached Supabase set for live listings, the seed set
-  // for seed ids. getActiveListings is "use cache"d and already warmed by
-  // browse, so this is a cheap in-memory scan rather than an extra round-trip.
-  const pool = live ? await getActiveListings() : SEED_LISTINGS;
-
-  const owner = await getOwnerProfile(listing.owner);
+  // "Similar homes" row + owner load in parallel; both depend only on the
+  // resolved listing. getSimilarListings runs its own district/city-scoped
+  // Supabase query (cached per listing), not a scan of every active listing.
+  const [owner, similar] = await Promise.all([
+    getOwnerProfile(listing.owner),
+    getSimilarListings(listing),
+  ]);
   const reviews = reviewsFor(SEED_REVIEWS, listing.owner);
 
   // Is the viewer the host of this listing? Real listings store the owner's
@@ -61,7 +56,7 @@ export async function DetailContent({ id }: { id: string }) {
         reviews={reviews}
         owner={owner}
         isOwner={isOwner}
-        pool={pool}
+        similar={similar}
       />
     </>
   );

@@ -25,19 +25,20 @@ import { coordsOf } from "@/lib/geo";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { type Review } from "@/schemas/review";
 import { type Owner } from "@/schemas/owner";
+import type { SimilarResult } from "@/lib/services/listings";
 
 export function DetailView({
   listing,
   reviews,
   owner,
   isOwner = false,
-  pool,
+  similar,
 }: {
   listing: Listing;
   reviews: Review[];
   owner: Owner | null;
   isOwner?: boolean;
-  pool: Listing[];
+  similar: SimilarResult;
 }) {
   const t = useTranslations("detail");
   const ta = useTranslations("apartments");
@@ -197,7 +198,7 @@ export function DetailView({
       </div>
 
       {/* Similar homes — full width below the two-column layout */}
-      <SimilarHomes listing={listing} pool={pool} />
+      <SimilarHomes listing={listing} similar={similar} />
 
       {/* Mobile sticky booking bar */}
       <div

@@ -64,6 +64,80 @@ export async function getListingsByOwner(ownerKey: string): Promise<Listing[]> {
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+export type SimilarResult = { picks: Listing[]; districtScoped: boolean };
+
+/** Homes similar to `listing` for the detail page's "Similar homes" row.
+    A dedicated, per-listing query — not the whole getActiveListings set: it
+    pulls only active listings in the same district, broadening to the same
+    city when the district is too thin to fill the row, then ranks the
+    candidates by likeness (type, price, beds, area) and returns the best `n`.
+    Cached per listing under the shared "listings" tag, so editing any listing
+    still refreshes the row. */
+export async function getSimilarListings(
+  listing: Listing,
+  n = 3
+): Promise<SimilarResult> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("listings", `similar:${listing.id}`);
+
+  const supabase = createPublicClient();
+  const active = () =>
+    supabase.from("listings").select("*").eq("status", "active").limit(30);
+
+  const { data: inDistrict, error } = await active().eq(
+    "district",
+    listing.district
+  );
+  if (error)
+    throw new Error(`Failed to load similar listings: ${error.message}`);
+
+  let rows = inDistrict ?? [];
+  // Enough same-district homes (besides the current one) to fill the row?
+  const districtScoped =
+    rows.filter((r) => r.id !== listing.id).length >= n;
+
+  if (!districtScoped) {
+    // Broaden to the wider city, de-duping the district rows already fetched.
+    const { data: inCity, error: cityErr } = await active().eq(
+      "city",
+      listing.city
+    );
+    if (cityErr)
+      throw new Error(`Failed to load similar listings: ${cityErr.message}`);
+    const seen = new Set(rows.map((r) => r.id));
+    rows = [...rows, ...(inCity ?? []).filter((r) => !seen.has(r.id))];
+  }
+
+  return { picks: rankSimilar(rows.map(toListing), listing, n), districtScoped };
+}
+
+/* Rank candidate listings by likeness to `current` and take the best `n`. The
+   query already scopes candidates to the district/city; this orders them by
+   type match and price/bed/area proximity, and drops the current listing.
+   Strong bonuses for same district/type, continuous penalties as price, bed
+   count, and area drift. */
+function rankSimilar(
+  candidates: Listing[],
+  current: Listing,
+  n: number
+): Listing[] {
+  const score = (l: Listing) => {
+    let s = 0;
+    if (l.district === current.district) s += 100;
+    if (l.city === current.city) s += 20;
+    if (l.type === current.type) s += 30;
+    s -= Math.min(35, Math.abs(l.price - current.price) / 100); // price
+    s -= Math.abs((l.beds || 0) - (current.beds || 0)) * 6; // bedrooms
+    s -= Math.min(15, Math.abs((l.area || 0) - (current.area || 0)) / 12); // area
+    return s;
+  };
+  return candidates
+    .filter((l) => l.id !== current.id)
+    .sort((a, b) => score(b) - score(a))
+    .slice(0, n);
+}
+
 /** A single listing by id, or null if not found / not accessible.
     RLS only exposes active listings to anonymous visitors. Non-uuid ids
     (e.g. legacy seed ids) return null so callers can fall back. */

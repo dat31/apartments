@@ -1,27 +1,27 @@
 import { useTranslations } from "next-intl";
 import { ListingCard } from "@/components/listing-card";
 import { districtLabel, type Listing } from "@/schemas/listing";
-import { rankSimilar } from "../lib/similar";
+import type { SimilarResult } from "@/lib/services/listings";
 
 /* "Similar homes" row, shown full-width below the detail two-column layout.
-   Ranks the active listings pool against the current home and renders the top
-   three as the exact browse ListingCard — so save buttons, price formatting,
-   and availability labels all come along for free. Each card opens its own
-   detail page (which shows its own row), letting renters hop laterally through
-   comparable inventory instead of returning to browse.
+   Renders the ranked picks (from getSimilarListings) as the exact browse
+   ListingCard — so save buttons, price formatting, and availability labels all
+   come along for free. Each card opens its own detail page (which shows its
+   own row), letting renters hop laterally through comparable inventory instead
+   of returning to browse.
 
-   Server component: the ranking is a pure in-memory scan, so nothing here is
-   interactive and it renders inside the detail page's existing Suspense
-   stream. */
+   Purely presentational: the query + ranking happen server-side in the
+   listings service, and this renders inside the detail page's existing
+   Suspense stream. */
 export function SimilarHomes({
   listing,
-  pool,
+  similar,
 }: {
   listing: Listing;
-  pool: Listing[];
+  similar: SimilarResult;
 }) {
   const t = useTranslations("detail.similar");
-  const { picks, districtScoped } = rankSimilar(pool, listing);
+  const { picks, districtScoped } = similar;
   if (!picks.length) return null;
 
   const district = districtLabel(listing.district);
