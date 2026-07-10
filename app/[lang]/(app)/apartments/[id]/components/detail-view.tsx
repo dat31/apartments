@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Gallery } from "./gallery";
 import { LocationMapLazy } from "./location-map-lazy";
 import { Reviews } from "./reviews";
+import { SimilarHomes } from "./similar-homes";
 import { SaveHomeButton } from "./save-home-button";
 import { BookTourButton } from "./book-tour-button";
 import { AvailabilityLabel } from "./availability-label";
@@ -30,11 +31,13 @@ export function DetailView({
   reviews,
   owner,
   isOwner = false,
+  pool,
 }: {
   listing: Listing;
   reviews: Review[];
   owner: Owner | null;
   isOwner?: boolean;
+  pool: Listing[];
 }) {
   const t = useTranslations("detail");
   const ta = useTranslations("apartments");
@@ -192,6 +195,9 @@ export function DetailView({
           </div>
         </aside>
       </div>
+
+      {/* Similar homes — full width below the two-column layout */}
+      <SimilarHomes listing={listing} pool={pool} />
 
       {/* Mobile sticky booking bar */}
       <div

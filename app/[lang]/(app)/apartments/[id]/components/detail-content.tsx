@@ -4,9 +4,14 @@ import { DetailView } from "./detail-view";
 import { JsonLd } from "@/components/json-ld";
 import { listingJsonLd } from "../lib/json-ld";
 import { createClient } from "@/lib/supabase/server";
-import { getListingById } from "@/lib/services/listings";
+import { getActiveListings, getListingById } from "@/lib/services/listings";
 import { getOwnerProfile } from "@/lib/services/owners";
-import { getListing, reviewsFor, SEED_REVIEWS } from "@/lib/data/listings";
+import {
+  getListing,
+  reviewsFor,
+  SEED_LISTINGS,
+  SEED_REVIEWS,
+} from "@/lib/data/listings";
 import type { Locale } from "@/i18n/routing";
 
 /* The listing-dependent half of the detail page. Lives below a Suspense
@@ -16,8 +21,15 @@ import type { Locale } from "@/i18n/routing";
 export async function DetailContent({ id }: { id: string }) {
   // Live listings come from Supabase; legacy seed ids (e.g. links from the
   // landing/saved pages) fall back to the in-memory seed data.
-  const listing = (await getListingById(id)) ?? getListing(id);
+  const live = await getListingById(id);
+  const listing = live ?? getListing(id);
   if (!listing) notFound();
+
+  // Pool for the "Similar homes" row — computed over the same source the page
+  // itself came from: the cached Supabase set for live listings, the seed set
+  // for seed ids. getActiveListings is "use cache"d and already warmed by
+  // browse, so this is a cheap in-memory scan rather than an extra round-trip.
+  const pool = live ? await getActiveListings() : SEED_LISTINGS;
 
   const owner = await getOwnerProfile(listing.owner);
   const reviews = reviewsFor(SEED_REVIEWS, listing.owner);
@@ -49,6 +61,7 @@ export async function DetailContent({ id }: { id: string }) {
         reviews={reviews}
         owner={owner}
         isOwner={isOwner}
+        pool={pool}
       />
     </>
   );
