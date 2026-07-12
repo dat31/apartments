@@ -281,7 +281,12 @@
       "save": "Save",
       "removeSaved": "Remove from saved"
     },
-    "empty": {
+    "recentlyViewed": {
+      "title": "Recently viewed",
+      "aria": "Recently viewed homes",
+      "clear": "Clear"
+    },
+"empty": {
       "title": "No homes match those filters",
       "body": "Try widening your price range or clearing a filter.",
       "reset": "Reset filters"

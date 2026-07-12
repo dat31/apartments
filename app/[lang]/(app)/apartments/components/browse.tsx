@@ -19,6 +19,7 @@ import { OwnerFilterBanner } from "./owner-filter-banner";
 import { SortMenu } from "./sort-menu";
 import { FilterCountBadge } from "./filter-count-badge";
 import { RememberSearch } from "./remember-search";
+import { RecentlyViewed } from "./recently-viewed";
 import { Listing } from "./listing";
 import {
   filterListings,
@@ -72,6 +73,11 @@ export async function Browse({
           <SortMenu />
         </div>
       </div>
+
+      {/* Recently-viewed strip — a client island that hydrates from
+          localStorage; full-width above the filters + results, renders nothing
+          until there's history. */}
+      <RecentlyViewed />
 
       <div className="flex gap-8">
         <aside className="hidden lg:block w-72 shrink-0">
