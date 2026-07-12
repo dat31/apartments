@@ -1,5 +1,19 @@
 # 8. Recently viewed
 
+> **Status: ✅ completed 2026-07-12 (PR #56, branch `claude/next-docs-review-weolfm`).**
+> Shipped a localStorage ring buffer (`hooks`-free lib under `apartments/lib`,
+> 12 ids, deduped, most-recent-first) written on mount by a null-rendering
+> `RecordRecentlyViewed` island in `DetailView`, so the detail page stays
+> server-first. The browse page shows a full-width strip above the filters +
+> results (a client island below the static shell) that hydrates ids the same
+> way the guest Saved page does — a browser Supabase read mapped with
+> `toListing`, seed ids falling back to `lib/data/listings` — and reads storage
+> via `useSyncExternalStore` (no setState-in-effect; the Clear link is reactive
+> and syncs across tabs). Cards are a dedicated compact variant (price, title,
+> district — no save button) matching the Claude Design spec, which showed the
+> full buffer in a horizontal scroll rather than capping at ~6. Inactive or
+> removed ids drop out on hydration.
+
 **Impact: medium, effort: small.** Apartment hunting is a multi-session
 compare loop — renters open a dozen detail pages across days and lose track
 of "that loft with the terrace I saw on Tuesday". Saving is deliberate;
