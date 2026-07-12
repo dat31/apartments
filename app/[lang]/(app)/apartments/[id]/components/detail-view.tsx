@@ -8,6 +8,7 @@ import { SimilarHomes, SimilarHomesSkeleton } from "./similar-homes";
 import { OwnerCard, OwnerCardSkeleton } from "./owner-card";
 import { SaveHomeButton } from "./save-home-button";
 import { BookTourButton } from "./book-tour-button";
+import { RecordRecentlyViewed } from "./record-recently-viewed";
 import { AvailabilityLabel } from "./availability-label";
 import { Bath, BedDouble, Clock, MapPin, Maximize } from "lucide-react";
 import { AMENITY_ICONS } from "@/components/icons";
@@ -35,6 +36,9 @@ export function DetailView({
 
   return (
     <div>
+      {/* Records this listing in the recently-viewed history (renders nothing). */}
+      <RecordRecentlyViewed id={listing.id} />
+
       {/* Gallery */}
       <Gallery images={listing.images} colors={colors} label={listing.title} />
 

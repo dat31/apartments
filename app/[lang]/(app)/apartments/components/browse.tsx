@@ -19,6 +19,7 @@ import { OwnerFilterBanner } from "./owner-filter-banner";
 import { SortMenu } from "./sort-menu";
 import { FilterCountBadge } from "./filter-count-badge";
 import { RememberSearch } from "./remember-search";
+import { RecentlyViewed } from "./recently-viewed";
 import { Listing } from "./listing";
 import {
   filterListings,
@@ -128,6 +129,10 @@ export async function Browse({
           <Suspense fallback={null}>
             <OwnerFilterBanner searchParams={searchParams} />
           </Suspense>
+
+          {/* Recently-viewed strip — a client island that hydrates from
+              localStorage; renders nothing until there's history. */}
+          <RecentlyViewed />
 
           <Suspense fallback={<SkeletonGrid count={6} />}>
             <Results searchParams={searchParams} />

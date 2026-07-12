@@ -281,7 +281,12 @@
       "save": "Lưu",
       "removeSaved": "Bỏ khỏi đã lưu"
     },
-    "empty": {
+    "recentlyViewed": {
+      "title": "Đã xem gần đây",
+      "aria": "Những nhà đã xem gần đây",
+      "clear": "Xóa"
+    },
+"empty": {
       "title": "Không có nhà nào khớp bộ lọc",
       "body": "Thử mở rộng khoảng giá hoặc bỏ bớt một bộ lọc.",
       "reset": "Đặt lại bộ lọc"
