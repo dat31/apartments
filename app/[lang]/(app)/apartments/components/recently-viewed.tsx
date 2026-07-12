@@ -3,31 +3,34 @@
 import * as React from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { Clock } from "lucide-react";
+import Image from "next/image";
+import { Clock, MapPin } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/client";
 import { toListing } from "@/lib/services/listings-map";
-import { getListing } from "@/lib/data/listings";
-import { ListingCard } from "@/components/listing-card";
-import { SkeletonListingCard } from "@/components/skeleton-listing-card";
-import type { Listing } from "@/schemas/listing";
+import { getListing, PALETTE } from "@/lib/data/listings";
+import { useMoney } from "@/hooks/use-money";
+import { districtLabel, type Listing } from "@/schemas/listing";
 import {
-  RECENTLY_VIEWED_VISIBLE,
+  RECENTLY_VIEWED_CAP,
   clearRecentlyViewed,
   getRecentlyViewedServerSnapshot,
   getRecentlyViewedSnapshot,
   subscribeRecentlyViewed,
 } from "../lib/recently-viewed";
 
-/* "Recently viewed" strip, shown above the browse results.
+/* "Recently viewed" strip, shown full-width above the browse filters + results.
 
    A client island below the browse page's static shell so the shell stays
    prerenderable. Reads the localStorage ring buffer (written by the detail
    page's RecordRecentlyViewed), hydrates the ids into full listings the same
    way the guest Saved page does — a browser Supabase read mapped with
-   `toListing`, with seed ids falling back to lib/data/listings — and renders
-   the compact browse ListingCard so save buttons and price formatting come
-   along for free. Order follows recency; ids whose listing is gone or inactive
-   simply drop out. Renders nothing when there's no history. */
+   `toListing`, with seed ids falling back to lib/data/listings — then renders a
+   compact card per home (a lighter card than the browse grid's: price, title,
+   district, no save button — it's a feeder for the shortlist, not a second
+   one). Order follows recency; ids whose listing is gone or inactive drop out.
+   Renders nothing when there's no history. */
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -45,8 +48,7 @@ export function RecentlyViewed({ excludeId }: { excludeId?: string }) {
   );
 
   const visibleIds = React.useMemo(
-    () =>
-      ids.filter((id) => id !== excludeId).slice(0, RECENTLY_VIEWED_VISIBLE),
+    () => ids.filter((id) => id !== excludeId).slice(0, RECENTLY_VIEWED_CAP),
     [ids, excludeId]
   );
 
@@ -94,32 +96,93 @@ export function RecentlyViewed({ excludeId }: { excludeId?: string }) {
 
   return (
     <section className="mb-8 anim-fade" aria-label={t("aria")}>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
-          <Clock size={18} className="text-primary" /> {t("title")}
+      <div className="mb-3 flex items-center justify-between gap-4">
+        <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight">
+          <Clock size={17} className="text-muted-foreground" /> {t("title")}
         </h2>
         <button
           type="button"
           onClick={clear}
-          className="text-sm text-muted-foreground transition-colors hover:text-foreground focus-ring"
+          className="shrink-0 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-ring"
         >
           {t("clear")}
         </button>
       </div>
 
-      <div className="-mx-5 flex snap-x gap-4 overflow-x-auto px-5 pb-1 sm:-mx-1 sm:px-1">
+      {/* Horizontal strip; scrollbar hidden, small negative gutter so focus
+          rings / hover lift aren't clipped. */}
+      <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {query.isPending
           ? Array.from({ length: visibleIds.length }).map((_, i) => (
-              <div key={i} className="w-64 shrink-0 snap-start">
-                <SkeletonListingCard />
-              </div>
+              <RecentCardSkeleton key={i} />
             ))
           : (query.data ?? []).map((listing) => (
-              <div key={listing.id} className="w-64 shrink-0 snap-start">
-                <ListingCard listing={listing} />
-              </div>
+              <RecentCard key={listing.id} listing={listing} />
             ))}
       </div>
     </section>
+  );
+}
+
+/* Compact recently-viewed card — lighter than the browse ListingCard (no save
+   button, beds/baths, or badges), in the app's card idiom (rounded, hairline
+   ring). The whole card is a link back to the detail page. */
+function RecentCard({ listing }: { listing: Listing }) {
+  const t = useTranslations("apartments");
+  const money = useMoney();
+  const colors = PALETTE[listing.palette];
+  return (
+    <Link
+      href={`/apartments/${listing.id}`}
+      aria-label={listing.title}
+      className="group block w-56 shrink-0 snap-start overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10 transition-transform hover:-translate-y-0.5 focus-ring"
+    >
+      <div className="relative aspect-[16/10] overflow-hidden bg-secondary">
+        {listing.images?.length ? (
+          <Image
+            src={listing.images[0]}
+            alt={listing.title}
+            fill
+            sizes="224px"
+            className="object-cover"
+          />
+        ) : (
+          <span className="absolute inset-0" style={{ background: colors[0] }} />
+        )}
+        <span className="absolute inset-0 bg-foreground/0 transition-colors group-hover:bg-foreground/10" />
+      </div>
+      <div className="p-3">
+        <div className="flex items-baseline gap-1">
+          <span className="text-sm font-semibold tracking-tight tabular-nums">
+            {money(listing.price)}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {t("card.perMonth")}
+          </span>
+        </div>
+        <p className="mt-0.5 truncate text-sm font-medium leading-snug transition-colors group-hover:text-primary">
+          {listing.title}
+        </p>
+        <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
+          <MapPin size={12} className="shrink-0" /> {districtLabel(listing.district)}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+function RecentCardSkeleton() {
+  return (
+    <div
+      className="w-56 shrink-0 overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10"
+      aria-hidden="true"
+    >
+      <Skeleton className="skeleton skeleton-media aspect-[16/10]" />
+      <div className="p-3">
+        <Skeleton className="skeleton h-4 w-16" />
+        <Skeleton className="skeleton mt-2 h-4 w-full" />
+        <Skeleton className="skeleton mt-1.5 h-3 w-2/3" />
+      </div>
+    </div>
   );
 }

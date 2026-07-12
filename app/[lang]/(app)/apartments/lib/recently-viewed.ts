@@ -9,11 +9,8 @@
 
 export const RECENTLY_VIEWED_KEY = "danapa-recently-viewed";
 
-/** How many ids we retain. The strip renders fewer (see RECENTLY_VIEWED_VISIBLE). */
+/** How many ids we retain (and render — the strip scrolls horizontally). */
 export const RECENTLY_VIEWED_CAP = 12;
-
-/** How many cards the strip shows even when the buffer holds more. */
-export const RECENTLY_VIEWED_VISIBLE = 6;
 
 const CHANGE_EVENT = "danapa-recently-viewed-change";
 
