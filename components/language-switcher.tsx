@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { routing, localeNames, type Locale } from "@/i18n/routing";
 import { usePathname, getPathname } from "@/i18n/navigation";
+import { rememberLocale } from "@/i18n/locale-cookie";
 
 export function LanguageSwitcher() {
   const current = useLocale();
@@ -19,7 +20,7 @@ export function LanguageSwitcher() {
   const switchTo = (locale: Locale) => {
     if (locale === current) return;
     // Remember the choice so the middleware honors it on unprefixed visits.
-    document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=31536000;samesite=lax`;
+    rememberLocale(locale);
     const target = getPathname({ href: pathname, locale });
     // Full-page navigation: switching the locale segment re-renders the root
     // layout (<html lang> + next-themes script), which can't happen on a soft

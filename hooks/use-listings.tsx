@@ -3,6 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateListings } from "@/lib/actions/listings";
 import { useUser } from "@/hooks/auth";
 import { toListing, toListingWrite } from "@/lib/services/listings-map";
 import { PALETTE } from "@/lib/data/listings";
@@ -15,10 +16,10 @@ import type { TablesInsert } from "@/lib/database.types";
    to owner_id (RLS lets an owner see their own drafts alongside active homes,
    and insert/update/delete only their own).
 
-   Writes invalidate the query so the list reflects immediately. They do NOT
-   revalidate the server-cached public read (getActiveListings, tagged
-   "listings"); a renter browsing the marketplace may see a change up to the
-   cache window later — acceptable for the owner-management flows. */
+   Writes invalidate the react-query cache so the dashboard reflects
+   immediately, and call the revalidateListings server action to expire the
+   "listings"-tagged server cache (getActiveListings & co.), so public
+   browse/detail pages pick up the change on their next request too. */
 
 export const listingKeys = {
   mine: (userId: string | undefined) => ["listings", "mine", userId ?? "guest"] as const,
@@ -53,10 +54,12 @@ export function useListings() {
     [listings]
   );
 
-  const invalidate = useCallback(
-    () => queryClient.invalidateQueries({ queryKey: key }),
-    [queryClient, key]
-  );
+  const invalidate = useCallback(() => {
+    // Fire-and-forget: the owner's own view is served by react-query; the
+    // server cache only affects what other visitors see next.
+    void revalidateListings();
+    return queryClient.invalidateQueries({ queryKey: key });
+  }, [queryClient, key]);
 
   const addMutation = useMutation({
     mutationFn: async ({

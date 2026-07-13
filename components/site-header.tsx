@@ -11,6 +11,7 @@ import { AccountMenu } from "@/components/account-menu";
 import { MobileNav } from "@/components/mobile-nav";
 import { ManageProfileDialog } from "@/components/manage-profile-dialog";
 import { useSaved } from "@/hooks/use-saved";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useProfile } from "@/hooks/use-profile";
 import { useUser, useSignOut } from "@/hooks/auth";
 import { Calendar, Heart } from "lucide-react";
@@ -28,13 +29,12 @@ export function SiteHeader() {
   const isOwner = profile.role === "owner";
   // Auth, saved count and role all come from client-only stores (react-query
   // cache seeded from cookies, localStorage). They're unknown during SSR, so
-  // gate the auth-dependent header on mount: server and first client render
-  // both show the signed-out shell, then the real state reveals after mount.
-  // This keeps the (app) layout statically prerenderable (no server cookie
-  // read) while avoiding a server/client hydration mismatch.
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => setMounted(true), []);
-  const isSignedIn = mounted && !!user;
+  // gate the auth-dependent header on hydration: server and first client
+  // render both show the signed-out shell, then the real state reveals. This
+  // keeps the (app) layout statically prerenderable (no server cookie read)
+  // while avoiding a server/client hydration mismatch.
+  const hydrated = useHydrated();
+  const isSignedIn = hydrated && !!user;
 
   return (
     <header className="sticky top-0 z-40 bg-background">
