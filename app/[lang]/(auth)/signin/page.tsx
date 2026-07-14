@@ -22,6 +22,7 @@ import { AuthDivider } from "../components/auth-divider";
 import { PasswordField, FILLED_INPUT } from "../components/password-field";
 import { createSignInSchema, type SignInValues } from "@/schemas/auth";
 import { useSignIn } from "@/hooks/auth";
+import { safeInternalPath } from "@/lib/redirects";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function SignInPage() {
     try {
       await signIn.mutateAsync(values);
       const next = new URLSearchParams(window.location.search).get("next");
-      router.push(next || "/apartments");
+      router.push(safeInternalPath(next, "/apartments"));
       router.refresh();
     } catch (err) {
       toast.error(

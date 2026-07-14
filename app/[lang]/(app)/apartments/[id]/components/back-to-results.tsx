@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ChevronLeft } from "lucide-react";
@@ -18,23 +18,33 @@ import {
    re-fetch and no skeleton flash.
 
    Otherwise (deep link, refresh, stale journey) it stays a normal link:
-   bare /apartments on the server, upgraded to the remembered query after
-   mount, so a click always lands somewhere sensible. */
+   bare /apartments on the server, upgraded to the remembered query once
+   hydrated, so a click always lands somewhere sensible. */
+
+const emptySubscribe = () => () => {};
+
+function readRememberedQuery(): string | null {
+  try {
+    return sessionStorage.getItem(SEARCH_MEMORY_KEY);
+  } catch {
+    return null; // sessionStorage unavailable — fall back to bare /apartments
+  }
+}
+
 export function BackToResults() {
   const t = useTranslations("detail");
   const router = useRouter();
-  const [href, setHref] = useState("/apartments");
+  const qs = useSyncExternalStore(
+    emptySubscribe,
+    readRememberedQuery,
+    () => null
+  );
+  const href = qs ? `/apartments?${qs}` : "/apartments";
   // Decided once at mount: the marker is only fresh right after a card click,
   // but the decision must hold however long the user stays on the page.
   const canGoBack = useRef(false);
   useEffect(() => {
     canGoBack.current = cameFromResults();
-    try {
-      const qs = sessionStorage.getItem(SEARCH_MEMORY_KEY);
-      if (qs) setHref(`/apartments?${qs}`);
-    } catch {
-      // ignore — fall back to bare /apartments
-    }
   }, []);
   return (
     <Link
