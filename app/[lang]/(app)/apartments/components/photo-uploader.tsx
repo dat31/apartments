@@ -2,14 +2,19 @@
 
 import * as React from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { PhotoCard } from "./photo-card";
-import { ImageIcon, Plus } from "lucide-react";
+import { useUser } from "@/hooks/auth";
+import { uploadListingPhoto } from "@/lib/supabase/storage";
+import { ImageIcon, Loader2, Plus } from "lucide-react";
 
 /* Photo grid with drag-to-reorder (react-dnd) + file upload.
-   Uploaded files are read into data URLs so they can be stored on the
-   listing and rendered immediately. The first photo is the cover. */
+   Files are uploaded to the public listing-photos Storage bucket as they're
+   picked, and the listing stores their public URLs — not data URLs, which
+   would bypass next/image optimization and bloat rows and page payloads.
+   The first photo is the cover. */
 export function PhotoUploader({
   value,
   onChange,
@@ -18,24 +23,26 @@ export function PhotoUploader({
   onChange: (next: string[]) => void;
 }) {
   const t = useTranslations("listingForm.photoUploader");
+  const { data: user } = useUser();
   const fileRef = React.useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = React.useState(false);
 
-  const addFiles = (fileList: FileList | null) => {
+  const addFiles = async (fileList: FileList | null) => {
     const files = Array.from(fileList ?? []).filter((f) =>
       f.type.startsWith("image/")
     );
-    if (!files.length) return;
-    Promise.all(
-      files.map(
-        (file) =>
-          new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          })
-      )
-    ).then((urls) => onChange([...value, ...urls]));
+    if (!files.length || uploading || !user) return;
+    setUploading(true);
+    try {
+      const urls = await Promise.all(
+        files.map((file) => uploadListingPhoto(file, user.id))
+      );
+      onChange([...value, ...urls]);
+    } catch {
+      toast.error(t("uploadError"));
+    } finally {
+      setUploading(false);
+    }
   };
 
   const removeImage = (i: number) =>
@@ -79,10 +86,17 @@ export function PhotoUploader({
             <button
               type="button"
               onClick={openPicker}
-              className="aspect-[4/3] flex flex-col items-center justify-center gap-1.5 text-muted-foreground bg-muted hover:bg-accent hover:text-accent-foreground transition-colors focus-ring"
+              disabled={uploading}
+              className="aspect-[4/3] flex flex-col items-center justify-center gap-1.5 text-muted-foreground bg-muted hover:bg-accent hover:text-accent-foreground transition-colors focus-ring disabled:pointer-events-none disabled:opacity-70"
             >
-              <Plus size={22} />
-              <span className="text-sm font-medium">{t("addPhoto")}</span>
+              {uploading ? (
+                <Loader2 size={22} className="animate-spin" />
+              ) : (
+                <Plus size={22} />
+              )}
+              <span className="text-sm font-medium">
+                {uploading ? t("uploading") : t("addPhoto")}
+              </span>
             </button>
           </div>
         </DndProvider>
@@ -90,11 +104,16 @@ export function PhotoUploader({
         <button
           type="button"
           onClick={openPicker}
-          className="w-full flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground bg-muted hover:bg-accent hover:text-accent-foreground transition-colors focus-ring"
+          disabled={uploading}
+          className="w-full flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground bg-muted hover:bg-accent hover:text-accent-foreground transition-colors focus-ring disabled:pointer-events-none disabled:opacity-70"
         >
-          <ImageIcon size={30} />
+          {uploading ? (
+            <Loader2 size={30} className="animate-spin" />
+          ) : (
+            <ImageIcon size={30} />
+          )}
           <span className="text-sm font-medium text-foreground">
-            {t("uploadPhotos")}
+            {uploading ? t("uploading") : t("uploadPhotos")}
           </span>
           <span className="text-xs">{t("uploadHint")}</span>
         </button>

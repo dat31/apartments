@@ -462,7 +462,9 @@
     "photoUploader": {
       "addPhoto": "Thêm ảnh",
       "uploadPhotos": "Tải ảnh lên",
-      "uploadHint": "PNG hoặc JPG — thêm bao nhiêu tùy thích",
+      "uploadHint": "PNG hoặc JPG tối đa 5 MB — thêm bao nhiêu tùy thích",
+      "uploading": "Đang tải lên…",
+      "uploadError": "Không thể tải ảnh lên. Vui lòng thử lại.",
       "removePhoto": "Xóa ảnh",
       "cover": "Ảnh bìa"
     },
