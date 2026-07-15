@@ -630,18 +630,25 @@
       "overview": "Tổng quan",
       "amenities": "Tiện nghi",
       "rows": {
+        "price": "Giá thuê",
         "type": "Loại nhà",
         "availability": "Tình trạng",
         "bedrooms": "Phòng ngủ",
         "bathrooms": "Phòng tắm",
         "area": "Diện tích",
         "district": "Quận",
-        "city": "Thành phố"
+        "city": "Thành phố",
+        "distance": "Khoảng cách từ bạn"
       },
       "lowest": "Rẻ nhất",
       "largest": "Rộng nhất",
       "yes": "Có",
-      "no": "Không"
+      "no": "Không",
+      "closest": "Gần nhất",
+      "useLocation": "Dùng vị trí của tôi",
+      "locating": "Đang xác định vị trí của bạn…",
+      "locationDenied": "Quyền vị trí đang bị chặn — hãy cho phép trong trình duyệt để xem khoảng cách.",
+      "locationUnavailable": "Không lấy được vị trí của bạn."
     }
   },
   "tour": {

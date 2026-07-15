@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -16,6 +16,7 @@ import { useMoney } from "@/hooks/use-money";
 import { useSaved } from "@/hooks/use-saved";
 import { createClient } from "@/lib/supabase/client";
 import { toListing } from "@/lib/services/listings-map";
+import { coordsOf, formatDistance, kmBetween, type LatLng } from "@/lib/geo";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { cn } from "@/lib/utils";
 import {
@@ -24,6 +25,7 @@ import {
   Eye,
   Heart,
   LayoutGrid,
+  LocateFixed,
   MapPin,
   Search,
   X,
@@ -35,6 +37,13 @@ import { parseCompareIds } from "../../lib/compare";
    "best" cells (lowest price, largest area) get a badge, and the amenity
    matrix shows a ✓/✗ per home — the part that genuinely beats flipping
    between detail tabs. */
+
+/* Browser geolocation for the "distance from you" row. Requested only when
+   the user asks (no permission prompt on page load — compare links open cold
+   from shares). */
+type Geo =
+  | { status: "idle" | "locating" | "denied" | "unavailable" }
+  | { status: "done"; point: LatLng };
 
 function useCompareListings(ids: string[]) {
   return useQuery({
@@ -59,9 +68,29 @@ export function CompareView() {
   const ts = useTranslations("saved");
   const ta = useTranslations("apartments");
   const td = useTranslations("detail");
+  const format = useFormatter();
+  const money = useMoney();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isSaved, toggleSave } = useSaved();
+
+  const [geo, setGeo] = React.useState<Geo>({ status: "idle" });
+  const requestPosition = () => {
+    if (!navigator.geolocation) {
+      setGeo({ status: "unavailable" });
+      return;
+    }
+    setGeo({ status: "locating" });
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        setGeo({
+          status: "done",
+          point: [pos.coords.latitude, pos.coords.longitude],
+        }),
+      (err) => setGeo({ status: err.code === 1 ? "denied" : "unavailable" }),
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+    );
+  };
 
   const ids = React.useMemo(
     () => parseCompareIds(searchParams.get("ids")),
@@ -151,6 +180,20 @@ export function CompareView() {
     bestLabel?: string;
   };
   const rows: Row[] = [
+    {
+      key: "price",
+      render: (l) => (
+        <span>
+          {money(l.price)}
+          <span className="font-normal text-muted-foreground">
+            {ta("card.perMonth")}
+          </span>
+        </span>
+      ),
+      num: (l) => l.price,
+      best: "min",
+      bestLabel: t("lowest"),
+    },
     { key: "type", render: (l) => ta(`types.${l.type}`) },
     {
       key: "availability",
@@ -187,6 +230,18 @@ export function CompareView() {
   const minPrice = Math.min(...homes.map((l) => l.price));
   const priceBest = (l: Listing) =>
     homes.some((h) => h.price !== homes[0].price) && l.price === minPrice;
+
+  /* Straight-line distances from the user's position (coordsOf falls back to
+     an approximate district location when a listing has no owner-set pin). */
+  const distances =
+    geo.status === "done"
+      ? homes.map((l) => kmBetween(geo.point, coordsOf(l)))
+      : null;
+  const minDistance = distances ? Math.min(...distances) : 0;
+  const distancesDiffer =
+    !!distances && distances.some((d) => d !== distances[0]);
+  const isClosest = (i: number) =>
+    !!distances && distancesDiffer && distances[i] === minDistance;
 
   const bestBadge = (label: string) => (
     <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
@@ -253,6 +308,51 @@ export function CompareView() {
               ))}
             </React.Fragment>
           ))}
+
+          {/* Distance from the user — values once located, otherwise a single
+              spanning cell with the opt-in button / status message. */}
+          <div className={labelCell}>{t("rows.distance")}</div>
+          {distances ? (
+            homes.map((l, i) => (
+              <div
+                key={l.id}
+                className={cn(
+                  cellBase,
+                  "border-l gap-2",
+                  isClosest(i) && "bg-secondary/40 font-semibold"
+                )}
+              >
+                <span>{formatDistance(format, distances[i])}</span>
+                {isClosest(i) && bestBadge(t("closest"))}
+              </div>
+            ))
+          ) : (
+            <div
+              className={cn(cellBase, "border-l")}
+              style={{ gridColumn: `span ${n}` }}
+            >
+              {geo.status === "denied" || geo.status === "unavailable" ? (
+                <span className="text-muted-foreground">
+                  {t(
+                    geo.status === "denied"
+                      ? "locationDenied"
+                      : "locationUnavailable"
+                  )}
+                </span>
+              ) : (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={requestPosition}
+                  disabled={geo.status === "locating"}
+                  className="gap-1.5"
+                >
+                  <LocateFixed size={15} />{" "}
+                  {geo.status === "locating" ? t("locating") : t("useLocation")}
+                </Button>
+              )}
+            </div>
+          )}
 
           {sectionBand(t("amenities"))}
           {AMENITIES.map((a) => {

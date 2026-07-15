@@ -630,18 +630,25 @@
       "overview": "Overview",
       "amenities": "Amenities",
       "rows": {
+        "price": "Price",
         "type": "Home type",
         "availability": "Availability",
         "bedrooms": "Bedrooms",
         "bathrooms": "Bathrooms",
         "area": "Area",
         "district": "District",
-        "city": "City"
+        "city": "City",
+        "distance": "Distance from you"
       },
       "lowest": "Lowest",
       "largest": "Largest",
       "yes": "Yes",
-      "no": "No"
+      "no": "No",
+      "closest": "Closest",
+      "useLocation": "Use my location",
+      "locating": "Finding your location…",
+      "locationDenied": "Location access is blocked — allow it in your browser to see distances.",
+      "locationUnavailable": "Couldn’t get your location."
     }
   },
   "tour": {
