@@ -59,7 +59,6 @@ export function CompareView() {
   const ts = useTranslations("saved");
   const ta = useTranslations("apartments");
   const td = useTranslations("detail");
-  const money = useMoney();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isSaved, toggleSave } = useSaved();
@@ -173,13 +172,6 @@ export function CompareView() {
       num: (l) => l.area,
       best: "max",
       bestLabel: t("largest"),
-    },
-    {
-      key: "pricePerM2",
-      render: (l) => (l.area > 0 ? `${money(l.price / l.area)}/m²` : "—"),
-      num: (l) => (l.area > 0 ? l.price / l.area : Infinity),
-      best: "min",
-      bestLabel: t("lowest"),
     },
     { key: "district", render: (l) => districtLabel(l.district) },
     { key: "city", render: (l) => l.city },

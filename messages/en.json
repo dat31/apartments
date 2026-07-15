@@ -635,7 +635,6 @@
         "bedrooms": "Bedrooms",
         "bathrooms": "Bathrooms",
         "area": "Area",
-        "pricePerM2": "Price per m²",
         "district": "District",
         "city": "City"
       },
