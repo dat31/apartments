@@ -462,7 +462,9 @@
     "photoUploader": {
       "addPhoto": "Add photo",
       "uploadPhotos": "Upload photos",
-      "uploadHint": "PNG or JPG — add as many as you like",
+      "uploadHint": "PNG or JPG up to 5 MB — add as many as you like",
+      "uploading": "Uploading…",
+      "uploadError": "Couldn't upload photos. Please try again.",
       "removePhoto": "Remove photo",
       "cover": "Cover"
     },
