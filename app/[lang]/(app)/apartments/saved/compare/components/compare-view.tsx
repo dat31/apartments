@@ -281,6 +281,7 @@ export function CompareView() {
             <div key={l.id} className="border-l border-border">
               <HeaderCard
                 listing={l}
+                columns={n}
                 lowest={priceBest(l)}
                 saved={isSaved(l.id)}
                 onToggleSave={() => toggleSave(l.id)}
@@ -390,12 +391,14 @@ export function CompareView() {
    save/unsave. The ✕ drops the column by rewriting the ids URL param. */
 function HeaderCard({
   listing,
+  columns,
   lowest,
   saved,
   onToggleSave,
   onRemove,
 }: {
   listing: Listing;
+  columns: number;
   lowest: boolean;
   saved: boolean;
   onToggleSave: () => void;
@@ -413,7 +416,11 @@ function HeaderCard({
             src={listing.images[0]}
             alt={listing.title}
             fill
-            sizes="340px"
+            /* Real rendered column width, so two-home comparisons don't get a
+               small variant upscaled: (page container, capped at 1400px, minus
+               padding + the label column) split across the columns — floored
+               at the grid's 230px column minimum (the mobile scroll case). */
+            sizes={`max(230px, calc((min(100vw, 1400px) - 244px) / ${columns}))`}
             className="object-cover"
           />
         ) : (
