@@ -14,6 +14,7 @@ import {
   DrawerTrigger,
   DrawerClose,
 } from "@/components/ui/drawer";
+import Image from "next/image";
 import { ListingCard } from "@/components/listing-card";
 import { SkeletonGrid } from "@/components/skeleton-listing-card";
 import { useSaved } from "@/hooks/use-saved";
@@ -22,7 +23,11 @@ import {
   useSavedFacets,
   useSavedListingsPage,
 } from "@/hooks/use-saved-listings";
-import { Heart, Search, SlidersHorizontal } from "lucide-react";
+import { Heart, LayoutGrid, Search, SlidersHorizontal, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { PALETTE } from "@/lib/data/listings";
+import { COMPARE_MAX } from "../lib/compare";
+import type { Listing } from "@/schemas/listing";
 import { FiltersPanel } from "@/app/[lang]/(app)/apartments/components/filters-panel";
 import { SortMenu } from "@/app/[lang]/(app)/apartments/components/sort-menu";
 import { EmptyResults } from "@/app/[lang]/(app)/apartments/components/empty-results";
@@ -47,6 +52,25 @@ export function SavedList() {
   const ta = useTranslations("apartments");
   const { saved, ready: savedReady, scope } = useSaved();
   const searchParams = useSearchParams();
+
+  // Compare selection. Whole listings (not just ids) so the bottom bar can
+  // show thumbnails even for picks made on other pages; only the id list
+  // survives into the compare URL.
+  const [selectMode, setSelectMode] = React.useState(false);
+  const [selection, setSelection] = React.useState<Listing[]>([]);
+  const atLimit = selection.length >= COMPARE_MAX;
+  const toggleCompare = (listing: Listing) =>
+    setSelection((prev) =>
+      prev.some((l) => l.id === listing.id)
+        ? prev.filter((l) => l.id !== listing.id)
+        : prev.length >= COMPARE_MAX
+          ? prev
+          : [...prev, listing]
+    );
+  const exitSelect = () => {
+    setSelectMode(false);
+    setSelection([]);
+  };
 
   // Guests may still hold legacy non-uuid ids in localStorage; keep only real
   // listing uuids so `.in("id", …)` (a uuid column) never errors.
@@ -123,7 +147,13 @@ export function SavedList() {
 
   return (
     <div className="container mx-auto px-5 sm:px-8 py-8">
-      <Header count={savedTotal} showBrowse />
+      <Header
+        count={savedTotal}
+        showBrowse
+        selectMode={selectMode}
+        onEnterSelect={() => setSelectMode(true)}
+        onExitSelect={exitSelect}
+      />
 
       {!ready ? (
         <SkeletonGrid count={3} />
@@ -186,9 +216,26 @@ export function SavedList() {
               <EmptyResults />
             ) : (
               <>
-                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
+                <div
+                  className={cn(
+                    "grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger",
+                    selectMode && selection.length > 0 && "pb-24"
+                  )}
+                >
                   {results.map((l) => (
-                    <ListingCard key={l.id} listing={l} />
+                    <ListingCard
+                      key={l.id}
+                      listing={l}
+                      select={
+                        selectMode
+                          ? {
+                              selected: selection.some((s) => s.id === l.id),
+                              disabled: atLimit,
+                              onToggle: () => toggleCompare(l),
+                            }
+                          : undefined
+                      }
+                    />
                   ))}
                 </div>
                 {totalPages > 1 && (
@@ -204,11 +251,107 @@ export function SavedList() {
           </div>
         </div>
       )}
+
+      {selectMode && selection.length > 0 && (
+        <CompareBar selection={selection} onToggle={toggleCompare} onClear={() => setSelection([])} />
+      )}
     </div>
   );
 }
 
-function Header({ count, showBrowse }: { count: number; showBrowse?: boolean }) {
+/* Sticky selection summary: thumbnails of the picked homes (tap to unpick),
+   the running count, and the CTA into the compare view. */
+function CompareBar({
+  selection,
+  onToggle,
+  onClear,
+}: {
+  selection: Listing[];
+  onToggle: (l: Listing) => void;
+  onClear: () => void;
+}) {
+  const t = useTranslations("saved.compare");
+  const ids = selection.map((l) => l.id);
+  return (
+    <div className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur shadow-[0_-1px_0_var(--border)] anim-up">
+      <div className="container mx-auto px-5 sm:px-8 py-3.5 flex items-center gap-4">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="flex -space-x-3 shrink-0">
+            {selection.map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => onToggle(l)}
+                title={t("removeFromSelection", { title: l.title })}
+                className="relative w-11 h-11 overflow-hidden ring-2 ring-background group focus-ring"
+              >
+                {l.images?.length ? (
+                  <Image
+                    src={l.images[0]}
+                    alt={l.title}
+                    fill
+                    sizes="44px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <span
+                    className="absolute inset-0"
+                    style={{ background: PALETTE[l.palette][0] }}
+                  />
+                )}
+                <span className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/60 flex items-center justify-center text-background opacity-0 group-hover:opacity-100 transition-opacity">
+                  <X size={16} />
+                </span>
+              </button>
+            ))}
+          </div>
+          <p className="text-sm text-muted-foreground truncate hidden sm:block">
+            {t("selectedCount", { count: selection.length, max: COMPARE_MAX })}
+            {selection.length >= COMPARE_MAX && ` · ${t("limitReached")}`}
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClear}
+          className="hidden sm:inline-flex"
+        >
+          {t("clear")}
+        </Button>
+        {selection.length >= 2 ? (
+          <Button asChild className="h-11 gap-1.5">
+            <Link
+              href={{
+                pathname: "/apartments/saved/compare",
+                query: { ids: ids.join(",") },
+              }}
+            >
+              <LayoutGrid size={16} /> {t("cta", { count: selection.length })}
+            </Link>
+          </Button>
+        ) : (
+          <Button disabled className="h-11 gap-1.5">
+            <LayoutGrid size={16} /> {t("button")}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Header({
+  count,
+  showBrowse,
+  selectMode = false,
+  onEnterSelect,
+  onExitSelect,
+}: {
+  count: number;
+  showBrowse?: boolean;
+  selectMode?: boolean;
+  onEnterSelect?: () => void;
+  onExitSelect?: () => void;
+}) {
   const t = useTranslations("saved");
   const ta = useTranslations("apartments");
   return (
@@ -218,7 +361,11 @@ function Header({ count, showBrowse }: { count: number; showBrowse?: boolean }) 
           <Heart size={26} className="text-primary" /> {t("title")}
         </h1>
         <p className="mt-1 text-muted-foreground">
-          {count === 0 ? t("emptyHint") : t("countSub", { count })}
+          {selectMode
+            ? t("compare.selectHint", { max: COMPARE_MAX })
+            : count === 0
+              ? t("emptyHint")
+              : t("countSub", { count })}
         </p>
       </div>
       {showBrowse && count > 0 && (
@@ -229,11 +376,28 @@ function Header({ count, showBrowse }: { count: number; showBrowse?: boolean }) 
             </span>
             <SortMenu />
           </div>
-          <Button asChild variant="ghost" className="h-11 gap-1.5">
-            <Link href="/apartments">
-              <Search size={16} /> {t("keepBrowsing")}
-            </Link>
-          </Button>
+          {selectMode ? (
+            <Button variant="ghost" className="h-11 gap-1.5" onClick={onExitSelect}>
+              <X size={16} /> {t("compare.done")}
+            </Button>
+          ) : (
+            <>
+              {count >= 2 && (
+                <Button
+                  variant="secondary"
+                  className="h-11 gap-1.5"
+                  onClick={onEnterSelect}
+                >
+                  <LayoutGrid size={16} /> {t("compare.button")}
+                </Button>
+              )}
+              <Button asChild variant="ghost" className="h-11 gap-1.5">
+                <Link href="/apartments">
+                  <Search size={16} /> {t("keepBrowsing")}
+                </Link>
+              </Button>
+            </>
+          )}
         </div>
       )}
     </div>
