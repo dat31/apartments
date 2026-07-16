@@ -41,6 +41,44 @@ export const AmenitySchema = z.object({
 });
 export type Amenity = z.infer<typeof AmenitySchema>;
 
+/* ---- Costs & terms (improvement #13) ----
+   A listing's money questions: deposit, per-utility billing, minimum lease.
+   Every field is optional — an absent value means the owner hasn't listed
+   it ("not listed"), which must never read as "free" or zero. */
+
+export const DEPOSIT_TYPES = ["none", "1mo", "2mo", "custom"] as const;
+export type DepositType = (typeof DEPOSIT_TYPES)[number];
+
+export const UTILITY_IDS = ["electricity", "water", "wifi", "building"] as const;
+export type UtilityId = (typeof UTILITY_IDS)[number];
+
+export const UTILITY_BILLING = ["included", "metered", "fixed"] as const;
+export type UtilityBilling = (typeof UTILITY_BILLING)[number];
+
+const UtilityModeSchema = z.enum(UTILITY_BILLING).optional();
+
+export const ListingCostsSchema = z.object({
+  deposit: z.enum(DEPOSIT_TYPES).optional(),
+  // USD — only meaningful when deposit === "custom".
+  depositAmount: z.number().optional(),
+  util: z.object({
+    electricity: UtilityModeSchema,
+    water: UtilityModeSchema,
+    wifi: UtilityModeSchema,
+    building: UtilityModeSchema,
+  }),
+  // Fixed monthly USD amounts — only meaningful where util[id] === "fixed".
+  amt: z.object({
+    electricity: z.number().optional(),
+    water: z.number().optional(),
+    wifi: z.number().optional(),
+    building: z.number().optional(),
+  }),
+  // Months. 0 = explicitly no minimum; absent = not listed.
+  minLease: z.number().optional(),
+});
+export type ListingCosts = z.infer<typeof ListingCostsSchema>;
+
 export const ListingSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -66,6 +104,8 @@ export const ListingSchema = z.object({
   // legacy rows and seed data — display falls back to lib/geo coordsOf().
   lat: z.number().optional(),
   lng: z.number().optional(),
+  // Costs & terms. Absent when the owner has listed none of them.
+  costs: ListingCostsSchema.optional(),
 });
 export type Listing = z.infer<typeof ListingSchema>;
 
@@ -88,6 +128,7 @@ export type ListingCore = Pick<
   | "available"
   | "lat"
   | "lng"
+  | "costs"
 >;
 
 /* Listing form schema — shared by the create and edit pages.
@@ -95,6 +136,33 @@ export type ListingCore = Pick<
    yield strings) and converted to numbers on submit via formToCore().
    Built from a translator (scoped to the `validation` namespace) so the
    field messages are localized. */
+/* Costs & terms while editing: every value is a string ("" = not listed).
+   `minLease` holds "none" for an explicit no-minimum, otherwise months. */
+const utilityStringsSchema = z.object({
+  electricity: z.string(),
+  water: z.string(),
+  wifi: z.string(),
+  building: z.string(),
+});
+
+const costsFormSchema = z.object({
+  deposit: z.string(),
+  depositAmount: z.string(),
+  util: utilityStringsSchema,
+  amt: utilityStringsSchema,
+  minLease: z.string(),
+});
+
+export type CostsFormValues = z.infer<typeof costsFormSchema>;
+
+export const blankCostsForm: CostsFormValues = {
+  deposit: "",
+  depositAmount: "",
+  util: { electricity: "", water: "", wifi: "", building: "" },
+  amt: { electricity: "", water: "", wifi: "", building: "" },
+  minLease: "",
+};
+
 export const createListingFormSchema = (t: (key: string) => string) =>
   z.object({
     title: z.string().trim().min(1, t("listing.title")),
@@ -111,6 +179,7 @@ export const createListingFormSchema = (t: (key: string) => string) =>
     // Map pin — kept as numbers (set by the picker, not typed by hand).
     lat: z.number().nullable(),
     lng: z.number().nullable(),
+    costs: costsFormSchema,
   });
 
 export type ListingFormValues = z.infer<
@@ -131,7 +200,68 @@ export const blankListingForm: ListingFormValues = {
   available: "now",
   lat: null,
   lng: null,
+  costs: blankCostsForm,
 };
+
+/* Costs: form strings → domain values. Returns undefined when the owner
+   listed nothing, so untouched listings keep an absent `costs`. */
+export function formCostsToCore(c: CostsFormValues): ListingCosts | undefined {
+  const num = (s: string) => (Number(s) > 0 ? Number(s) : undefined);
+  const mode = (s: string) =>
+    (UTILITY_BILLING as readonly string[]).includes(s)
+      ? (s as UtilityBilling)
+      : undefined;
+  const util = {
+    electricity: mode(c.util.electricity),
+    water: mode(c.util.water),
+    wifi: mode(c.util.wifi),
+    building: mode(c.util.building),
+  };
+  const amt = {
+    electricity: util.electricity === "fixed" ? num(c.amt.electricity) : undefined,
+    water: util.water === "fixed" ? num(c.amt.water) : undefined,
+    wifi: util.wifi === "fixed" ? num(c.amt.wifi) : undefined,
+    building: util.building === "fixed" ? num(c.amt.building) : undefined,
+  };
+  const costs: ListingCosts = {
+    deposit: (DEPOSIT_TYPES as readonly string[]).includes(c.deposit)
+      ? (c.deposit as DepositType)
+      : undefined,
+    depositAmount: c.deposit === "custom" ? num(c.depositAmount) : undefined,
+    util,
+    amt,
+    minLease: c.minLease === "none" ? 0 : num(c.minLease),
+  };
+  const any =
+    costs.deposit !== undefined ||
+    costs.minLease !== undefined ||
+    UTILITY_IDS.some((id) => util[id] !== undefined);
+  return any ? costs : undefined;
+}
+
+/* Costs: domain values → form strings (edit mode). */
+export function costsToForm(costs: Listing["costs"]): CostsFormValues {
+  if (!costs) return blankCostsForm;
+  const str = (n: number | undefined) => (n != null ? String(n) : "");
+  return {
+    deposit: costs.deposit ?? "",
+    depositAmount: str(costs.depositAmount),
+    util: {
+      electricity: costs.util.electricity ?? "",
+      water: costs.util.water ?? "",
+      wifi: costs.util.wifi ?? "",
+      building: costs.util.building ?? "",
+    },
+    amt: {
+      electricity: str(costs.amt.electricity),
+      water: str(costs.amt.water),
+      wifi: str(costs.amt.wifi),
+      building: str(costs.amt.building),
+    },
+    minLease:
+      costs.minLease === 0 ? "none" : costs.minLease != null ? String(costs.minLease) : "",
+  };
+}
 
 /* Populate the form from an existing listing (edit mode). */
 export function listingToForm(l: Listing): ListingFormValues {
@@ -149,6 +279,7 @@ export function listingToForm(l: Listing): ListingFormValues {
     available: l.available || "now",
     lat: l.lat ?? null,
     lng: l.lng ?? null,
+    costs: costsToForm(l.costs),
   };
 }
 
@@ -169,5 +300,6 @@ export function formToCore(v: ListingFormValues): ListingCore {
     available: v.available,
     lat: v.lat ?? undefined,
     lng: v.lng ?? undefined,
+    costs: formCostsToCore(v.costs),
   };
 }

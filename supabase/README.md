@@ -14,3 +14,4 @@ supabase db push
 | Migration | What it does |
 | --- | --- |
 | `20260714120000_listing_photos_bucket.sql` | Creates the public `listing-photos` Storage bucket (5 MB/photo, image MIME types only) with owner-scoped write policies. Required for the photo uploader — without it, uploads in the listing form fail. |
+| `20260716090000_listing_costs.sql` | Cost transparency (improvement #13): nullable `deposit`, `deposit_amount`, per-utility billing mode/amount, and `min_lease_months` columns on `listings`, plus plausible values for the seed rows. Applied 2026-07-16. |

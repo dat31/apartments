@@ -10,6 +10,8 @@ import { SaveHomeButton } from "./save-home-button";
 import { BookTourButton } from "./book-tour-button";
 import { RecordRecentlyViewed } from "./record-recently-viewed";
 import { AvailabilityLabel } from "./availability-label";
+import { CostsSection } from "./costs-section";
+import { MoveInEstimate } from "./move-in-estimate";
 import { Bath, BedDouble, Clock, MapPin, Maximize } from "lucide-react";
 import { AMENITY_ICONS } from "@/components/icons";
 import { PALETTE, AMENITIES } from "@/lib/data/listings";
@@ -82,6 +84,9 @@ export function DetailView({
             ))}
           </div>
 
+          {/* Costs & terms — money questions up top, close to booking intent */}
+          <CostsSection listing={listing} />
+
           <div className="mt-8">
             <h2 className="text-lg font-semibold mb-2">{t("aboutTitle")}</h2>
             <p className="text-[15px] leading-relaxed text-muted-foreground text-pretty">
@@ -143,6 +148,7 @@ export function DetailView({
             <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-primary">
               <Clock size={16} /> <AvailabilityLabel listing={listing} />
             </p>
+            <MoveInEstimate listing={listing} variant="compact" className="mt-4" />
             <div className="mt-5 flex flex-col gap-2.5">
               {!isOwner && <BookTourButton listing={listing} mode="full" />}
               <SaveHomeButton id={listing.id} mode="full" />

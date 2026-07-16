@@ -29,6 +29,7 @@ import {
 import { PhotoUploader } from "./photo-uploader";
 import { AmenityPicker } from "./amenity-picker";
 import { LocationPicker } from "./location-picker";
+import { CostsTermsSection } from "./costs-terms-section";
 import { useListings } from "@/hooks/use-listings";
 import { TYPES } from "@/schemas/listing";
 import {
@@ -360,6 +361,15 @@ export function ListingForm({
             onChange={(next) => setField("amenities", next)}
           />
         </section>
+
+        {/* Costs & terms */}
+        <CostsTermsSection
+          value={values.costs}
+          onChange={(costs) =>
+            setValue("costs", costs, { shouldDirty: true })
+          }
+          price={values.price}
+        />
         </div>
 
         {/* Publish / actions */}

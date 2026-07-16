@@ -23,12 +23,15 @@ export type Database = {
           beds: number
           city: string
           created_at: string
+          deposit: Database["public"]["Enums"]["deposit_type"] | null
+          deposit_amount: number | null
           description: string
           district: Database["public"]["Enums"]["district"]
           id: string
           images: string[]
           lat: number | null
           lng: number | null
+          min_lease_months: number | null
           owner_id: string
           palette: number
           price: number
@@ -36,6 +39,16 @@ export type Database = {
           title: string
           type: Database["public"]["Enums"]["listing_type"]
           updated_at: string
+          util_building: Database["public"]["Enums"]["utility_billing"] | null
+          util_building_amount: number | null
+          util_electricity:
+            | Database["public"]["Enums"]["utility_billing"]
+            | null
+          util_electricity_amount: number | null
+          util_water: Database["public"]["Enums"]["utility_billing"] | null
+          util_water_amount: number | null
+          util_wifi: Database["public"]["Enums"]["utility_billing"] | null
+          util_wifi_amount: number | null
           views: number
         }
         Insert: {
@@ -46,12 +59,15 @@ export type Database = {
           beds?: number
           city?: string
           created_at?: string
+          deposit?: Database["public"]["Enums"]["deposit_type"] | null
+          deposit_amount?: number | null
           description?: string
           district: Database["public"]["Enums"]["district"]
           id?: string
           images?: string[]
           lat?: number | null
           lng?: number | null
+          min_lease_months?: number | null
           owner_id: string
           palette?: number
           price: number
@@ -59,6 +75,16 @@ export type Database = {
           title: string
           type: Database["public"]["Enums"]["listing_type"]
           updated_at?: string
+          util_building?: Database["public"]["Enums"]["utility_billing"] | null
+          util_building_amount?: number | null
+          util_electricity?:
+            | Database["public"]["Enums"]["utility_billing"]
+            | null
+          util_electricity_amount?: number | null
+          util_water?: Database["public"]["Enums"]["utility_billing"] | null
+          util_water_amount?: number | null
+          util_wifi?: Database["public"]["Enums"]["utility_billing"] | null
+          util_wifi_amount?: number | null
           views?: number
         }
         Update: {
@@ -69,12 +95,15 @@ export type Database = {
           beds?: number
           city?: string
           created_at?: string
+          deposit?: Database["public"]["Enums"]["deposit_type"] | null
+          deposit_amount?: number | null
           description?: string
           district?: Database["public"]["Enums"]["district"]
           id?: string
           images?: string[]
           lat?: number | null
           lng?: number | null
+          min_lease_months?: number | null
           owner_id?: string
           palette?: number
           price?: number
@@ -82,6 +111,16 @@ export type Database = {
           title?: string
           type?: Database["public"]["Enums"]["listing_type"]
           updated_at?: string
+          util_building?: Database["public"]["Enums"]["utility_billing"] | null
+          util_building_amount?: number | null
+          util_electricity?:
+            | Database["public"]["Enums"]["utility_billing"]
+            | null
+          util_electricity_amount?: number | null
+          util_water?: Database["public"]["Enums"]["utility_billing"] | null
+          util_water_amount?: number | null
+          util_wifi?: Database["public"]["Enums"]["utility_billing"] | null
+          util_wifi_amount?: number | null
           views?: number
         }
         Relationships: [
@@ -360,10 +399,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_orphaned_listing_photos: {
+        Args: { min_age?: string }
+        Returns: string[]
+      }
     }
     Enums: {
       amenity: "wifi" | "parking" | "pets" | "garden" | "ac" | "laundry"
+      deposit_type: "none" | "1mo" | "2mo" | "custom"
       district:
         | "lien-chieu"
         | "hai-chau"
@@ -375,6 +418,7 @@ export type Database = {
       listing_type: "studio" | "apartment" | "loft" | "townhouse" | "house"
       tour_status: "pending" | "confirmed" | "declined" | "reschedule"
       user_role: "renter" | "owner"
+      utility_billing: "included" | "metered" | "fixed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -503,6 +547,7 @@ export const Constants = {
   public: {
     Enums: {
       amenity: ["wifi", "parking", "pets", "garden", "ac", "laundry"],
+      deposit_type: ["none", "1mo", "2mo", "custom"],
       district: [
         "lien-chieu",
         "hai-chau",
@@ -515,6 +560,7 @@ export const Constants = {
       listing_type: ["studio", "apartment", "loft", "townhouse", "house"],
       tour_status: ["pending", "confirmed", "declined", "reschedule"],
       user_role: ["renter", "owner"],
+      utility_billing: ["included", "metered", "fixed"],
     },
   },
 } as const

@@ -7,6 +7,7 @@ import { PALETTE, availInfo } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { SaveButton } from "@/components/save-button";
+import { DepositHint } from "@/components/deposit-hint";
 import { ListingCardLink } from "@/components/listing-card-link";
 import { cn } from "@/lib/utils";
 import { type ReactNode } from "react";
@@ -140,6 +141,7 @@ export function ListingCard({
                 }),
               })}
         </p>
+        <DepositHint listing={listing} className="mt-1" />
         <div className="mt-3 pt-3 flex items-center gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <BedDouble size={16} />{" "}
