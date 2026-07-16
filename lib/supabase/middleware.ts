@@ -33,7 +33,10 @@ function localized(locale: string, path: string): string {
    cookieless anon client in ./public. */
 const PROTECTED: RegExp[] = [
   /^\/owner\/dashboard(\/|$)/,
-  /^\/apartments\/saved(\/|$)/,
+  // The saved shortlist is per-user, but its /compare child stays public:
+  // the compared ids live in the URL so a comparison can be shared with
+  // someone who isn't signed in.
+  /^\/apartments\/saved(?!\/compare(\/|$))(\/|$)/,
   /^\/apartments\/create(\/|$)/,
   /^\/apartments\/[^/]+\/edit(\/|$)/,
   /^\/tour(\/|$)/,

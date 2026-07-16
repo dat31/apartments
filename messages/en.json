@@ -28,6 +28,9 @@
     "saved": {
       "title": "Saved homes"
     },
+    "compare": {
+      "title": "Compare homes"
+    },
     "tours": {
       "title": "My tours"
     },
@@ -286,7 +289,7 @@
       "aria": "Recently viewed homes",
       "clear": "Clear"
     },
-"empty": {
+    "empty": {
       "title": "No homes match those filters",
       "body": "Try widening your price range or clearing a filter.",
       "reset": "Reset filters"
@@ -607,7 +610,46 @@
     "keepBrowsing": "Keep browsing",
     "emptyTitle": "No saved homes yet",
     "emptyBody": "Tap the heart on any listing to save it. Your shortlist stays here so you can compare and revisit.",
-    "browseHomes": "Browse homes"
+    "browseHomes": "Browse homes",
+    "compare": {
+      "button": "Compare",
+      "done": "Done",
+      "selectHint": "Select up to {max} homes to compare side by side",
+      "selectedCount": "{count} of {max} selected",
+      "limitReached": "Limit reached",
+      "clear": "Clear",
+      "cta": "Compare {count} homes",
+      "removeFromSelection": "Remove {title}",
+      "title": "Compare homes",
+      "subtitle": "{count} of your saved homes, side by side",
+      "back": "Back to saved",
+      "pickTwoTitle": "Pick at least two homes",
+      "pickTwoBody": "Head back to your saved list and select two to four homes to see them side by side.",
+      "viewHome": "View home",
+      "removeColumn": "Remove from comparison",
+      "overview": "Overview",
+      "amenities": "Amenities",
+      "rows": {
+        "price": "Price",
+        "type": "Home type",
+        "availability": "Availability",
+        "bedrooms": "Bedrooms",
+        "bathrooms": "Bathrooms",
+        "area": "Area",
+        "district": "District",
+        "city": "City",
+        "distance": "Distance from you"
+      },
+      "lowest": "Lowest",
+      "largest": "Largest",
+      "yes": "Yes",
+      "no": "No",
+      "closest": "Closest",
+      "useLocation": "Use my location",
+      "locating": "Finding your location…",
+      "locationDenied": "Location access is blocked — allow it in your browser to see distances.",
+      "locationUnavailable": "Couldn’t get your location."
+    }
   },
   "tour": {
     "title": "My tours",

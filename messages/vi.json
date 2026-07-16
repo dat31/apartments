@@ -28,6 +28,9 @@
     "saved": {
       "title": "Nhà đã lưu"
     },
+    "compare": {
+      "title": "So sánh nhà"
+    },
     "tours": {
       "title": "Lịch xem nhà"
     },
@@ -286,7 +289,7 @@
       "aria": "Những nhà đã xem gần đây",
       "clear": "Xóa"
     },
-"empty": {
+    "empty": {
       "title": "Không có nhà nào khớp bộ lọc",
       "body": "Thử mở rộng khoảng giá hoặc bỏ bớt một bộ lọc.",
       "reset": "Đặt lại bộ lọc"
@@ -607,7 +610,46 @@
     "keepBrowsing": "Tiếp tục xem",
     "emptyTitle": "Chưa có nhà nào được lưu",
     "emptyBody": "Chạm vào biểu tượng trái tim trên bất kỳ tin đăng nào để lưu. Danh sách rút gọn của bạn sẽ ở đây để so sánh và xem lại.",
-    "browseHomes": "Xem nhà"
+    "browseHomes": "Xem nhà",
+    "compare": {
+      "button": "So sánh",
+      "done": "Xong",
+      "selectHint": "Chọn tối đa {max} nhà để so sánh cạnh nhau",
+      "selectedCount": "Đã chọn {count} / {max}",
+      "limitReached": "Đã đạt giới hạn",
+      "clear": "Bỏ chọn",
+      "cta": "So sánh {count} nhà",
+      "removeFromSelection": "Bỏ {title}",
+      "title": "So sánh nhà",
+      "subtitle": "{count} nhà đã lưu, hiển thị cạnh nhau",
+      "back": "Về nhà đã lưu",
+      "pickTwoTitle": "Chọn ít nhất hai nhà",
+      "pickTwoBody": "Quay lại danh sách đã lưu và chọn từ hai đến bốn nhà để xem chúng cạnh nhau.",
+      "viewHome": "Xem nhà",
+      "removeColumn": "Bỏ khỏi so sánh",
+      "overview": "Tổng quan",
+      "amenities": "Tiện nghi",
+      "rows": {
+        "price": "Giá thuê",
+        "type": "Loại nhà",
+        "availability": "Tình trạng",
+        "bedrooms": "Phòng ngủ",
+        "bathrooms": "Phòng tắm",
+        "area": "Diện tích",
+        "district": "Quận",
+        "city": "Thành phố",
+        "distance": "Khoảng cách từ bạn"
+      },
+      "lowest": "Rẻ nhất",
+      "largest": "Rộng nhất",
+      "yes": "Có",
+      "no": "Không",
+      "closest": "Gần nhất",
+      "useLocation": "Dùng vị trí của tôi",
+      "locating": "Đang xác định vị trí của bạn…",
+      "locationDenied": "Quyền vị trí đang bị chặn — hãy cho phép trong trình duyệt để xem khoảng cách.",
+      "locationUnavailable": "Không lấy được vị trí của bạn."
+    }
   },
   "tour": {
     "title": "Lịch xem của tôi",

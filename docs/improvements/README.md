@@ -33,7 +33,7 @@ informed without re-checking pages**, and **what happens after the tour**.
 
 ## Bigger bets
 
-10. [Compare saved homes](10-compare-saved-homes.md) — side-by-side table on Saved
+10. ~~[Compare saved homes](10-compare-saved-homes.md)~~ — **done** (PR #60): selection mode on Saved, URL-driven `/apartments/saved/compare?ids=…` column-per-home table (price, area, distance-from-you rows), guest-public by design
 11. [Commute anchor](11-commute-anchor.md) — one pin, distance on every card
 12. [Renter ↔ owner messaging](12-renter-owner-messaging.md) — per-tour message thread
 13. [Cost transparency](13-cost-transparency.md) — deposit, utilities, lease terms on listings

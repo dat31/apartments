@@ -2,20 +2,34 @@ import { useTranslations, useFormatter } from "next-intl";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bath, BedDouble, Clock, MapPin, Maximize } from "lucide-react";
+import { Bath, BedDouble, Check, Clock, MapPin, Maximize } from "lucide-react";
 import { PALETTE, availInfo } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { SaveButton } from "@/components/save-button";
 import { ListingCardLink } from "@/components/listing-card-link";
+import { cn } from "@/lib/utils";
 import { type ReactNode } from "react";
+
+/* Selection mode (the Saved page's Compare flow). When present, the card's
+   stretched link becomes a toggle button and a checkbox chip appears where
+   the badge would sit. Function-valued, so only client trees can pass it —
+   server call sites simply omit it and keep the plain link card. */
+export type ListingCardSelect = {
+  selected: boolean;
+  /** Selection cap reached — unselected cards go inert until a slot frees. */
+  disabled?: boolean;
+  onToggle: () => void;
+};
 
 export function ListingCard({
   listing,
   badge,
+  select,
 }: {
   listing: Listing;
   badge?: { icon: ReactNode; label: string };
+  select?: ListingCardSelect;
 }) {
   const t = useTranslations("apartments");
   const format = useFormatter();
@@ -23,16 +37,38 @@ export function ListingCard({
   const colors = PALETTE[listing.palette];
   const href = `/apartments/${listing.id}`;
   const avail = availInfo(listing);
+  const inactive = !!select && !!select.disabled && !select.selected;
   return (
-    <Card className="group/listing relative gap-0 overflow-hidden py-0 ring-0 transition-transform hover:-translate-y-1 hover:bg-accent">
+    <Card
+      className={cn(
+        "group/listing relative gap-0 overflow-hidden py-0 ring-0 transition-transform hover:-translate-y-1 hover:bg-accent",
+        inactive && "opacity-55"
+      )}
+      style={
+        select?.selected
+          ? { outline: "2px solid var(--primary)", outlineOffset: 2 }
+          : undefined
+      }
+    >
       {/* Stretched link covers the whole card so the rest stays
           server-rendered; the save button (z-20) and its own clicks sit
-          above it. */}
-      <ListingCardLink
-        href={href}
-        aria-label={listing.title}
-        className="absolute inset-0 z-10 focus-ring"
-      />
+          above it. In selection mode the link becomes a toggle instead. */}
+      {select ? (
+        <button
+          type="button"
+          onClick={select.onToggle}
+          disabled={inactive}
+          aria-pressed={select.selected}
+          aria-label={listing.title}
+          className="absolute inset-0 z-10 focus-ring disabled:cursor-not-allowed"
+        />
+      ) : (
+        <ListingCardLink
+          href={href}
+          aria-label={listing.title}
+          className="absolute inset-0 z-10 focus-ring"
+        />
+      )}
       <div className="card-media relative aspect-[16/9] overflow-hidden">
         <div className="absolute inset-0">
           {listing.images?.length ? (
@@ -50,10 +86,27 @@ export function ListingCard({
             />
           )}
         </div>
-        {badge && (
+        {badge && !select && (
           <span className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 bg-foreground text-background text-xs font-semibold px-2.5 h-7 pointer-events-none">
             {badge.icon}
             {badge.label}
+          </span>
+        )}
+        {select && (
+          <span
+            aria-hidden
+            className={cn(
+              "absolute top-3 left-3 z-20 w-9 h-9 inline-flex items-center justify-center transition-colors pointer-events-none",
+              select.selected
+                ? "bg-primary text-primary-foreground"
+                : "bg-background/90 text-foreground"
+            )}
+          >
+            {select.selected ? (
+              <Check size={18} />
+            ) : (
+              <span className="w-4 h-4 border-2 border-current opacity-60" />
+            )}
           </span>
         )}
         <SaveButton id={listing.id} />
