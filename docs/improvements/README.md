@@ -36,7 +36,7 @@ informed without re-checking pages**, and **what happens after the tour**.
 10. ~~[Compare saved homes](10-compare-saved-homes.md)~~ — **done** (PR #60): selection mode on Saved, URL-driven `/apartments/saved/compare?ids=…` column-per-home table (price, area, distance-from-you rows), guest-public by design
 11. [Commute anchor](11-commute-anchor.md) — one pin, distance on every card
 12. [Renter ↔ owner messaging](12-renter-owner-messaging.md) — per-tour message thread
-13. [Cost transparency](13-cost-transparency.md) — deposit, utilities, lease terms on listings
+13. ~~[Cost transparency](13-cost-transparency.md)~~ — **done** (PR #61): nullable cost columns + `listing.costs` domain, "Costs & terms" detail section with move-in estimate hero, compact estimate in the booking card, deposit hint on cards, owner form section with live preview + transparent-pricing note
 
 ## Suggested sequence
 

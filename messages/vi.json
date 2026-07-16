@@ -282,7 +282,10 @@
       "studio": "Studio",
       "beds": "{count, plural, other {# phòng ngủ}}",
       "save": "Lưu",
-      "removeSaved": "Bỏ khỏi đã lưu"
+      "removeSaved": "Bỏ khỏi đã lưu",
+      "depositNone": "Không cần cọc",
+      "depositMonths": "Cọc {count} tháng",
+      "depositAmount": "Cọc {amount}"
     },
     "recentlyViewed": {
       "title": "Đã xem gần đây",
@@ -351,6 +354,38 @@
       "headingCity": "Nhà tương tự ở {city}",
       "subDistrict": "Những căn khác trong cùng khu vực, sẵn sàng để so sánh cạnh nhau.",
       "subCity": "Thêm lựa chọn quanh {city} với diện tích và mức giá tương tự."
+    },
+    "costs": {
+      "aria": "Chi phí và điều khoản",
+      "title": "Chi phí & điều khoản",
+      "transparent": "Giá minh bạch",
+      "transparentHint": "Chủ nhà đã điền đầy đủ mọi chi tiết chi phí.",
+      "moveIn": "Chi phí dọn vào dự kiến",
+      "moveInShort": "Dự kiến dọn vào",
+      "estimateTag": "Ước tính",
+      "noDepositLine": "Một tháng tiền nhà — không cần cọc",
+      "firstMonth": "Tháng đầu",
+      "deposit": "Tiền cọc",
+      "compactNoDeposit": "Tiền nhà tháng đầu · không cần cọc",
+      "compactBreakdown": "Tháng đầu {first} + cọc {deposit}",
+      "moveInNote": "Con số gần đúng. Điện nước và các khoản phí phát sinh tính riêng.",
+      "minLease": "Thuê tối thiểu",
+      "notListed": "Chưa niêm yết",
+      "utilities": "Điện nước & dịch vụ",
+      "askOwner": "Chưa niêm yết — hãy hỏi chủ nhà khi đi xem.",
+      "included": "Bao gồm",
+      "metered": "Theo chỉ số",
+      "fixedPerMonth": "{amount}/tháng",
+      "depositNone": "Không cần cọc",
+      "depositMonths": "{count, plural, other {# tháng}}",
+      "leaseNone": "Không tối thiểu",
+      "leaseMonths": "{count, plural, other {# tháng}}",
+      "utility": {
+        "electricity": "Điện",
+        "water": "Nước",
+        "wifi": "Wifi",
+        "building": "Phí quản lý"
+      }
     }
   },
   "tours": {
@@ -462,6 +497,43 @@
     "description": "Mô tả",
     "descriptionPlaceholder": "Mô tả ánh sáng, bố cục, khu phố…",
     "amenities": "Tiện nghi",
+    "costs": {
+      "heading": "Chi phí & điều khoản",
+      "blurb": "Không bắt buộc — có thể bỏ trống mọi ô. Tin đăng trả lời rõ chuyện tiền nong sẽ được đặt xem nhiều hơn.",
+      "deposit": "Tiền cọc",
+      "depositChoice": {
+        "none": "Không cần cọc",
+        "1mo": "1 tháng",
+        "2mo": "2 tháng",
+        "custom": "Tùy chỉnh"
+      },
+      "depositAmountPlaceholder": "Số tiền cọc",
+      "depositApprox": "≈ {amount} với giá thuê này.",
+      "utilities": "Điện nước & dịch vụ",
+      "utilitiesHint": "Cách tính từng khoản. Chưa chắc thì cứ để trống.",
+      "utilityMode": {
+        "included": "Bao gồm",
+        "metered": "Theo chỉ số",
+        "fixed": "Cố định"
+      },
+      "amountPlaceholder": "Tiền/tháng",
+      "minLease": "Thuê tối thiểu",
+      "leaseNone": "Không tối thiểu",
+      "leaseMonths": "{count, plural, other {# tháng}}",
+      "or": "hoặc",
+      "monthsPlaceholder": "Số tháng",
+      "preview": "Người thuê sẽ thấy",
+      "previewMoveIn": "Dọn vào từ <b>~{amount}</b>",
+      "previewMoveInNoDeposit": "Dọn vào từ <b>~{amount}</b> — không cần cọc",
+      "previewEmpty": "Thêm tiền cọc để hiển thị chi phí dọn vào dự kiến cho người thuê.",
+      "previewComplete": "Hoàn tất — tin đăng của bạn sẽ có ghi chú giá minh bạch.",
+      "utility": {
+        "electricity": "Điện",
+        "water": "Nước",
+        "wifi": "Wifi",
+        "building": "Phí quản lý"
+      }
+    },
     "photoUploader": {
       "addPhoto": "Thêm ảnh",
       "uploadPhotos": "Tải ảnh lên",

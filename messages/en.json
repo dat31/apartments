@@ -282,7 +282,10 @@
       "studio": "Studio",
       "beds": "{count, plural, one {# bed} other {# beds}}",
       "save": "Save",
-      "removeSaved": "Remove from saved"
+      "removeSaved": "Remove from saved",
+      "depositNone": "No deposit",
+      "depositMonths": "{count} mo deposit",
+      "depositAmount": "{amount} deposit"
     },
     "recentlyViewed": {
       "title": "Recently viewed",
@@ -351,6 +354,38 @@
       "headingCity": "Similar homes in {city}",
       "subDistrict": "Other homes in the same district, ready to compare side by side.",
       "subCity": "More places around {city} with a similar size and price."
+    },
+    "costs": {
+      "aria": "Costs and terms",
+      "title": "Costs & terms",
+      "transparent": "Transparent pricing",
+      "transparentHint": "This owner has filled in every cost detail.",
+      "moveIn": "Estimated move-in",
+      "moveInShort": "Move-in estimate",
+      "estimateTag": "Estimate",
+      "noDepositLine": "One month's rent — no deposit",
+      "firstMonth": "First month",
+      "deposit": "Deposit",
+      "compactNoDeposit": "First month's rent · no deposit",
+      "compactBreakdown": "First month {first} + deposit {deposit}",
+      "moveInNote": "Approximate. Utilities and any one-off fees are billed separately.",
+      "minLease": "Minimum lease",
+      "notListed": "Not listed",
+      "utilities": "Utilities",
+      "askOwner": "Not listed — ask the owner during your tour.",
+      "included": "Included",
+      "metered": "By usage",
+      "fixedPerMonth": "{amount}/mo",
+      "depositNone": "No deposit",
+      "depositMonths": "{count, plural, one {# month} other {# months}}",
+      "leaseNone": "No minimum",
+      "leaseMonths": "{count, plural, one {# month} other {# months}}",
+      "utility": {
+        "electricity": "Electricity",
+        "water": "Water",
+        "wifi": "Wifi",
+        "building": "Building fee"
+      }
     }
   },
   "tours": {
@@ -462,6 +497,43 @@
     "description": "Description",
     "descriptionPlaceholder": "Describe the light, the layout, the neighborhood…",
     "amenities": "Amenities",
+    "costs": {
+      "heading": "Costs & terms",
+      "blurb": "Optional — every field can be left blank. Listings that answer the money questions win more tours.",
+      "deposit": "Deposit",
+      "depositChoice": {
+        "none": "No deposit",
+        "1mo": "1 month",
+        "2mo": "2 months",
+        "custom": "Custom"
+      },
+      "depositAmountPlaceholder": "Deposit amount",
+      "depositApprox": "≈ {amount} at this rent.",
+      "utilities": "Utilities",
+      "utilitiesHint": "How each one is charged. Leave a row untouched if you're not sure.",
+      "utilityMode": {
+        "included": "Included",
+        "metered": "By usage",
+        "fixed": "Fixed"
+      },
+      "amountPlaceholder": "Amount/mo",
+      "minLease": "Minimum lease",
+      "leaseNone": "No minimum",
+      "leaseMonths": "{count, plural, one {# month} other {# months}}",
+      "or": "or",
+      "monthsPlaceholder": "Months",
+      "preview": "Renters will see",
+      "previewMoveIn": "Move in from <b>~{amount}</b>",
+      "previewMoveInNoDeposit": "Move in from <b>~{amount}</b> — no deposit",
+      "previewEmpty": "Add a deposit to show renters an estimated move-in cost.",
+      "previewComplete": "Complete — your listing shows a transparent-pricing note.",
+      "utility": {
+        "electricity": "Electricity",
+        "water": "Water",
+        "wifi": "Wifi",
+        "building": "Building fee"
+      }
+    },
     "photoUploader": {
       "addPhoto": "Add photo",
       "uploadPhotos": "Upload photos",

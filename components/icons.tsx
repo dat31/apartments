@@ -5,8 +5,12 @@ import {
   Leaf,
   Snowflake,
   CircleCheck,
+  Zap,
+  Droplets,
+  Building2,
   type LucideIcon,
 } from "lucide-react";
+import { type UtilityId } from "@/schemas/listing";
 
 /* amenity icon id -> lucide icon, for data-driven amenity lists */
 export const AMENITY_ICONS: Record<string, LucideIcon> = {
@@ -16,6 +20,14 @@ export const AMENITY_ICONS: Record<string, LucideIcon> = {
   leaf: Leaf,
   snow: Snowflake,
   "check-circle": CircleCheck,
+};
+
+/* utility id -> lucide icon, for the costs & terms surfaces */
+export const UTILITY_ICONS: Record<UtilityId, LucideIcon> = {
+  electricity: Zap,
+  water: Droplets,
+  wifi: Wifi,
+  building: Building2,
 };
 
 /* brand marks — not available in lucide-react, kept as inline SVGs */
