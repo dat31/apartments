@@ -25,7 +25,7 @@ informed without re-checking pages**, and **what happens after the tour**.
 
 ## Medium impact, low effort
 
-5. [Add-to-calendar for tours](05-tour-add-to-calendar.md) — `.ics` / Google Calendar link
+5. ~~[Add-to-calendar for tours](05-tour-add-to-calendar.md)~~ — **done** (PR #67): "Add to calendar" on confirmed, non-elapsed tours — Google/Outlook links + `.ics` download, all client-side; event times hard-pinned to Da Nang UTC+7 and emitted as UTC, RFC-5545-folded `.ics`
 6. ~~[Filter gaps](06-filter-gaps.md)~~ — **done** (PR #53): availability + min-area chips, "Newest" sort
 7. ~~[Similar listings](07-similar-listings.md)~~ — **done** (PR #54): dedicated district/city query, ranked cards, streamed in its own Suspense boundary
 8. ~~[Recently viewed](08-recently-viewed.md)~~ — **done** (PR #56): localStorage ring buffer, full-width compact strip above browse results, hydrated client-side via `useSyncExternalStore`
