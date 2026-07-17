@@ -57,7 +57,7 @@ export function BackToResults() {
         clearCameFromResults();
         router.back();
       }}
-      className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-5 focus-ring"
+      className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground focus-ring"
     >
       <ChevronLeft size={18} /> {t("backToResults")}
     </Link>

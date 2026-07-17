@@ -7,6 +7,7 @@ import { Reviews } from "./reviews";
 import { SimilarHomes, SimilarHomesSkeleton } from "./similar-homes";
 import { OwnerCard, OwnerCardSkeleton } from "./owner-card";
 import { SaveHomeButton } from "./save-home-button";
+import { ShareButton } from "@/components/share-button";
 import { BookTourButton } from "./book-tour-button";
 import { RecordRecentlyViewed } from "./record-recently-viewed";
 import { AvailabilityLabel } from "./availability-label";
@@ -35,6 +36,12 @@ export function DetailView({
   const colors = PALETTE[listing.palette];
   const coords = coordsOf(listing);
   const ams = AMENITIES.filter((a) => listing.amenities.includes(a.id));
+  const shareText = t("shareText", {
+    title: listing.title,
+    price: money(listing.price),
+    district: districtLabel(listing.district),
+    city: listing.city,
+  });
 
   return (
     <div>
@@ -47,20 +54,32 @@ export function DetailView({
       <div className="mt-8 grid lg:grid-cols-[1fr_340px] gap-10">
         {/* Main */}
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Badge variant="secondary">{ta(`types.${listing.type}`)}</Badge>
-            {listing.status === "active" && (
-              <Badge>
-                <AvailabilityLabel listing={listing} />
-              </Badge>
-            )}
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="secondary">{ta(`types.${listing.type}`)}</Badge>
+                {listing.status === "active" && (
+                  <Badge>
+                    <AvailabilityLabel listing={listing} />
+                  </Badge>
+                )}
+              </div>
+              <h1 className="text-3xl font-semibold tracking-tight text-balance">
+                {listing.title}
+              </h1>
+              <p className="mt-1.5 flex items-center gap-1.5 text-muted-foreground">
+                <MapPin size={16} /> {districtLabel(listing.district)},{" "}
+                {listing.city}
+              </p>
+            </div>
+            {/* Tablet / desktop share sits beside the title; mobile share
+                lives in the page's back-to-results header row instead. */}
+            <ShareButton
+              title={listing.title}
+              text={shareText}
+              className="hidden sm:inline-flex shrink-0"
+            />
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight text-balance">
-            {listing.title}
-          </h1>
-          <p className="mt-1.5 flex items-center gap-1.5 text-muted-foreground">
-            <MapPin size={16} /> {districtLabel(listing.district)}, {listing.city}
-          </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
             {[
