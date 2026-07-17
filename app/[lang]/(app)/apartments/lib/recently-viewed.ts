@@ -90,6 +90,13 @@ export function getRecentlyViewedServerSnapshot(): string[] {
 export function subscribeRecentlyViewed(onChange: () => void): () => void {
   window.addEventListener("storage", onChange);
   window.addEventListener(CHANGE_EVENT, onChange);
+  // The browse page survives navigation hidden in the router's back/forward
+  // cache, with effects disconnected — so a detail-page write lands while no
+  // listener is attached, and React doesn't reliably re-check the snapshot
+  // when it reconnects this subscription on restore. onChange is React's own
+  // "re-read the snapshot" callback and is a no-op when nothing changed, so
+  // run it once per (re)connect to pick up writes made while hidden.
+  onChange();
   return () => {
     window.removeEventListener("storage", onChange);
     window.removeEventListener(CHANGE_EVENT, onChange);
