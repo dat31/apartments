@@ -820,6 +820,20 @@
     "cancelTour": "Hủy lịch xem",
     "historySection": "Đã qua & đã hủy",
     "dayCount": "{count, plural, other {# lịch xem}}",
+    "calendar": {
+      "add": "Thêm vào lịch",
+      "duration": "{min} phút",
+      "google": "Google Calendar",
+      "outlook": "Outlook",
+      "apple": "Apple / khác",
+      "opensEvent": "Mở một sự kiện mới",
+      "downloadsIcs": "Tải xuống tệp .ics",
+      "eventTitle": "Lịch xem nhà: {title}",
+      "detailIntro": "Lịch xem nhà đặt qua Danapa. Trả lời trong ứng dụng để đổi lịch hoặc hủy.",
+      "detailHost": "Chủ nhà: {name}",
+      "detailListing": "Tin đăng: {url}",
+      "detailManage": "Quản lý lịch xem của bạn: {url}"
+    },
     "route": {
       "viewRoute": "Xem lộ trình ngày này",
       "hideRoute": "Ẩn lộ trình",
