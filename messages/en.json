@@ -301,6 +301,77 @@
       "prev": "Prev",
       "next": "Next",
       "showing": "Showing {from}–{to} of {total}"
+    },
+    "savedSearches": {
+      "title": "Saved searches",
+      "aria": "Saved searches",
+      "alertsSummary": "{count, plural, one {We'll email you when new homes match 1 search} other {We'll email you when new homes match # searches}}",
+      "alertsHint": "Turn on a bell to get emailed about new matches",
+      "matches": "{count, plural, one {# matching home now} other {# matching homes now}}",
+      "noMatches": "No matches right now",
+      "apply": "Apply this search",
+      "applyAria": "Apply saved search: {name}",
+      "deleteAria": "Delete saved search: {name}",
+      "alertsOn": "Alerts on",
+      "alertsOff": "Alerts off",
+      "alertsOnTitle": "Alerts on — turn off",
+      "alertsOffTitle": "Alerts off — turn on",
+      "saveButton": "Save this search",
+      "alreadySaved": "This search is saved",
+      "nouns": {
+        "any": "Homes",
+        "Studio": "Studios",
+        "Apartment": "Apartments",
+        "Loft": "Lofts",
+        "Townhouse": "Townhouses",
+        "House": "Houses"
+      },
+      "describe": {
+        "inDistrict": "{name} in {district}",
+        "under": "{name} under {price}",
+        "over": "{name} over {price}",
+        "between": "{name} {min}–{max}",
+        "withBeds": "{name}, {beds}",
+        "bedsThreePlus": "3+ beds"
+      },
+      "chips": {
+        "under": "Under {price}",
+        "over": "Over {price}",
+        "between": "{min}–{max}",
+        "owner": "Specific host"
+      },
+      "dialog": {
+        "title": "Save this search",
+        "description": "Name it and choose whether to be emailed when new homes match.",
+        "nameLabel": "Search name",
+        "namePlaceholder": "Name this search",
+        "nameHint": "This is how it'll appear in your saved searches.",
+        "summaryHeading": "What you're saving",
+        "alertsLabel": "Email me when new homes match",
+        "alertsOnHint": "Sent to <email></email> the moment a matching home is published.",
+        "alertsOffHint": "You can still reopen this search anytime from Browse — you just won't be emailed.",
+        "cancel": "Cancel",
+        "confirm": "Save search",
+        "savedToast": "Search saved",
+        "errorToast": "Couldn't save the search. Please try again.",
+        "capToast": "You've reached the saved-search limit.",
+        "capTitle": "Saved-search limit reached",
+        "capHeading": "You've saved {max} searches",
+        "capBody": "That's the maximum. Delete a saved search you no longer need, then save this one.",
+        "capClose": "Got it"
+      },
+      "gate": {
+        "title": "Sign in to save this search",
+        "description": "Alerts email you when new homes match, so saving needs an account.",
+        "saveTitle": "Save searches",
+        "saveDesc": "Reopen a whole filter set in one tap.",
+        "alertTitle": "Be first to know",
+        "alertDesc": "Get emailed when a new home matches — good ones go fast.",
+        "syncTitle": "Keep everything together",
+        "syncDesc": "Your saved searches and saved homes, on any device.",
+        "notNow": "Not now",
+        "signIn": "Sign in"
+      }
     }
   },
   "detail": {
@@ -802,6 +873,9 @@
     "tour": {
       "date": "Pick a date",
       "time": "Pick a time"
+    },
+    "savedSearch": {
+      "name": "Give this search a name"
     }
   }
 }

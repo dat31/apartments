@@ -301,6 +301,77 @@
       "prev": "Trước",
       "next": "Sau",
       "showing": "Hiển thị {from}–{to} trong {total}"
+    },
+    "savedSearches": {
+      "title": "Tìm kiếm đã lưu",
+      "aria": "Tìm kiếm đã lưu",
+      "alertsSummary": "{count, plural, other {Chúng tôi sẽ gửi email khi có nhà mới khớp với # tìm kiếm}}",
+      "alertsHint": "Bật chuông để nhận email khi có nhà mới phù hợp",
+      "matches": "{count, plural, other {# nhà đang khớp}}",
+      "noMatches": "Hiện chưa có kết quả khớp",
+      "apply": "Áp dụng tìm kiếm này",
+      "applyAria": "Áp dụng tìm kiếm đã lưu: {name}",
+      "deleteAria": "Xóa tìm kiếm đã lưu: {name}",
+      "alertsOn": "Cảnh báo bật",
+      "alertsOff": "Cảnh báo tắt",
+      "alertsOnTitle": "Đang bật cảnh báo — nhấn để tắt",
+      "alertsOffTitle": "Cảnh báo đang tắt — nhấn để bật",
+      "saveButton": "Lưu tìm kiếm này",
+      "alreadySaved": "Đã lưu tìm kiếm này",
+      "nouns": {
+        "any": "Nhà",
+        "Studio": "Căn studio",
+        "Apartment": "Căn hộ",
+        "Loft": "Căn loft",
+        "Townhouse": "Nhà phố",
+        "House": "Nhà riêng"
+      },
+      "describe": {
+        "inDistrict": "{name} ở {district}",
+        "under": "{name} dưới {price}",
+        "over": "{name} trên {price}",
+        "between": "{name} từ {min} đến {max}",
+        "withBeds": "{name}, {beds}",
+        "bedsThreePlus": "3+ phòng ngủ"
+      },
+      "chips": {
+        "under": "Dưới {price}",
+        "over": "Trên {price}",
+        "between": "{min}–{max}",
+        "owner": "Chủ nhà cụ thể"
+      },
+      "dialog": {
+        "title": "Lưu tìm kiếm này",
+        "description": "Đặt tên và chọn có nhận email khi có nhà mới khớp hay không.",
+        "nameLabel": "Tên tìm kiếm",
+        "namePlaceholder": "Đặt tên cho tìm kiếm",
+        "nameHint": "Tên này sẽ hiển thị trong danh sách tìm kiếm đã lưu của bạn.",
+        "summaryHeading": "Bạn đang lưu",
+        "alertsLabel": "Gửi email khi có nhà mới khớp",
+        "alertsOnHint": "Gửi tới <email></email> ngay khi có nhà phù hợp được đăng.",
+        "alertsOffHint": "Bạn vẫn có thể mở lại tìm kiếm này bất cứ lúc nào từ trang Khám phá — chỉ là sẽ không nhận email.",
+        "cancel": "Hủy",
+        "confirm": "Lưu tìm kiếm",
+        "savedToast": "Đã lưu tìm kiếm",
+        "errorToast": "Không lưu được tìm kiếm. Vui lòng thử lại.",
+        "capToast": "Bạn đã đạt giới hạn tìm kiếm đã lưu.",
+        "capTitle": "Đã đạt giới hạn tìm kiếm đã lưu",
+        "capHeading": "Bạn đã lưu {max} tìm kiếm",
+        "capBody": "Đó là mức tối đa. Hãy xóa một tìm kiếm không còn cần, rồi lưu tìm kiếm này.",
+        "capClose": "Đã hiểu"
+      },
+      "gate": {
+        "title": "Đăng nhập để lưu tìm kiếm",
+        "description": "Cảnh báo gửi email khi có nhà mới khớp, nên cần tài khoản để lưu.",
+        "saveTitle": "Lưu tìm kiếm",
+        "saveDesc": "Mở lại cả bộ lọc chỉ với một chạm.",
+        "alertTitle": "Biết tin đầu tiên",
+        "alertDesc": "Nhận email khi có nhà mới khớp — nhà tốt hết rất nhanh.",
+        "syncTitle": "Giữ mọi thứ một chỗ",
+        "syncDesc": "Tìm kiếm và nhà đã lưu của bạn, trên mọi thiết bị.",
+        "notNow": "Để sau",
+        "signIn": "Đăng nhập"
+      }
     }
   },
   "detail": {
@@ -802,6 +873,9 @@
     "tour": {
       "date": "Chọn ngày",
       "time": "Chọn giờ"
+    },
+    "savedSearch": {
+      "name": "Hãy đặt tên cho tìm kiếm"
     }
   }
 }
