@@ -69,10 +69,11 @@ export function SavedSearchesStrip() {
             : t("alertsHint")}
         </p>
       </div>
-      {/* Scrollbar stays visible (unlike recently-viewed): cards are 19.5rem
-          wide, so past ~4 saved searches the rail overflows on desktop and a
-          mouse user needs the affordance to reach them. */}
-      <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-2 [scrollbar-width:thin]">
+      {/* overflow-x-auto at every size — it's what makes the rail pannable at
+          all. Only the scrollbar is responsive: hidden below md (touch swipes,
+          no affordance needed), thin from md up so mouse users can reach
+          cards past the viewport edge. */}
+      <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-1 md:pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:[scrollbar-width:thin] md:[&::-webkit-scrollbar]:block">
         {searches.map((s) => (
           <SavedSearchCard
             key={s.id}
