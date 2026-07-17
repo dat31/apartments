@@ -69,7 +69,10 @@ export function SavedSearchesStrip() {
             : t("alertsHint")}
         </p>
       </div>
-      <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Scrollbar stays visible (unlike recently-viewed): cards are 19.5rem
+          wide, so past ~4 saved searches the rail overflows on desktop and a
+          mouse user needs the affordance to reach them. */}
+      <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-2 [scrollbar-width:thin]">
         {searches.map((s) => (
           <SavedSearchCard
             key={s.id}
