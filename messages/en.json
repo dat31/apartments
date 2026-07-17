@@ -820,6 +820,20 @@
     "cancelTour": "Cancel tour",
     "historySection": "Past & cancelled",
     "dayCount": "{count, plural, one {# tour} other {# tours}}",
+    "calendar": {
+      "add": "Add to calendar",
+      "duration": "{min} min",
+      "google": "Google Calendar",
+      "outlook": "Outlook",
+      "apple": "Apple / other",
+      "opensEvent": "Opens a new event",
+      "downloadsIcs": "Downloads an .ics file",
+      "eventTitle": "Tour: {title}",
+      "detailIntro": "Home viewing booked through Danapa. Reply in the app to reschedule or cancel.",
+      "detailHost": "Host: {name}",
+      "detailListing": "Listing: {url}",
+      "detailManage": "Manage your tours: {url}"
+    },
     "route": {
       "viewRoute": "View route for this day",
       "hideRoute": "Hide route",

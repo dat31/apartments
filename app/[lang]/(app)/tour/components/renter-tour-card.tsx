@@ -8,7 +8,10 @@ import { StatusTag } from "@/components/status-tag";
 import { PALETTE } from "@/lib/data/listings";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { type TourRequest } from "@/schemas/tour";
-import { parseYmd } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
+import {
+  parseYmd,
+  isPastSlot,
+} from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import {
   Calendar,
   Check,
@@ -16,6 +19,7 @@ import {
   Clock,
   MapPin,
 } from "lucide-react";
+import { AddToCalendar } from "./add-to-calendar";
 
 /* One of the renter's own tour requests, with the actions available for its
    current status. Mirrors the owner card but from the renter's side. */
@@ -130,6 +134,11 @@ export function RenterTourCard({
         )}
 
         <div className="relative z-20 flex flex-wrap items-center gap-2 mt-auto">
+          {tour.status === "confirmed" &&
+            listing &&
+            !isPastSlot(tour.date, tour.time) && (
+              <AddToCalendar tour={tour} listing={listing} />
+            )}
           {tour.status === "reschedule" && (
             <>
               <Button size="sm" onClick={() => onAcceptNew(tour.id)}>
