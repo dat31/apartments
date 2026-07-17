@@ -14,6 +14,7 @@ import { AVAIL_KEYS, MIN_AREA_OPTIONS } from "@/schemas/filters";
 import { FILLED_INPUT } from "@/app/[lang]/(auth)/components/password-field";
 import { parseFilters } from "../lib/query";
 import { useFilterNav } from "./use-filter-nav";
+import { SaveSearch } from "./save-search";
 
 /* Debounces a text field into a single URL param: keeps the input snappy
    while only navigating once typing settles. Resyncs when the URL changes
@@ -222,9 +223,12 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
         </div>
       </div>
 
-      <Button variant="secondary" className="h-11" onClick={reset}>
-        {t("filtersPanel.reset")}
-      </Button>
+      <div className="flex flex-col gap-2.5">
+        <SaveSearch />
+        <Button variant="secondary" className="h-11" onClick={reset}>
+          {t("filtersPanel.reset")}
+        </Button>
+      </div>
     </div>
   );
 }

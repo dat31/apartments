@@ -20,6 +20,7 @@ import { SortMenu } from "./sort-menu";
 import { FilterCountBadge } from "./filter-count-badge";
 import { RememberSearch } from "./remember-search";
 import { RecentlyViewed } from "./recently-viewed";
+import { SavedSearchesStrip } from "./saved-searches-strip";
 import { Listing } from "./listing";
 import {
   filterListings,
@@ -73,6 +74,10 @@ export async function Browse({
           <SortMenu />
         </div>
       </div>
+
+      {/* Saved-searches strip — per-user client island; renders nothing for
+          guests or when the user hasn't saved a search yet. */}
+      <SavedSearchesStrip />
 
       {/* Recently-viewed strip — a client island that hydrates from
           localStorage; full-width above the filters + results, renders nothing

@@ -315,6 +315,77 @@ export type Database = {
           },
         ]
       }
+      saved_search_notifications: {
+        Row: {
+          created_at: string
+          listing_id: string
+          saved_search_id: string
+        }
+        Insert: {
+          created_at?: string
+          listing_id: string
+          saved_search_id: string
+        }
+        Update: {
+          created_at?: string
+          listing_id?: string
+          saved_search_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_search_notifications_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_search_notifications_saved_search_id_fkey"
+            columns: ["saved_search_id"]
+            isOneToOne: false
+            referencedRelation: "saved_searches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_searches: {
+        Row: {
+          alerts: boolean
+          created_at: string
+          id: string
+          locale: string
+          name: string
+          profile_id: string
+          query_string: string
+        }
+        Insert: {
+          alerts?: boolean
+          created_at?: string
+          id?: string
+          locale?: string
+          name: string
+          profile_id: string
+          query_string: string
+        }
+        Update: {
+          alerts?: boolean
+          created_at?: string
+          id?: string
+          locale?: string
+          name?: string
+          profile_id?: string
+          query_string?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_searches_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tours: {
         Row: {
           created_at: string
