@@ -109,9 +109,10 @@ export function RecentlyViewed({ excludeId }: { excludeId?: string }) {
         </button>
       </div>
 
-      {/* Horizontal strip; scrollbar hidden, small negative gutter so focus
-          rings / hover lift aren't clipped. */}
-      <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Horizontal strip; small negative gutter so focus rings / hover lift
+          aren't clipped. Scrollbar stays visible so mouse users can reach
+          cards past the viewport edge (same as the saved-searches rail). */}
+      <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-2 [scrollbar-width:thin]">
         {query.isPending
           ? Array.from({ length: visibleIds.length }).map((_, i) => (
               <RecentCardSkeleton key={i} />
