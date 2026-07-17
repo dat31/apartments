@@ -4,6 +4,7 @@ import { getFormatter, getTranslations, setRequestLocale } from "next-intl/serve
 import { BackToResults } from "./components/back-to-results";
 import { DetailContent } from "./components/detail-content";
 import { DetailSkeleton } from "./components/detail-skeleton";
+import { ShareHeaderSlot } from "./components/share-header-slot";
 import { getListing, SEED_LISTINGS } from "@/lib/data/listings";
 import { getListingById } from "@/lib/services/listings";
 import { districtLabel } from "@/schemas/listing";
@@ -74,7 +75,14 @@ export default async function ApartmentDetailPage({
 
   return (
     <div className="container mx-auto px-5 sm:px-8 pt-6 pb-28 md:pb-6">
-      <BackToResults />
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <BackToResults />
+        {/* Mobile share lives here in the header row; on tablet/desktop it
+            renders nothing (the share button sits beside the title instead). */}
+        <Suspense fallback={null}>
+          <ShareHeaderSlot id={id} />
+        </Suspense>
+      </div>
       <Suspense fallback={<DetailSkeleton label={t("loadingHome")} />}>
         <DetailContent id={id} />
       </Suspense>
