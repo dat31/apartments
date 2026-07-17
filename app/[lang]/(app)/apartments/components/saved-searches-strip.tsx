@@ -4,7 +4,7 @@ import * as React from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { Bell, Bookmark } from "lucide-react";
+import { Bell } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toListing } from "@/lib/services/listings-map";
 import { type Listing } from "@/schemas/listing";
@@ -57,7 +57,7 @@ export function SavedSearchesStrip() {
     <section className="mb-8 anim-fade" aria-label={t("aria")}>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight">
-          <Bookmark size={18} className="text-primary" /> {t("title")}
+          {t("title")}
           <span className="font-normal tabular-nums text-muted-foreground">
             ({searches.length}/{SAVED_SEARCH_MAX})
           </span>
