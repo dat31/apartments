@@ -36,6 +36,12 @@ export function DetailView({
   const colors = PALETTE[listing.palette];
   const coords = coordsOf(listing);
   const ams = AMENITIES.filter((a) => listing.amenities.includes(a.id));
+  const shareText = t("shareText", {
+    title: listing.title,
+    price: money(listing.price),
+    district: districtLabel(listing.district),
+    city: listing.city,
+  });
 
   return (
     <div>
@@ -70,6 +76,7 @@ export function DetailView({
                 lives in the page's back-to-results header row instead. */}
             <ShareButton
               title={listing.title}
+              text={shareText}
               className="hidden sm:inline-flex shrink-0"
             />
           </div>

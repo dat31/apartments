@@ -390,6 +390,7 @@
     "share": "Chia sẻ",
     "linkCopied": "Đã sao chép liên kết",
     "linkCopyFailed": "Không thể sao chép liên kết",
+    "shareText": "{title} — {price}/tháng ở {district}, {city}. Xem trên Danapa:",
     "gallery": {
       "showAll": "Xem tất cả {count} ảnh",
       "close": "Đóng ảnh",

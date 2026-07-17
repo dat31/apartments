@@ -390,6 +390,7 @@
     "share": "Share",
     "linkCopied": "Link copied",
     "linkCopyFailed": "Couldn't copy the link",
+    "shareText": "{title} — {price}/month in {district}, {city}. Take a look on Danapa:",
     "gallery": {
       "showAll": "Show all {count} photos",
       "close": "Close photos",

@@ -10,15 +10,18 @@ import { cn } from "@/lib/utils";
    Messenger, WhatsApp, SMS… all appear in the native sheet) it opens that
    sheet; everywhere else it copies the link and confirms with a toast. The
    link is the plain, already-localized/canonical page URL, which unfurls with
-   the listing photo and title via the OG pipeline. Kept generic (title + url)
-   so tour cards can reuse it later. */
+   the listing photo and title via the OG pipeline. `text` pre-fills the share
+   message (e.g. the SMS/chat body); it falls back to the title. Kept generic
+   (title + text + url) so tour cards can reuse it later. */
 export function ShareButton({
   title,
+  text,
   url,
   variant = "secondary",
   className,
 }: {
   title: string;
+  text?: string;
   url?: string;
   variant?: "secondary" | "ghost";
   className?: string;
@@ -30,7 +33,7 @@ export function ShareButton({
 
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
-        await navigator.share({ title, text: title, url: shareUrl });
+        await navigator.share({ title, text: text ?? title, url: shareUrl });
         return;
       } catch (err) {
         // Dismissing the share sheet aborts the promise — that's a no-op, not
