@@ -20,7 +20,7 @@ informed without re-checking pages**, and **what happens after the tour**.
 
 1. [Map view on browse](01-map-view-browse.md) — list ⇄ map toggle on `/apartments`
 2. [Tour status notifications](02-tour-status-notifications.md) — badge + email when an owner acts
-3. [Saved-search alerts](03-saved-search-alerts.md) — "notify me when a new listing matches"
+3. ~~[Saved-search alerts](03-saved-search-alerts.md)~~ — **done** (PR #63): save a browse filter set from the results header (sign-in gated), managed list, alerts groundwork via an edge function mirroring `filterListings` (email sending intentionally off until wired)
 4. [Post-tour next step](04-post-tour-next-step.md) — "express interest" after a confirmed tour
 
 ## Medium impact, low effort
@@ -29,7 +29,7 @@ informed without re-checking pages**, and **what happens after the tour**.
 6. ~~[Filter gaps](06-filter-gaps.md)~~ — **done** (PR #53): availability + min-area chips, "Newest" sort
 7. ~~[Similar listings](07-similar-listings.md)~~ — **done** (PR #54): dedicated district/city query, ranked cards, streamed in its own Suspense boundary
 8. ~~[Recently viewed](08-recently-viewed.md)~~ — **done** (PR #56): localStorage ring buffer, full-width compact strip above browse results, hydrated client-side via `useSyncExternalStore`
-9. [Share listing](09-share-listing.md) — copy link / native share on detail
+9. ~~[Share listing](09-share-listing.md)~~ — **done** (PR #65): generic `ShareButton` on detail, native share sheet with copy-link fallback, mobile share streamed in its own Suspense slot, OG unfurl
 
 ## Bigger bets
 
