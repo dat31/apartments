@@ -16,6 +16,15 @@ import { createClient } from "npm:@supabase/supabase-js@2";
    app/[lang]/(app)/apartments/lib/query.ts — keep the two in sync.
 
    Required secrets (supabase secrets set):
+     ALERT_TRIGGER_SECRET — shared secret the DB trigger sends in the
+                          `x-alert-secret` header. This function runs with
+                          the service-role key and resolves private emails,
+                          so without this gate any holder of the public anon
+                          key could invoke it. Requests without the matching
+                          header get 401. This check is the authoritative
+                          gate regardless of the deploy's verify_jwt setting;
+                          if verify_jwt stays on it is simply an additional
+                          requirement on top.
      RESEND_API_KEY     — without it the function matches but sends
                           nothing (logs a warning), so it's safe to
                           deploy before the provider is configured.
@@ -28,6 +37,7 @@ const SITE_URL = (
   Deno.env.get("SITE_URL") ?? "https://apartments-theta.vercel.app"
 ).replace(/\/+$/, "");
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const ALERT_TRIGGER_SECRET = Deno.env.get("ALERT_TRIGGER_SECRET");
 const FROM = Deno.env.get("ALERTS_FROM_EMAIL") ?? "Danapa <onboarding@resend.dev>";
 
 /* ---- Domain mirrors (schemas/listing, lib/services/listings-map) ---- */
@@ -131,8 +141,13 @@ function listingMatches(l: ListingRow, f: Filters): boolean {
     const ownerId = OWNER_ID_BY_KEY[f.owner] ?? f.owner;
     if (l.owner_id !== ownerId) return false;
   }
-  if (f.minPrice && l.price < +f.minPrice) return false;
-  if (f.maxPrice && l.price > +f.maxPrice) return false;
+  // Mirror filterListings() exactly, including its NaN behavior: a malformed
+  // (non-numeric) bound makes the comparison false, which EXCLUDES the listing
+  // — matching the site, which shows nothing for such a search. Using the
+  // inverted `l.price < +bound` form here would instead let everything through
+  // and email phantom alerts.
+  if (f.minPrice && !(l.price >= +f.minPrice)) return false;
+  if (f.maxPrice && !(l.price <= +f.maxPrice)) return false;
   if (f.beds !== "Any") {
     if (f.beds === "Studio") {
       if (l.beds !== 0) return false;
@@ -140,7 +155,7 @@ function listingMatches(l: ListingRow, f: Filters): boolean {
       if (l.beds < 3) return false;
     } else if (l.beds !== +f.beds) return false;
   }
-  if (f.minArea && (l.area ?? 0) < +f.minArea) return false;
+  if (f.minArea && !((l.area ?? 0) >= +f.minArea)) return false;
   if (f.avail !== "any") {
     const max = AVAIL_MAX_DAYS[f.avail];
     if (max === undefined) return false;
@@ -318,7 +333,7 @@ function renderAlertEmail(opts: {
           <a href="${viewUrl}" style="display:block;background:#3d7a51;color:#ffffff;text-decoration:none;text-align:center;font-size:15px;font-weight:600;padding:15px 20px">${c.cta}</a>
         </td></tr></table>
         <p style="margin:14px 0 0;text-align:center">
-          <a href="${seeAllUrl}" style="color:#2f6242;text-decoration:none;font-size:14px;font-weight:600">${c.seeAll}</a>
+          <a href="${escapeHtml(seeAllUrl)}" style="color:#2f6242;text-decoration:none;font-size:14px;font-weight:600">${c.seeAll}</a>
         </p>
       </td></tr>
 
@@ -378,6 +393,17 @@ Deno.serve(async (req: Request) => {
       status,
       headers: { "Content-Type": "application/json" },
     });
+
+  // Caller authorization: only the DB trigger, which sends the shared secret,
+  // may invoke this. The function runs with the service-role key and resolves
+  // private emails, so the default verify_jwt (which the public anon key
+  // satisfies) is not a sufficient gate — require the secret explicitly.
+  if (
+    !ALERT_TRIGGER_SECRET ||
+    req.headers.get("x-alert-secret") !== ALERT_TRIGGER_SECRET
+  ) {
+    return json({ error: "unauthorized" }, 401);
+  }
 
   let listingId: string | undefined;
   try {

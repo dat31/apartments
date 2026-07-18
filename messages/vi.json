@@ -882,6 +882,7 @@
     "listing": {
       "title": "Đặt tiêu đề cho tin đăng của bạn.",
       "price": "Nhập giá lớn hơn 0.",
+      "area": "Nhập diện tích lớn hơn 0.",
       "district": "Chọn một quận."
     },
     "review": {

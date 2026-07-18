@@ -41,10 +41,14 @@ const TYPE_SLUG: Record<string, TypeSlug> = {
 /* Drop characters that would break a PostgREST filter expression. */
 const sanitize = (s: string) => s.replace(/[(),\\%]/g, " ").trim();
 
-/* OR clause for the free-text box. Matches the raw title/city/district
-   columns and also expands district/type *labels* (what the user sees) back
-   to their slugs, so typing "Hải Châu" or "Apartment" still hits — mirroring
-   the old client-side `filterListings` q behaviour as closely as SQL allows. */
+/* OR clause for the free-text box. Matches the raw title/city columns and
+   expands district/type *labels* (what the user sees) back to their slugs, so
+   typing "Hải Châu" or "Apartment" still hits — mirroring the old client-side
+   `filterListings` q behaviour as closely as SQL allows.
+
+   district is a Postgres enum, which has no ilike operator (`district.ilike`
+   errors with 42883 and fails the whole query), so district matching goes
+   only through the label->slug expansion below, never a raw ilike. */
 function textOr(q: string): string | null {
   const term = sanitize(q);
   if (!term) return null;
@@ -53,7 +57,6 @@ function textOr(q: string): string | null {
   const conds = [
     `title.ilike.${like}`,
     `city.ilike.${like}`,
-    `district.ilike.${like}`,
   ];
   const districtSlugs = DISTRICTS.filter((d) =>
     districtLabel(d).toLowerCase().includes(lower)

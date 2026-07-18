@@ -259,15 +259,17 @@ export function ListingForm({
               </Select>
             </Field>
 
-            <Field>
+            <Field data-invalid={!!errors.area}>
               <FieldLabel htmlFor="area">{t("area")}</FieldLabel>
               <Input
                 id="area"
                 type="number"
                 inputMode="numeric"
                 placeholder="58"
+                aria-invalid={!!errors.area}
                 {...register("area")}
               />
+              <FieldError errors={errors.area ? [errors.area] : undefined} />
             </Field>
           </div>
 

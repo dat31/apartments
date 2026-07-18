@@ -474,6 +474,10 @@ export type Database = {
         Args: { min_age?: string }
         Returns: string[]
       }
+      replace_owner_availability: {
+        Args: { slots: Json }
+        Returns: undefined
+      }
     }
     Enums: {
       amenity: "wifi" | "parking" | "pets" | "garden" | "ac" | "laundry"

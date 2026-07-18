@@ -10,7 +10,12 @@ import { type Listing } from "@/schemas/listing";
 /* Creates a tour request in the Supabase `tours` table for the signed-in
    renter. RLS requires the row's renter_id to equal the caller (auth.uid()),
    so booking is only possible once the visitor has a real session — the
-   book-tour dialog gates the confirm step on useUser for exactly this. */
+   book-tour dialog gates the confirm step on useUser for exactly this.
+
+   owner_id below is best-effort only: the DB derives it authoritatively from
+   the listing via the set_tour_owner_id trigger (migration
+   20260718120000_tour_owner_id_integrity), so a tampered value can't misdirect
+   the tour to another owner. */
 
 export type BookTourInput = {
   listing: Listing;
