@@ -67,7 +67,19 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
 
         {/* Explore homes before choosing a role — streamed behind the static
             shell (availability labels are relative to the current time). */}
-        <Suspense fallback={<LandingShowcaseSkeleton />}>
+        <Suspense
+          fallback={
+            <LandingShowcaseSkeleton
+              districtsTitle={t("showcase.districtsTitle")}
+              districtsSub={t("showcase.districtsSub")}
+              newestTitle={t("showcase.newestTitle")}
+              newestSub={t("showcase.newestSub")}
+              trendingTitle={t("showcase.trendingTitle")}
+              trendingSub={t("showcase.trendingSub")}
+              seeAll={t("showcase.seeAll")}
+            />
+          }
+        >
           <LandingShowcase />
         </Suspense>
       </main>
