@@ -11,9 +11,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function DetailSkeleton({ label }: { label?: string }) {
   return (
     <div aria-busy="true" aria-label={label}>
-      {/* Gallery — desktop mosaic: cover + stacked companions, each 16:9 */}
-      <div className="hidden sm:grid grid-cols-3 gap-2 items-start">
-        <Skeleton className="skeleton col-span-2 aspect-[16/9]" />
+      {/* Gallery — desktop mosaic: full-height cover + stacked 16:9 companions */}
+      <div className="hidden sm:grid grid-cols-3 gap-2 items-stretch">
+        <Skeleton className="skeleton col-span-2 h-full" />
         <div className="flex flex-col gap-2">
           <Skeleton className="skeleton aspect-[16/9]" />
           <Skeleton className="skeleton aspect-[16/9]" />
