@@ -95,18 +95,17 @@ export function useMyAvailability() {
     mutationFn: async (next: WeekTemplate) => {
       if (!ownerId) throw new Error("Not signed in");
       const supabase = createClient();
-      const { error: delErr } = await supabase
-        .from("owner_availability")
-        .delete()
-        .eq("owner_id", ownerId);
-      if (delErr) throw delErr;
-      const rows = toAvailabilityRows(ownerId, next);
-      if (rows.length) {
-        const { error: insErr } = await supabase
-          .from("owner_availability")
-          .insert(rows);
-        if (insErr) throw insErr;
-      }
+      // Atomic delete-all + insert in one transaction (see the
+      // replace_owner_availability migration). A plain client-side
+      // delete-then-insert could wipe the owner's whole week if the insert
+      // failed after the delete committed.
+      const slots = toAvailabilityRows(ownerId, next).map(
+        ({ weekday, time }) => ({ weekday, time })
+      );
+      const { error } = await supabase.rpc("replace_owner_availability", {
+        slots,
+      });
+      if (error) throw error;
     },
     onMutate: async (next) => {
       await queryClient.cancelQueries({ queryKey: key });

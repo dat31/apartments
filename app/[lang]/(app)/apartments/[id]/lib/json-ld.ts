@@ -1,5 +1,5 @@
 import { localePath, SITE_URL } from "@/lib/seo";
-import { USD_TO_VND } from "@/lib/data/listings";
+import { USD_TO_VND, availInfo } from "@/lib/data/listings";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import type { Locale } from "@/i18n/routing";
 
@@ -17,6 +17,14 @@ export function listingJsonLd(
   crumbs: { home: string; apartments: string }
 ): object[] {
   const url = SITE_URL + localePath(lang, `/apartments/${listing.id}`);
+
+  // schema.org availabilityStarts must be an ISO 8601 DateTime. Our "now"
+  // sentinel isn't one, so emit availabilityStarts only for a concrete future
+  // date (listing.available already is a valid ISO date in that case) and
+  // always mark the offer InStock.
+  const avail = availInfo(listing);
+  const availabilityStarts =
+    avail.kind === "date" ? listing.available : undefined;
 
   return [
     {
@@ -47,7 +55,8 @@ export function listingJsonLd(
         url,
         // Lease, not sale — same convention Google's examples use.
         businessFunction: "http://purl.org/goodrelations/v1#LeaseOut",
-        availabilityStarts: listing.available,
+        availability: "https://schema.org/InStock",
+        ...(availabilityStarts ? { availabilityStarts } : {}),
         priceSpecification: {
           "@type": "UnitPriceSpecification",
           price: lang === "vi" ? listing.price * USD_TO_VND : listing.price,

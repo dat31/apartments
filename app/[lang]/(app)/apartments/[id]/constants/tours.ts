@@ -33,13 +33,27 @@ export const parseYmd = (s: string) => {
   return new Date(y, m - 1, d);
 };
 
-export const todayYmd = () => ymd(new Date());
+/* Tour slots are Da Nang wall-clock times (UTC+7, no DST). "Now" must be
+   evaluated in that zone, not the visitor's device timezone — otherwise a
+   renter west of UTC+7 is offered slots that have already elapsed in Da Nang.
+   This returns a Date whose *local* getters (getFullYear/getHours/…) read the
+   Da Nang wall clock regardless of where the code runs. */
+const DA_NANG_OFFSET_MS = 7 * 60 * 60000;
+const nowInDaNang = () => {
+  const now = new Date();
+  return new Date(
+    now.getTime() + now.getTimezoneOffset() * 60000 + DA_NANG_OFFSET_MS
+  );
+};
+
+export const todayYmd = () => ymd(nowInDaNang());
 
 export const isPastSlot = (dateStr: string, time: string) => {
-  if (dateStr < todayYmd()) return true;
-  if (dateStr > todayYmd()) return false;
+  const today = todayYmd();
+  if (dateStr < today) return true;
+  if (dateStr > today) return false;
   const [h, m] = time.split(":").map(Number);
-  const now = new Date();
+  const now = nowInDaNang();
   return h < now.getHours() || (h === now.getHours() && m <= now.getMinutes());
 };
 
@@ -52,12 +66,25 @@ export type WeekTemplate = Record<number, readonly string[]>;
 /* ---------------- open-slot math ---------------- */
 const slotKey = (date: string, time: string) => date + "|" + time;
 
-/* Slots already taken by a pending/confirmed request for this owner. */
+/* The effective date/time of a request — the proposed slot once the owner
+   has suggested a new time, otherwise the renter's original pick. */
+export const tourSlot = (t: TourRequest) =>
+  t.status === "reschedule" && t.proposedDate && t.proposedTime
+    ? { date: t.proposedDate, time: t.proposedTime }
+    : { date: t.date, time: t.time };
+
+/* Slots already taken by a pending/confirmed request for this owner. Uses each
+   tour's *effective* slot (tourSlot): once an owner proposes a new time, the
+   proposed slot is the one that's held, so it can't be offered to a second
+   renter — keying on the original t.date/t.time would leave the proposed slot
+   bookable and double-book it. */
 export function occupiedSet(tours: TourRequest[], ownerKey: string) {
   const s = new Set<string>();
   tours.forEach((t) => {
-    if (t.ownerKey === ownerKey && t.status !== "declined")
-      s.add(slotKey(t.date, t.time));
+    if (t.ownerKey === ownerKey && t.status !== "declined") {
+      const { date, time } = tourSlot(t);
+      s.add(slotKey(date, time));
+    }
   });
   return s;
 }
@@ -73,10 +100,3 @@ export function openSlotsFor(
     (t) => !isPastSlot(dateStr, t) && !occupied.has(slotKey(dateStr, t))
   );
 }
-
-/* The effective date/time of a request — the proposed slot once the owner
-   has suggested a new time, otherwise the renter's original pick. */
-export const tourSlot = (t: TourRequest) =>
-  t.status === "reschedule" && t.proposedDate && t.proposedTime
-    ? { date: t.proposedDate, time: t.proposedTime }
-    : { date: t.date, time: t.time };

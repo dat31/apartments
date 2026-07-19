@@ -882,6 +882,7 @@
     "listing": {
       "title": "Give your listing a title.",
       "price": "Enter a price above 0.",
+      "area": "Enter an area above 0.",
       "district": "Choose a district."
     },
     "review": {
