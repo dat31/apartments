@@ -1,5 +1,5 @@
 import { localePath, SITE_URL } from "@/lib/seo";
-import { USD_TO_VND, availInfo } from "@/lib/data/listings";
+import { USD_TO_VND } from "@/lib/data/listings";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import type { Locale } from "@/i18n/routing";
 
@@ -18,13 +18,17 @@ export function listingJsonLd(
 ): object[] {
   const url = SITE_URL + localePath(lang, `/apartments/${listing.id}`);
 
-  // schema.org availabilityStarts must be an ISO 8601 DateTime. Our "now"
-  // sentinel isn't one, so emit availabilityStarts only for a concrete future
-  // date (listing.available already is a valid ISO date in that case) and
-  // always mark the offer InStock.
-  const avail = availInfo(listing);
+  // schema.org availabilityStarts must be an ISO 8601 DateTime. listing.available
+  // is either a concrete ISO date or the "available now" sentinel ("now"/empty),
+  // so emit availabilityStarts whenever it parses and always mark the offer
+  // InStock. Checking a fixed date string (never the current time) keeps this
+  // prerenderable; a past date is a valid, harmless availabilityStarts.
   const availabilityStarts =
-    avail.kind === "date" ? listing.available : undefined;
+    listing.available &&
+    listing.available !== "now" &&
+    !Number.isNaN(new Date(listing.available + "T00:00:00").getTime())
+      ? listing.available
+      : undefined;
 
   return [
     {
