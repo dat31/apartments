@@ -1,5 +1,5 @@
 import { ListingForm } from "../../components/listing-form";
-import { SEED_LISTINGS } from "@/lib/data/listings";
+import { getActiveListings } from "@/lib/services/listings";
 import { privateMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
@@ -9,8 +9,9 @@ export async function generateMetadata({
   return privateMetadata(lang, "edit");
 }
 
-export function generateStaticParams() {
-  return SEED_LISTINGS.map((l) => ({ id: l.id }));
+export async function generateStaticParams() {
+  const listings = await getActiveListings();
+  return listings.map((l) => ({ id: l.id }));
 }
 
 export default async function EditApartmentPage({

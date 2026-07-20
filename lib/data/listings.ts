@@ -1,11 +1,13 @@
-import { District, type Amenity, type Listing } from "@/schemas/listing";
+import { type Amenity, type Listing } from "@/schemas/listing";
 import { type Owner } from "@/schemas/owner";
 import { type Review } from "@/schemas/review";
 
 /* ============================================================
-   Danapa sample data + helpers.
-   Domain schemas/types now live in @/schemas/*; this file keeps the
-   seed data and presentation helpers.
+   Danapa presentation config + seed data.
+   Listings are now read from Supabase (see @/lib/services/listings);
+   what remains here is the cover-color palette, the amenity catalog,
+   the still-seeded owners/reviews (no tables yet), and pure display
+   helpers. Domain schemas/types live in @/schemas/*.
    ============================================================ */
 
 /* Cover-color palettes (solid blocks stand in for photos). */
@@ -28,42 +30,6 @@ export const AMENITIES: Amenity[] = [
   { id: "ac", label: "Air conditioning", icon: "snow" },
   { id: "laundry", label: "In-unit laundry", icon: "check-circle" },
 ];
-
-export const SEED_LISTINGS: Listing[] = [
-  { id: "l1", title: "Sunlit studio near Mỹ Khê", type: "Studio", price: 1450, beds: 0, baths: 1, area: 38, district: District.SonTra, city: "Da Nang", palette: 0, amenities: ["wifi", "laundry", "ac"], owner: "you", status: "active", views: 312, available: "now", desc: "A bright, efficient studio a short walk from Mỹ Khê Beach and the An Thượng cafe strip. East-facing windows catch the morning sun off the sea.", costs: { deposit: "1mo", util: { electricity: "metered", water: "metered", wifi: "included", building: "fixed" }, amt: { building: 40 }, minLease: 6 } },
-  { id: "l2", title: "Garden loft by the Hàn River", type: "Loft", price: 2380, beds: 1, baths: 1, area: 71, district: District.HaiChau, city: "Da Nang", palette: 1, amenities: ["wifi", "parking", "garden", "ac"], owner: "you", status: "active", views: 521, available: "2026-07-01", desc: "Open-plan loft with high ceilings and a private planted terrace. Walk to the Dragon Bridge, the riverside promenade, and Hàn Market.", costs: { deposit: "2mo", util: { electricity: "metered", water: "included", wifi: "included", building: "fixed" }, amt: { building: 60 }, minLease: 12 } },
-  { id: "l3", title: "Quiet 2-bed near Thanh Khê Beach", type: "Apartment", price: 1990, beds: 2, baths: 1, area: 84, district: District.ThanhKhe, city: "Da Nang", palette: 6, amenities: ["wifi", "pets", "garden", "laundry"], owner: "you", status: "active", views: 244, available: "now", desc: "Calm tree-lined block, a few minutes' stroll to Thanh Khê Beach. Tiled floors, a sunny breakfast nook, and a shared back garden.", costs: { deposit: "1mo", util: {}, amt: {}, minLease: 6 } },
-  { id: "l4", title: "Marble Mountains townhouse with yard", type: "Townhouse", price: 2750, beds: 3, baths: 2, area: 122, district: District.NguHanhSon, city: "Da Nang", palette: 4, amenities: ["wifi", "parking", "pets", "garden", "ac", "laundry"], owner: "you", status: "draft", views: 0, available: "2026-08-15", desc: "Three-story townhouse minutes from the Marble Mountains and Non Nước Beach. Fenced backyard, covered parking, and a roof deck with mountain views." },
-  { id: "l5", title: "Cozy room in Cẩm Lệ", type: "Studio", price: 1180, beds: 0, baths: 1, area: 30, district: District.CamLe, city: "Da Nang", palette: 2, amenities: ["wifi", "ac"], owner: "maya", status: "active", views: 188, available: "now", desc: "Snug studio on a quiet riverside lane in Cẩm Lệ. The Cẩm Lệ Bridge, local markets, and the riverfront path are all within walking distance.", costs: { util: { wifi: "included" }, amt: {} } },
-  { id: "l6", title: "Modern 1-bed by the river", type: "Apartment", price: 1875, beds: 1, baths: 1, area: 58, district: District.HaiChau, city: "Da Nang", palette: 3, amenities: ["wifi", "parking", "ac", "laundry"], owner: "maya", status: "active", views: 402, available: "2026-06-20", desc: "Floor-to-ceiling windows over the Hàn River, with the Love Bridge and the riverfront path at your door. Bright, minimal, move-in ready.", costs: { deposit: "none", util: { electricity: "metered", water: "metered", wifi: "included" }, amt: {}, minLease: 6 } },
-  { id: "l7", title: "Beachside house in Nam Ô", type: "House", price: 3200, beds: 4, baths: 2, area: 168, district: District.LienChieu, city: "Da Nang", palette: 5, amenities: ["wifi", "parking", "pets", "garden", "laundry"], owner: "leo", status: "active", views: 276, available: "now", desc: "Restored house near Nam Ô Beach with original built-ins and a wraparound porch. Big kitchen, mature garden, and easy reach to Liên Chiểu's seafood spots.", costs: { deposit: "custom", depositAmount: 5000, util: { electricity: "metered", water: "metered", wifi: "fixed", building: "fixed" }, amt: { wifi: 30, building: 80 }, minLease: 12 } },
-  { id: "l8", title: "Top-floor loft in An Thượng", type: "Loft", price: 2150, beds: 1, baths: 1, area: 76, district: District.SonTra, city: "Da Nang", palette: 7, amenities: ["wifi", "parking", "ac"], owner: "leo", status: "active", views: 159, available: "2026-07-15", desc: "Converted loft with exposed timber, polished concrete, and rooftop sea views. Cafes, bars, and surf shops fill the An Thượng block below." },
-  { id: "l9", title: "Bright 2-bed in Thanh Khê", type: "Apartment", price: 2040, beds: 2, baths: 2, area: 92, district: District.ThanhKhe, city: "Da Nang", palette: 0, amenities: ["wifi", "garden", "ac", "laundry"], owner: "maya", status: "active", views: 221, available: "now", desc: "Spacious corner unit with morning light in both bedrooms. Friendly Thanh Khê streets below and the beach promenade just down the road." },
-  { id: "l10", title: "Compact studio near Non Nước", type: "Studio", price: 1320, beds: 0, baths: 1, area: 33, district: District.NguHanhSon, city: "Da Nang", palette: 6, amenities: ["wifi", "ac"], owner: "leo", status: "active", views: 134, available: "now", desc: "Smart, well-laid-out studio near Non Nước Beach and the Marble Mountains. Everything you need, nothing you don't." },
-];
-
-/* Real photography — curated Unsplash interiors/exteriors themed per home
-   (cover photo first). Galleries render these as real images and fall back
-   to the cover-color blocks when a listing has no photos. */
-const UIMG = (id: string) =>
-  `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1600&q=80`;
-
-const LISTING_PHOTOS: Record<string, string[]> = {
-  l1: ["1502672260266-1c1ef2d93688", "1484154218962-a197022b5858", "1556020685-ae41abfc9365", "1565182999561-18d7dc61c393", "1631679706909-1844bbd07221"],
-  l2: ["1583847268964-b28dc8f51f92", "1560448204-e02f11c3d0e2", "1617104551722-3b2d51366400", "1556911220-bff31c812dba", "1522771739844-6a9f6d5f14af"],
-  l3: ["1493809842364-78817add7ffb", "1505691938895-1758d7feb511", "1540518614846-7eded433c457", "1556911220-bff31c812dba", "1560448075-bb485b067938"],
-  l4: ["1600585154340-be6161a56a0c", "1554995207-c18c203602cb", "1616594039964-ae9021a400a0", "1484154218962-a197022b5858", "1600596542815-ffad4c1539a9"],
-  l5: ["1556228453-efd6c1ff04f6", "1522771739844-6a9f6d5f14af", "1484154218962-a197022b5858", "1565182999561-18d7dc61c393", "1586023492125-27b2c045efd7"],
-  l6: ["1600607687939-ce8a6c25118c", "1616594039964-ae9021a400a0", "1556911220-bff31c812dba", "1615529182904-14819c35db37", "1565182999561-18d7dc61c393"],
-  l7: ["1449844908441-8829872d2607", "1567767292278-a4f21aa2d36e", "1505691938895-1758d7feb511", "1484154218962-a197022b5858", "1616486338812-3dadae4b4ace"],
-  l8: ["1494203484021-3c454daf695d", "1616486338812-3dadae4b4ace", "1617103996702-96ff29b1c467", "1556911220-bff31c812dba", "1540518614846-7eded433c457"],
-  l9: ["1616137466211-f939a420be84", "1522771739844-6a9f6d5f14af", "1616594039964-ae9021a400a0", "1484154218962-a197022b5858", "1502672260266-1c1ef2d93688"],
-  l10: ["1631679706909-1844bbd07221", "1484154218962-a197022b5858", "1505691938895-1758d7feb511", "1560448075-bb485b067938", "1502005097973-6a7082348e28"],
-};
-
-SEED_LISTINGS.forEach((l) => {
-  if (LISTING_PHOTOS[l.id]) l.images = LISTING_PHOTOS[l.id].map(UIMG);
-});
 
 export const OWNERS: Record<string, Owner> = {
   you: { key: "you", name: "Jordan Rivera", palette: 1, joined: "2021-03", verified: true, superhost: true, responseRate: 99, responseTime: "within an hour", languages: ["English", "Vietnamese"], bio: "Da Nang local renting out a small, well-loved collection of homes across the city. I look after each place like it's my own — quick to fix things, slow to cut corners." },
@@ -118,12 +84,9 @@ export const availInfo = (l: Listing): AvailInfo => {
 export const initialsOf = (name: string) =>
   name.split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 
-export const ownerListings = (listings: Listing[], key: string) =>
-  listings.filter((l) => l.owner === key && l.status === "active");
 export const reviewsFor = (reviews: Review[], key: string) =>
   reviews.filter((r) => r.owner === key);
 export const avgOf = (rs: Review[]) =>
   rs.length ? rs.reduce((s, r) => s + r.rating, 0) / rs.length : 0;
 
-export const getListing = (id: string) => SEED_LISTINGS.find((l) => l.id === id);
 export const getOwner = (key: string): Owner | undefined => OWNERS[key];

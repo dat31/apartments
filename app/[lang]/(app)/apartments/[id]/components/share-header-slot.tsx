@@ -1,7 +1,6 @@
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { ShareButton } from "@/components/share-button";
 import { getListingById } from "@/lib/services/listings";
-import { getListing } from "@/lib/data/listings";
 import { formatMoney } from "@/lib/money";
 import { districtLabel } from "@/schemas/listing";
 
@@ -11,7 +10,7 @@ import { districtLabel } from "@/schemas/listing";
    the detail skeleton. On tablet/desktop the share button sits beside the
    title instead (see DetailView), so this renders nothing there. */
 export async function ShareHeaderSlot({ id }: { id: string }) {
-  const listing = (await getListingById(id)) ?? getListing(id);
+  const listing = await getListingById(id);
   if (!listing) return null;
 
   const [t, format, locale] = await Promise.all([

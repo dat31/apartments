@@ -9,7 +9,7 @@ import { Link } from "@/i18n/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/client";
 import { toListing } from "@/lib/services/listings-map";
-import { getListing, PALETTE } from "@/lib/data/listings";
+import { PALETTE } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import {
@@ -26,11 +26,11 @@ import {
    prerenderable. Reads the localStorage ring buffer (written by the detail
    page's RecordRecentlyViewed), hydrates the ids into full listings the same
    way the guest Saved page does — a browser Supabase read mapped with
-   `toListing`, with seed ids falling back to lib/data/listings — then renders a
-   compact card per home (a lighter card than the browse grid's: price, title,
-   district, no save button — it's a feeder for the shortlist, not a second
-   one). Order follows recency; ids whose listing is gone or inactive drop out.
-   Renders nothing when there's no history. */
+   `toListing` — then renders a compact card per home (a lighter card than the
+   browse grid's: price, title, district, no save button — it's a feeder for
+   the shortlist, not a second one). Order follows recency; ids whose listing
+   is gone or inactive (including legacy non-uuid ids) drop out. Renders
+   nothing when there's no history. */
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -56,30 +56,25 @@ export function RecentlyViewed({ excludeId }: { excludeId?: string }) {
     queryKey: ["recently-viewed", visibleIds],
     enabled: visibleIds.length > 0,
     queryFn: async (): Promise<Listing[]> => {
-      // Seed ids ("l1", …) resolve from the in-memory seed data; real uuids
-      // come from Supabase (active only, so stale entries drop out).
-      const seed = visibleIds
-        .filter((id) => !UUID_RE.test(id))
-        .map((id) => getListing(id))
-        .filter((l): l is Listing => !!l);
-
-      let live: Listing[] = [];
+      // Only real uuids are queryable; legacy seed ids ("l1", …) that may
+      // linger in a returning visitor's buffer are ignored. Active-only, so
+      // removed/inactive listings drop out too.
       const uuidIds = visibleIds.filter((id) => UUID_RE.test(id));
-      if (uuidIds.length) {
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from("listings")
-          .select("*")
-          .eq("status", "active")
-          .in("id", uuidIds);
-        if (error) throw error;
-        live = (data ?? []).map(toListing);
-      }
+      if (!uuidIds.length) return [];
+
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("listings")
+        .select("*")
+        .eq("status", "active")
+        .in("id", uuidIds);
+      if (error) throw error;
+      const live = (data ?? []).map(toListing);
 
       // Re-order to match the recency buffer (`.in` doesn't preserve order)
       // and drop ids with no matching listing.
       const byId = new Map<string, Listing>();
-      for (const l of [...seed, ...live]) byId.set(l.id, l);
+      for (const l of live) byId.set(l.id, l);
       return visibleIds
         .map((id) => byId.get(id))
         .filter((l): l is Listing => !!l);
