@@ -47,21 +47,22 @@ export function RecentlyViewed({ excludeId }: { excludeId?: string }) {
     getRecentlyViewedServerSnapshot
   );
 
-  const visibleIds = React.useMemo(
-    () => ids.filter((id) => id !== excludeId).slice(0, RECENTLY_VIEWED_CAP),
+  // Only real uuids are queryable; legacy seed ids ("l1", …) that may linger
+  // in a returning visitor's buffer are dropped up front so the skeleton count
+  // and the "empty history" check both reflect what can actually render.
+  const uuidIds = React.useMemo(
+    () =>
+      ids
+        .filter((id) => id !== excludeId && UUID_RE.test(id))
+        .slice(0, RECENTLY_VIEWED_CAP),
     [ids, excludeId]
   );
 
   const query = useQuery({
-    queryKey: ["recently-viewed", visibleIds],
-    enabled: visibleIds.length > 0,
+    queryKey: ["recently-viewed", uuidIds],
+    enabled: uuidIds.length > 0,
     queryFn: async (): Promise<Listing[]> => {
-      // Only real uuids are queryable; legacy seed ids ("l1", …) that may
-      // linger in a returning visitor's buffer are ignored. Active-only, so
-      // removed/inactive listings drop out too.
-      const uuidIds = visibleIds.filter((id) => UUID_RE.test(id));
-      if (!uuidIds.length) return [];
-
+      // Active-only, so removed/inactive listings drop out too.
       const supabase = createClient();
       const { data, error } = await supabase
         .from("listings")
@@ -75,7 +76,7 @@ export function RecentlyViewed({ excludeId }: { excludeId?: string }) {
       // and drop ids with no matching listing.
       const byId = new Map<string, Listing>();
       for (const l of live) byId.set(l.id, l);
-      return visibleIds
+      return uuidIds
         .map((id) => byId.get(id))
         .filter((l): l is Listing => !!l);
     },
@@ -84,8 +85,9 @@ export function RecentlyViewed({ excludeId }: { excludeId?: string }) {
   // clearRecentlyViewed notifies the store, which re-renders this to null.
   const clear = () => clearRecentlyViewed();
 
-  // Render nothing when there's no history (also the pre-hydration state).
-  if (visibleIds.length === 0) return null;
+  // Render nothing when there's no usable history (also the pre-hydration
+  // state, and returning visitors whose buffer holds only legacy seed ids).
+  if (uuidIds.length === 0) return null;
   // Hydrated but every entry dropped out (all inactive/removed) — hide.
   if (query.isSuccess && query.data.length === 0) return null;
 
@@ -109,7 +111,7 @@ export function RecentlyViewed({ excludeId }: { excludeId?: string }) {
           md up for mouse users (same as the saved-searches rail). */}
       <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-1 md:pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:[scrollbar-width:thin] md:[&::-webkit-scrollbar]:block">
         {query.isPending
-          ? Array.from({ length: visibleIds.length }).map((_, i) => (
+          ? Array.from({ length: uuidIds.length }).map((_, i) => (
               <RecentCardSkeleton key={i} />
             ))
           : (query.data ?? []).map((listing) => (

@@ -14,10 +14,16 @@ import { ogDefaults, pageAlternates } from "@/lib/seo";
 // the route's shell is statically generated. Reads the cookieless, "use
 // cache"d active-listings set, so this shares the page's own data. Listings
 // created after the build still render on-demand (dynamicParams defaults to
-// true) and get cached on first request.
+// true) and get cached on first request. If Supabase is unreachable at build
+// time, fall back to prerendering nothing rather than failing the build —
+// every listing then renders on demand.
 export async function generateStaticParams() {
-  const listings = await getActiveListings();
-  return listings.map((l) => ({ id: l.id }));
+  try {
+    const listings = await getActiveListings();
+    return listings.map((l) => ({ id: l.id }));
+  } catch {
+    return [];
+  }
 }
 
 /* Listing-derived metadata: unique title/description per home, the cover

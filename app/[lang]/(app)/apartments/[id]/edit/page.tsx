@@ -1,5 +1,4 @@
 import { ListingForm } from "../../components/listing-form";
-import { getActiveListings } from "@/lib/services/listings";
 import { privateMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
@@ -9,9 +8,10 @@ export async function generateMetadata({
   return privateMetadata(lang, "edit");
 }
 
-export async function generateStaticParams() {
-  const listings = await getActiveListings();
-  return listings.map((l) => ({ id: l.id }));
+// The edit route is private (auth-gated) and noindexed, so there's nothing to
+// prerender — every request renders on demand (dynamicParams defaults to true).
+export function generateStaticParams() {
+  return [];
 }
 
 export default async function EditApartmentPage({
