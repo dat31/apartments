@@ -5,31 +5,31 @@ import { Check, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PALETTE } from "@/lib/data/listings";
 import { getOwnerProfile } from "@/lib/services/owners";
+import { viewerOwns } from "../lib/viewer-owns";
 
 /* The "listed by" host card on the detail page — avatar, name, and a link
    into the owner's profile.
 
    Async server component that fetches its own owner (getOwnerProfile is
-   "use cache"d; seed owners resolve with no query), so it can stream inside
-   its own <Suspense> instead of blocking the listing content above it.
-   Rendered twice — inline on mobile, in the sticky sidebar on desktop — with
-   `className` carrying the position-specific spacing. */
+   "use cache"d; seed owners resolve with no query) and resolves whether the
+   viewer is that owner (a cookie read), so it can stream inside its own
+   <Suspense> instead of forcing the listing content above it to render
+   per-request. Rendered twice — inline on mobile, in the sticky sidebar on
+   desktop — with `className` carrying the position-specific spacing. */
 export async function OwnerCard({
   ownerKey,
   fallbackPalette,
-  isOwner,
   className,
 }: {
   ownerKey: string;
   fallbackPalette: number;
-  isOwner: boolean;
   className?: string;
 }) {
   const t = await getTranslations("detail");
   const owner = await getOwnerProfile(ownerKey);
   // "You" covers the signed-in host viewing their own listing, plus the seed
   // "you" demo owner used by the sample data.
-  const isYou = isOwner || ownerKey === "you";
+  const isYou = ownerKey === "you" || (await viewerOwns(ownerKey));
   const ownerLabel = isYou ? t("you") : owner?.name ?? ownerKey;
 
   return (

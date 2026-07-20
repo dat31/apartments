@@ -5,17 +5,23 @@ import { BackToResults } from "./components/back-to-results";
 import { DetailContent } from "./components/detail-content";
 import { DetailSkeleton } from "./components/detail-skeleton";
 import { ShareHeaderSlot } from "./components/share-header-slot";
-import { getListing, SEED_LISTINGS } from "@/lib/data/listings";
-import { getListingById } from "@/lib/services/listings";
+import { getActiveListings, getListingById } from "@/lib/services/listings";
 import { districtLabel } from "@/schemas/listing";
 import { formatMoney } from "@/lib/money";
 import { ogDefaults, pageAlternates } from "@/lib/seo";
 
-// Enumerate the known (seed) listing ids so the route's params are statically
-// resolvable under cacheComponents. Live Supabase ids still render on-demand
-// (dynamicParams defaults to true).
-export function generateStaticParams() {
-  return SEED_LISTINGS.map((l) => ({ id: l.id }));
+// Enumerate the live Supabase listings so every known home is prerendered at
+// build time. Listings created after the build still render on-demand
+// (dynamicParams defaults to true) and get cached; edits are picked up via
+// revalidateTag("listings"). If Supabase is unreachable at build time, render
+// everything on-demand rather than failing the build.
+export async function generateStaticParams() {
+  try {
+    const live = await getActiveListings();
+    return live.map((l) => ({ id: l.id }));
+  } catch {
+    return [];
+  }
 }
 
 /* Listing-derived metadata: unique title/description per home, the cover
@@ -26,7 +32,7 @@ export async function generateMetadata({
   params,
 }: PageProps<"/[lang]/apartments/[id]">): Promise<Metadata> {
   const { lang, id } = await params;
-  const listing = (await getListingById(id)) ?? getListing(id);
+  const listing = await getListingById(id);
   if (!listing) return {};
 
   const [t, ta, format] = await Promise.all([

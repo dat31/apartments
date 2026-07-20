@@ -1,5 +1,5 @@
 import { ListingForm } from "../../components/listing-form";
-import { SEED_LISTINGS } from "@/lib/data/listings";
+import { getActiveListings } from "@/lib/services/listings";
 import { privateMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
@@ -9,8 +9,16 @@ export async function generateMetadata({
   return privateMetadata(lang, "edit");
 }
 
-export function generateStaticParams() {
-  return SEED_LISTINGS.map((l) => ({ id: l.id }));
+// Prewarm the edit shell for every live Supabase listing; unknown ids render
+// on-demand (dynamicParams defaults to true). Fall back to on-demand-only if
+// Supabase is unreachable at build time.
+export async function generateStaticParams() {
+  try {
+    const live = await getActiveListings();
+    return live.map((l) => ({ id: l.id }));
+  } catch {
+    return [];
+  }
 }
 
 export default async function EditApartmentPage({

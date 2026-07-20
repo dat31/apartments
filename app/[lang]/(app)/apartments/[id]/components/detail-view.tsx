@@ -8,7 +8,7 @@ import { SimilarHomes, SimilarHomesSkeleton } from "./similar-homes";
 import { OwnerCard, OwnerCardSkeleton } from "./owner-card";
 import { SaveHomeButton } from "./save-home-button";
 import { ShareButton } from "@/components/share-button";
-import { BookTourButton } from "./book-tour-button";
+import { BookTourGate } from "./book-tour-gate";
 import { RecordRecentlyViewed } from "./record-recently-viewed";
 import { AvailabilityLabel } from "./availability-label";
 import { CostsSection } from "./costs-section";
@@ -24,11 +24,9 @@ import { type Review } from "@/schemas/review";
 export function DetailView({
   listing,
   reviews,
-  isOwner = false,
 }: {
   listing: Listing;
   reviews: Review[];
-  isOwner?: boolean;
 }) {
   const t = useTranslations("detail");
   const ta = useTranslations("apartments");
@@ -146,7 +144,6 @@ export function DetailView({
               <OwnerCard
                 ownerKey={listing.owner}
                 fallbackPalette={listing.palette}
-                isOwner={isOwner}
               />
             </Suspense>
           </div>
@@ -169,14 +166,13 @@ export function DetailView({
             </p>
             <MoveInEstimate listing={listing} variant="compact" className="mt-4" />
             <div className="mt-5 flex flex-col gap-2.5">
-              {!isOwner && <BookTourButton listing={listing} mode="full" />}
+              <BookTourGate listing={listing} mode="full" />
               <SaveHomeButton id={listing.id} mode="full" />
             </div>
             <Suspense fallback={<OwnerCardSkeleton className="mt-6 pt-6" />}>
               <OwnerCard
                 ownerKey={listing.owner}
                 fallbackPalette={listing.palette}
-                isOwner={isOwner}
                 className="mt-6 pt-6"
               />
             </Suspense>
@@ -214,7 +210,7 @@ export function DetailView({
             </p>
           </div>
           <SaveHomeButton id={listing.id} mode="icon" />
-          {!isOwner && <BookTourButton listing={listing} mode="compact" />}
+          <BookTourGate listing={listing} mode="compact" />
         </div>
       </div>
     </div>
