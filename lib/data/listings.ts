@@ -74,7 +74,7 @@ export type AvailInfo = { kind: "now" } | { kind: "date"; date: Date };
 /* `now` defaults to the current time, so most callers pass nothing. Static
    (prerendered) call sites must pass a time captured inside a cache boundary
    instead — reading the clock during a prerender isn't allowed under Cache
-   Components (see getLandingShowcase). */
+   Components (see the landing showcase fetchers in lib/services/listings). */
 export const availInfo = (l: Listing, now: Date = new Date()): AvailInfo => {
   if (!l.available || l.available === "now") return { kind: "now" };
   const d = new Date(l.available + "T00:00:00");

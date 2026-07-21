@@ -1,6 +1,5 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
-import { setRequestLocale, getTranslations } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 import { JsonLd } from "@/components/json-ld";
 import { localePath, pageAlternates, SITE_URL } from "@/lib/seo";
 import type { Locale } from "@/i18n/routing";
@@ -9,8 +8,10 @@ import { ToggleThemeButton } from "@/components/toggle-theme-button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { RoleChooser } from "./components/role-chooser";
 import { StatsPanel } from "./components/stats-panel";
-import { LandingShowcase } from "./components/landing-showcase";
-import { LandingShowcaseSkeleton } from "./components/landing-showcase-skeleton";
+import { DistrictsSection } from "./components/districts-section";
+import { NewestSection } from "./components/newest-section";
+import { TrendingSection } from "./components/trending-section";
+import { LandingFooter } from "./components/landing-footer";
 
 // Title/description come from the layout defaults; the page only adds its
 // canonical + hreflang alternates.
@@ -24,7 +25,6 @@ export async function generateMetadata({
 export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const { lang } = await params;
   setRequestLocale(lang);
-  const t = await getTranslations("landing");
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -65,28 +65,18 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
           </div>
         </section>
 
-        {/* Explore homes before choosing a role — streamed behind the static
-            shell (availability labels are relative to the current time). */}
-        <Suspense
-          fallback={
-            <LandingShowcaseSkeleton
-              districtsTitle={t("showcase.districtsTitle")}
-              districtsSub={t("showcase.districtsSub")}
-              newestTitle={t("showcase.newestTitle")}
-              newestSub={t("showcase.newestSub")}
-              trendingTitle={t("showcase.trendingTitle")}
-              trendingSub={t("showcase.trendingSub")}
-              seeAll={t("showcase.seeAll")}
-            />
-          }
-        >
-          <LandingShowcase />
-        </Suspense>
+        {/* Explore homes before choosing a role. Each section's header renders
+            with this shell; its data-driven items stream behind their own
+            Suspense boundary (availability labels are relative to the current
+            time). */}
+        <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-10 flex flex-col py-16 gap-16">
+          <DistrictsSection />
+          <NewestSection />
+          <TrendingSection />
+        </div>
       </main>
 
-      <footer className="px-6 sm:px-10 h-16 flex items-center text-sm text-muted-foreground">
-        <span>{t("footer")}</span>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }

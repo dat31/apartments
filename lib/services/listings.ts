@@ -2,6 +2,12 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { type Listing } from "@/schemas/listing";
+import {
+  getDistrictTiles,
+  getNewest,
+  getTrending,
+  type DistrictTile,
+} from "@/app/[lang]/lib/landing";
 import { OWNER_ID_BY_KEY, toListing } from "./listings-map";
 
 /* ============================================================
@@ -28,8 +34,8 @@ export async function getActiveListings(): Promise<Listing[]> {
 }
 
 /** The raw active-listings query, oldest first. Cached by its callers, not
-    here, so different callers can pick their own cacheLife (see
-    getLandingShowcase). */
+    here, so different callers can pick their own cacheLife (see the landing
+    showcase fetchers below). */
 async function fetchActiveListings(): Promise<Listing[]> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
@@ -42,22 +48,58 @@ async function fetchActiveListings(): Promise<Listing[]> {
   return (data ?? []).map(toListing);
 }
 
-/** Active listings plus the reference time for the landing showcase, cached
-    together on a 30-minute revalidation. The whole landing page is prebuilt at
-    build time and served from this cache entry; every 30 minutes it
-    regenerates, refreshing both the listings and `now` (which drives the
-    cards' relative availability labels — see availInfo/ListingCard). Reading
-    the clock is only allowed here because it sits inside this cache boundary.
-    Tagged "listings" so a listing edit's revalidateTag busts it immediately. */
-export async function getLandingShowcase(): Promise<{
+/* --- Landing showcase fetchers -------------------------------------------
+   One fetcher per landing section (browse-by-district, newest, trending) so
+   each section component streams behind its own Suspense boundary. All three
+   are "use cache" boundaries on a 30-minute revalidation, so the whole landing
+   page is prebuilt at build time and served from cache; every 30 minutes each
+   regenerates. They share getActiveListings' cache entry, so the underlying
+   query runs at most once per revalidation, not once per section. Tagged
+   "listings" so a listing edit's revalidateTag busts them immediately.
+
+   The newest/trending fetchers also return `now`, the reference time for the
+   cards' relative availability labels (see availInfo/ListingCard). Reading the
+   clock is only allowed inside these cache boundaries. */
+
+const SHOWCASE_LIFE = { stale: 300, revalidate: 1800, expire: 3600 };
+
+/** Active listings grouped by district for the "browse by district" section. */
+export async function getDistrictShowcase(): Promise<DistrictTile[]> {
+  "use cache";
+  cacheLife(SHOWCASE_LIFE);
+  cacheTag("listings");
+
+  return getDistrictTiles(await getActiveListings());
+}
+
+/** Freshest active homes, newest-first, plus the cache's reference time. */
+export async function getNewestShowcase(): Promise<{
   listings: Listing[];
   now: number;
 }> {
   "use cache";
-  cacheLife({ stale: 300, revalidate: 1800, expire: 3600 });
+  cacheLife(SHOWCASE_LIFE);
   cacheTag("listings");
 
-  return { listings: await fetchActiveListings(), now: Date.now() };
+  return { listings: getNewest(await getActiveListings()), now: Date.now() };
+}
+
+/** Most-watched active homes, kept disjoint from the newest row so no home
+    appears in both, plus the cache's reference time. */
+export async function getTrendingShowcase(): Promise<{
+  listings: Listing[];
+  now: number;
+}> {
+  "use cache";
+  cacheLife(SHOWCASE_LIFE);
+  cacheTag("listings");
+
+  const listings = await getActiveListings();
+  const newest = getNewest(listings);
+  return {
+    listings: getTrending(listings, 4, new Set(newest.map((l) => l.id))),
+    now: Date.now(),
+  };
 }
 
 /** A seed owner's active listings, oldest first. Reads the real `listings`
