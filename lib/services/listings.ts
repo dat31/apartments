@@ -24,6 +24,13 @@ export async function getActiveListings(): Promise<Listing[]> {
   cacheLife("hours");
   cacheTag("listings");
 
+  return fetchActiveListings();
+}
+
+/** The raw active-listings query, oldest first. Cached by its callers, not
+    here, so different callers can pick their own cacheLife (see
+    getLandingShowcase). */
+async function fetchActiveListings(): Promise<Listing[]> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("listings")
@@ -33,6 +40,24 @@ export async function getActiveListings(): Promise<Listing[]> {
 
   if (error) throw new Error(`Failed to load listings: ${error.message}`);
   return (data ?? []).map(toListing);
+}
+
+/** Active listings plus the reference time for the landing showcase, cached
+    together on a 30-minute revalidation. The whole landing page is prebuilt at
+    build time and served from this cache entry; every 30 minutes it
+    regenerates, refreshing both the listings and `now` (which drives the
+    cards' relative availability labels — see availInfo/ListingCard). Reading
+    the clock is only allowed here because it sits inside this cache boundary.
+    Tagged "listings" so a listing edit's revalidateTag busts it immediately. */
+export async function getLandingShowcase(): Promise<{
+  listings: Listing[];
+  now: number;
+}> {
+  "use cache";
+  cacheLife({ stale: 300, revalidate: 1800, expire: 3600 });
+  cacheTag("listings");
+
+  return { listings: await fetchActiveListings(), now: Date.now() };
 }
 
 /** A seed owner's active listings, oldest first. Reads the real `listings`

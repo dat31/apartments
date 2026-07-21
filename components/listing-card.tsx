@@ -27,17 +27,21 @@ export function ListingCard({
   listing,
   badge,
   select,
+  now,
 }: {
   listing: Listing;
   badge?: { icon: ReactNode; label: string };
   select?: ListingCardSelect;
+  /** Reference time (epoch ms) for the availability label. Static call sites
+      pass a clock read inside a cache boundary; omit it to use the live time. */
+  now?: number;
 }) {
   const t = useTranslations("apartments");
   const format = useFormatter();
   const money = useMoney();
   const colors = PALETTE[listing.palette];
   const href = `/apartments/${listing.id}`;
-  const avail = availInfo(listing);
+  const avail = availInfo(listing, now !== undefined ? new Date(now) : undefined);
   const inactive = !!select && !!select.disabled && !select.selected;
   return (
     <Card
