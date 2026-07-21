@@ -20,7 +20,7 @@ export function StatsPanel() {
             <StatNumber
               value={value}
               suffix={suffix}
-              className="text-4xl sm:text-5xl"
+              className="text-4xl sm:text-5xl text-primary"
             />
             <p className="mt-2 text-sm text-muted-foreground">{t(labelKey)}</p>
           </div>

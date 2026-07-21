@@ -24,7 +24,7 @@ export async function LandingShowcase() {
   const trending = getTrending(listings, 4, new Set(newest.map((l) => l.id)));
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-10 flex flex-col anim-up py-16 gap-16">
+    <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-10 flex flex-col py-16 gap-16">
       <section>
         <SectionHeader
           icon={<MapPin size={18} />}
