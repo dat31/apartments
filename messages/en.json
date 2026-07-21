@@ -540,7 +540,11 @@
       "heading": "Location on the map",
       "blurb": "Renters see this exact pin on your listing page and use it for distance and directions.",
       "ariaMap": "Map for picking the home's location",
-      "hint": "Click the map to drop a pin on your home, then drag it to fine-tune.",
+      "searchPlaceholder": "Search an address in Da Nang…",
+      "searchLabel": "Search address",
+      "searching": "Searching…",
+      "noResults": "No matching addresses",
+      "hint": "Search an address or click the map to drop a pin on your home, then drag it to fine-tune.",
       "pinSet": "Pin set at {lat}, {lng} — drag to adjust.",
       "clear": "Remove pin"
     },
