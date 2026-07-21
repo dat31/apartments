@@ -15,9 +15,12 @@ import { type Listing } from "@/schemas/listing";
 export function ListingCarousel({
   listings,
   badgeFor,
+  now,
 }: {
   listings: Listing[];
   badgeFor: (listing: Listing) => { icon: ReactNode; label: string };
+  /** Reference time for the cards' availability labels — see ListingCard. */
+  now?: number;
 }) {
   return (
     <Carousel opts={{ align: "start" }} className="w-full">
@@ -27,7 +30,7 @@ export function ListingCarousel({
             key={l.id}
             className="pl-5 basis-[280px] sm:basis-[300px]"
           >
-            <ListingCard listing={l} badge={badgeFor(l)} />
+            <ListingCard listing={l} badge={badgeFor(l)} now={now} />
           </CarouselItem>
         ))}
       </CarouselContent>

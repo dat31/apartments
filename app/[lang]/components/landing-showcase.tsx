@@ -1,7 +1,6 @@
-import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { Eye, Flame, MapPin, Sparkles } from "lucide-react";
-import { getActiveListings } from "@/lib/services/listings";
+import { getLandingShowcase } from "@/lib/services/listings";
 import { SectionHeader } from "./section-header";
 import { DistrictTiles } from "./district-tiles";
 import { ListingCarousel } from "./listing-carousel";
@@ -9,15 +8,17 @@ import { getDistrictTiles, getNewest, getTrending } from "../lib/landing";
 
 /* Landing showcase — explore homes before choosing a role. Server rendered:
    only the carousel scroller is a client island, and the cards inside it stay
-   Server Components (passed as children). Streamed (the cards' availability
-   labels are relative to the current time), so it reads `connection()` to opt
-   into dynamic rendering and renders behind a Suspense boundary. */
-export async function LandingShowcase() {
-  await connection();
+   Server Components (passed as children).
 
+   Fully prebuilt at build time: its data comes from getLandingShowcase, a
+   cache boundary that revalidates every 30 minutes and hands back both the
+   listings and a `now` reference captured inside the cache. `now` is threaded
+   into the cards so their relative availability labels don't read the clock
+   during render (which Cache Components forbids) — they refresh with each
+   30-minute revalidation instead. */
+export async function LandingShowcase() {
   const t = await getTranslations("landing.showcase");
-  // Live listings from Supabase (cached), oldest-first — see getActiveListings.
-  const listings = await getActiveListings();
+  const { listings, now } = await getLandingShowcase();
   const districts = getDistrictTiles(listings);
   const newest = getNewest(listings);
   // Keep trending disjoint from newest so no home appears in both rows.
@@ -43,6 +44,7 @@ export async function LandingShowcase() {
         />
         <ListingCarousel
           listings={newest}
+          now={now}
           badgeFor={() => ({ icon: <Sparkles size={13} />, label: t("badgeNew") })}
         />
       </section>
@@ -56,6 +58,7 @@ export async function LandingShowcase() {
         />
         <ListingCarousel
           listings={trending}
+          now={now}
           badgeFor={(l) => ({
             icon: <Eye size={13} />,
             label: t("badgeViews", { views: l.views }),
