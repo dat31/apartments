@@ -5,7 +5,7 @@ import { JsonLd } from "@/components/json-ld";
 import { listingJsonLd } from "../lib/json-ld";
 import { createClient } from "@/lib/supabase/server";
 import { getListingById } from "@/lib/services/listings";
-import { getListing, reviewsFor, SEED_REVIEWS } from "@/lib/data/listings";
+import { reviewsFor, SEED_REVIEWS } from "@/lib/data/listings";
 import type { Locale } from "@/i18n/routing";
 
 /* The listing-dependent half of the detail page. Lives below a Suspense
@@ -13,10 +13,9 @@ import type { Locale } from "@/i18n/routing";
    only this streams in. getListingById is cached, so on navigation the stream
    is effectively immediate. */
 export async function DetailContent({ id }: { id: string }) {
-  // Live listings come from Supabase; legacy seed ids (e.g. links from the
-  // landing/saved pages) fall back to the in-memory seed data.
-  const live = await getListingById(id);
-  const listing = live ?? getListing(id);
+  // Listings come from Supabase; an unknown id (or a non-active listing RLS
+  // hides) resolves to null and 404s.
+  const listing = await getListingById(id);
   if (!listing) notFound();
 
   // Reviews are seed data (no reviews table yet) and resolve synchronously.
