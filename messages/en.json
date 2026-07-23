@@ -889,6 +889,8 @@
     "activeAgo": "Active {time}",
     "offline": "Offline",
     "viewListing": "View listing",
+    "perMonth": "/mo",
+    "view": "View",
     "tourOn": "Tour on {date} at {time}",
     "back": "Back to conversations",
     "composerHint": "Press Enter to send · Shift + Enter for a new line",

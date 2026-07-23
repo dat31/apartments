@@ -39,7 +39,7 @@ export async function ensureTourChannel(
 
   const { data: row, error } = await supabase
     .from("tours")
-    .select("*, listing:listings(title)")
+    .select("*, listing:listings(title, price, images, palette)")
     .eq("id", tourId)
     .maybeSingle();
   if (error || !row) return { ok: false, error: "not-found" };
@@ -82,8 +82,18 @@ export async function ensureTourChannel(
     },
   ]);
 
-  const listingTitle =
-    (row as { listing?: { title: string } | null }).listing?.title ?? undefined;
+  /* The joined listing, for the header's chip. Optional throughout: a tour
+     whose listing has since been deleted still has a thread worth reading. */
+  const listing = (
+    row as {
+      listing?: {
+        title: string;
+        price: number;
+        images: string[] | null;
+        palette: number;
+      } | null;
+    }
+  ).listing;
 
   /* The *effective* slot, not the originally requested one: once the owner has
      proposed a new time, that is the appointment both sides are talking about,
@@ -96,7 +106,10 @@ export async function ensureTourChannel(
     created_by_id: ownerId,
     tour_id: tourId,
     listing_id: row.listing_id,
-    listing_title: listingTitle,
+    listing_title: listing?.title,
+    listing_price: listing?.price,
+    listing_image: listing?.images?.[0],
+    listing_palette: listing?.palette,
     tour_date: slot.date,
     tour_time: slot.time,
   });

@@ -50,7 +50,7 @@ export async function ensureListingChannel(
 
   const { data: listing, error } = await supabase
     .from("listings")
-    .select("id, title, owner_id")
+    .select("id, title, owner_id, price, images, palette")
     .eq("id", listingId)
     .maybeSingle();
   if (error || !listing) return { ok: false, error: "not-found" };
@@ -104,6 +104,9 @@ export async function ensureListingChannel(
     created_by_id: renterId,
     listing_id: listing.id,
     listing_title: listing.title,
+    listing_price: listing.price,
+    listing_image: listing.images?.[0],
+    listing_palette: listing.palette,
   });
   await channel.create();
 

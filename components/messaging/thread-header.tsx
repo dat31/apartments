@@ -13,6 +13,8 @@ import type { Channel as StreamChannel, UserResponse } from "stream-chat";
 import { ChevronLeft } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { parseYmd } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
+import { useMoney } from "@/hooks/use-money";
+import { PALETTE } from "@/lib/data/listings";
 import { MessagingAvatar } from "./stream-components";
 
 /* The head of an open conversation.
@@ -29,6 +31,7 @@ import { MessagingAvatar } from "./stream-components";
 export function ThreadHeader() {
   const t = useTranslations("messaging");
   const format = useFormatter();
+  const money = useMoney();
   const { channel, channelConfig } = useChannelStateContext();
   const { setActiveChannel } = useChatContext();
   const { typing = {} } = useTypingContext();
@@ -45,6 +48,9 @@ export function ThreadHeader() {
   const tourTime = channel.data?.tour_time;
   const listingId = channel.data?.listing_id;
   const listingTitle = channel.data?.listing_title;
+  const listingPrice = channel.data?.listing_price;
+  const listingImage = channel.data?.listing_image;
+  const listingPalette = channel.data?.listing_palette;
 
   /* The stored values are the locale-agnostic ymd/HH:mm plumbing the tour
      scheduling logic runs on; formatting for display belongs at the call site,
@@ -90,15 +96,38 @@ export function ThreadHeader() {
 
       {listingId && (
         <Link
-          className="focus-ring hidden max-w-56 shrink-0 items-center gap-2.5 bg-muted py-1.5 pl-3 pr-3 text-left transition-colors hover:bg-accent hover:text-accent-foreground sm:flex"
+          /* Wider than the design's `max-w-56`: that was measured against
+             "$1,450/mo", and the same line in VND ("36.250.000 ₫/tháng") is
+             half as long again — at 56 the price truncated instead of the
+             title, which is the one part of the chip that must stay legible. */
+          className="focus-ring hidden max-w-72 shrink-0 items-center gap-2.5 bg-muted py-1.5 pl-2.5 pr-3 text-left transition-colors hover:bg-accent hover:text-accent-foreground sm:flex"
           href={`/apartments/${listingId}`}
         >
+          {/* The listing's own photo, or its colour block when it has none —
+              the same fallback every listing card in the app uses. A plain
+              background rather than next/image: it is a 32px decoration whose
+              url came from channel data, and routing it through the image
+              optimiser would need the remote host allow-listed for no gain. */}
+          <span
+            aria-hidden="true"
+            className="block h-8 w-8 shrink-0 bg-cover bg-center"
+            style={{
+              backgroundImage: listingImage
+                ? `url(${listingImage})`
+                : undefined,
+              backgroundColor: listingImage
+                ? undefined
+                : PALETTE[(listingPalette ?? 0) % PALETTE.length][0],
+            }}
+          />
           <span className="min-w-0">
             <span className="block truncate text-xs font-medium">
               {listingTitle ?? t("aboutAListing")}
             </span>
-            <span className="block text-xs text-muted-foreground">
-              {t("viewListing")} →
+            <span className="block truncate text-xs text-muted-foreground">
+              {typeof listingPrice === "number"
+                ? `${money(listingPrice)}${t("perMonth")} · ${t("view")} →`
+                : `${t("viewListing")} →`}
             </span>
           </span>
         </Link>

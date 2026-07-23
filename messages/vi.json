@@ -889,6 +889,8 @@
     "activeAgo": "Hoạt động {time}",
     "offline": "Ngoại tuyến",
     "viewListing": "Xem tin đăng",
+    "perMonth": "/tháng",
+    "view": "Xem",
     "tourOn": "Lịch xem ngày {date} lúc {time}",
     "back": "Quay lại danh sách trò chuyện",
     "composerHint": "Nhấn Enter để gửi · Shift + Enter để xuống dòng",
