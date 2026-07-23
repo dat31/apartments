@@ -879,6 +879,7 @@
     "selectTitle": "Chọn một cuộc trò chuyện",
     "selectBody": "Chọn một cuộc trò chuyện bên trái để đọc và trả lời.",
     "closedNotice": "Cuộc trò chuyện đã đóng. Tin nhắn sẽ đóng khi lịch xem bị từ chối, hoặc một tuần sau buổi xem.",
+    "loading": "Đang tải cuộc trò chuyện…",
     "loadFailed": "Không tải được cuộc trò chuyện. Vui lòng thử lại sau giây lát.",
     "connectFailed": "Hiện chưa kết nối được với tin nhắn. Vui lòng tải lại trang.",
     "startFailed": "Không bắt đầu được cuộc trò chuyện. Vui lòng thử lại sau giây lát.",

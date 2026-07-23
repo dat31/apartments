@@ -41,37 +41,65 @@ import type { TokenOrProvider } from "stream-chat";
    a websocket open for no reason. */
 const GRACE_MS = 5_000;
 
-export type ChatClientHandle = {
+/* The instance is deliberately split from the connection.
+
+   `new StreamChat(key)` opens nothing — it is a plain object until
+   connectUser dials — so it can be handed to <Chat> on the very first render,
+   before the token request has even started. That matters structurally:
+   mounting <Chat> later means swapping the element at that position, and React
+   answers a swap by unmounting the entire subtree under it. Every consumer
+   below — the inbox, the tour cards, any open thread — would be destroyed and
+   rebuilt, re-running channel watches and flashing their skeletons back on.
+   One instance from the first paint is what keeps that tree still. */
+let instance: { apiKey: string; client: StreamChat } | null = null;
+
+export function getChatClient(apiKey: string): StreamChat {
+  if (instance?.apiKey === apiKey) return instance.client;
+  instance = { apiKey, client: new StreamChat(apiKey) };
+  return instance.client;
+}
+
+export type ChatConnection = {
   client: StreamChat;
   /* Resolves once connectUser has completed. Consumers must not touch the
      client before it does — Stream queues nothing for them. */
   ready: Promise<unknown>;
 };
 
-type Entry = ChatClientHandle & {
-  /* apiKey + user id. A change here is a different connection, never a
-     reusable one. */
-  key: string;
+type Entry = ChatConnection & {
+  /* Whose connection this is. A change here is a different connection, never
+     a reusable one. */
+  userId: string;
   refs: number;
   teardown: ReturnType<typeof setTimeout> | null;
 };
 
 let current: Entry | null = null;
 
-export function acquireChatClient({
-  apiKey,
+/* connectUser and disconnectUser now run against the *same* instance, so they
+   have to be kept in order: a sign-out and sign-in as someone else would
+   otherwise dial the new session while the old one's teardown is still in
+   flight, and the socket that wins is whichever settles last. */
+let queue: Promise<unknown> = Promise.resolve();
+
+function serialize<T>(work: () => Promise<T>): Promise<T> {
+  const next = queue.then(work, work);
+  queue = next.catch(() => undefined);
+  return next;
+}
+
+export function acquireChatConnection({
+  client,
   userData,
   tokenProvider,
 }: {
-  apiKey: string;
+  client: StreamChat;
   userData: { id: string; name: string };
   tokenProvider: TokenOrProvider;
-}): ChatClientHandle {
-  const key = `${apiKey}:${userData.id}`;
-
+}): ChatConnection {
   /* A sign-out and sign-in as someone else inside the grace window: the held
      connection is another person's, so it goes now rather than on its timer. */
-  if (current && current.key !== key) {
+  if (current && current.userId !== userData.id) {
     const stale = current;
     current = null;
     if (stale.teardown) clearTimeout(stale.teardown);
@@ -87,18 +115,17 @@ export function acquireChatClient({
     return current;
   }
 
-  const client = new StreamChat(apiKey);
   current = {
     client,
-    key,
-    ready: client.connectUser(userData, tokenProvider),
+    userId: userData.id,
+    ready: serialize(() => client.connectUser(userData, tokenProvider)),
     refs: 1,
     teardown: null,
   };
   return current;
 }
 
-export function releaseChatClient(handle: ChatClientHandle) {
+export function releaseChatConnection(handle: ChatConnection) {
   /* Not the live entry — it was already superseded by another user's
      connection, which disconnected it on the way in. */
   if (current === null || current !== handle) return;
@@ -122,6 +149,6 @@ export function releaseChatClient(handle: ChatClientHandle) {
 function disconnect(entry: Entry) {
   entry.ready
     .catch(() => {})
-    .then(() => entry.client.disconnectUser())
+    .then(() => serialize(() => entry.client.disconnectUser()))
     .catch(() => {});
 }

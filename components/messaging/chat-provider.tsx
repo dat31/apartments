@@ -5,10 +5,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import { Chat, WithComponents } from "stream-chat-react";
-import type { StreamChat, TokenOrProvider } from "stream-chat";
+import type { StreamChat } from "stream-chat";
 import type { Locale } from "@/i18n/routing";
 import { useUser } from "@/hooks/auth";
-import { acquireChatClient, releaseChatClient } from "@/lib/stream/client";
+import {
+  acquireChatConnection,
+  getChatClient,
+  releaseChatConnection,
+} from "@/lib/stream/client";
 import { streamI18n } from "@/lib/stream/i18n";
 import { messagingComponents } from "./stream-components";
 import "@/lib/stream/custom-data";
@@ -26,7 +30,17 @@ import "./stream-theme.css";
    `channel` prop on <Channel>.
 
    Pages that never show a thread don't mount this, so browsing the app costs
-   no websocket. */
+   no websocket — <Chat> below is mounted from the first render, but the
+   websocket is dialled by acquireChatConnection, which `enabled` gates.
+
+   The one structural rule here: `children` must sit at the same place in the
+   tree on every render. React reconciles by position and type, so wrapping
+   them in <Chat> *later* — once a token arrives, once the socket connects —
+   reads as a different element at that slot and unmounts everything below it.
+   That is a full remount of the page's content, twice, a second after it
+   first painted: channel watches re-run and every thread drops back to its
+   skeleton. Hence one invariant tree, with the async parts expressed as
+   context values rather than as changes in shape. */
 
 type Credentials = {
   chatToken: string;
@@ -37,7 +51,9 @@ type Credentials = {
 
 type MessagingState = {
   /* False while the token is in flight or the socket is connecting — threads
-     render a skeleton rather than an error in that window. */
+     render a skeleton rather than an error in that window. Gating on a context
+     value rather than on whether <Chat> is mounted is what lets the tree stay
+     the same shape throughout; see the note above. */
   ready: boolean;
   /* True once the token request has given up. Distinct from `!ready`: this is
      terminal, so consumers show an error instead of a skeleton forever. */
@@ -65,21 +81,30 @@ const MessagingContext = React.createContext<MessagingState>(IDLE);
 
 export const useMessaging = () => React.useContext(MessagingContext);
 
+/* Inlined at build time, so this is a constant for the lifetime of the bundle
+   rather than something that can arrive late. The token route hands the same
+   value back, but waiting for it would mean mounting <Chat> late — which is
+   the remount this file exists to avoid. */
+const API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
+
 export function MessagingProvider({
   children,
   /* Lets a page skip the connection entirely when it has nothing to show
-     (e.g. a renter with no tours yet) — no token request, no websocket. */
+     (e.g. a renter with no tours yet) — no token request, no websocket.
+     <Chat> is still mounted; it costs nothing until connectUser dials. */
   enabled = true,
 }: {
   children: React.ReactNode;
   enabled?: boolean;
 }) {
   const { data: user } = useUser();
+  const { resolvedTheme } = useTheme();
+  const locale = useLocale() as Locale;
 
   /* Keyed on the user id so a sign-out or account switch can never reuse the
      previous person's credentials. The token inside expires (see
      STREAM_TOKEN_TTL_SECONDS); refreshing it is the token provider's job
-     below, not this query's, so the cache time here only governs the apiKey /
+     below, not this query's, so the cache time here only governs the
      userId / name that come alongside it. */
   const { data: credentials, isError } = useQuery({
     queryKey: ["stream", "token", user?.id],
@@ -88,82 +113,37 @@ export function MessagingProvider({
     queryFn: fetchCredentials,
   });
 
-  /* Without this the query's error state is invisible: `ready` would stay
-     false forever and every consumer would sit on a skeleton with no way to
-     tell "still connecting" from "this is never going to connect". */
-  const idle = React.useMemo(() => ({ ...IDLE, failed: isError }), [isError]);
-
-  if (!credentials) {
-    return (
-      <MessagingContext.Provider value={idle}>
-        {children}
-      </MessagingContext.Provider>
-    );
-  }
-
-  return (
-    <ConnectedMessaging credentials={credentials}>{children}</ConnectedMessaging>
-  );
-}
-
-function ConnectedMessaging({
-  credentials,
-  children,
-}: {
-  credentials: Credentials;
-  children: React.ReactNode;
-}) {
-  const { resolvedTheme } = useTheme();
-  const locale = useLocale() as Locale;
-
   /* Instantiation, connectUser and cleanup belong to lib/stream/client.ts —
      never call connectUser/disconnectUser from a component. It is a shared,
      ref-counted connection rather than the SDK's useCreateChatClient because
      that hook disconnects on unmount, and a route change away from a thread
      leaves requests in flight that then touch a dead channel; the file says
      more. */
-  const userData = React.useMemo(
-    () => ({ id: credentials.userId, name: credentials.name }),
-    [credentials.userId, credentials.name]
+  const client = React.useMemo(
+    () => (API_KEY ? getChatClient(API_KEY) : null),
+    []
   );
 
-  /* A provider rather than the token string: tokens expire, and a fixed string
-     would leave the SDK unable to reconnect once it lapses. Identity still
-     comes from the session cookie on every call, so this cannot mint a token
-     for anyone but the signed-in user.
-
-     The first call spends the token the query above already fetched — going to
-     the network for it again would re-run the auth check, the profile read and
-     the user upsert for no gain. Every later call is a genuine refresh. */
-  const unspentToken = React.useRef<string | null>(credentials.chatToken);
-  const tokenProvider = React.useCallback(async () => {
-    const cached = unspentToken.current;
-    if (cached) {
-      unspentToken.current = null;
-      return cached;
-    }
-    return (await fetchCredentials()).chatToken;
-  }, []);
-
-  const client = useSharedChatClient({
-    apiKey: credentials.apiKey,
-    tokenProvider,
-    userData,
-  });
+  const connected = useChatConnection(client, credentials);
 
   useNoAttachments(client);
-  const { unreadByTour, totalUnread } = useUnread(client);
+  const { unreadByTour, totalUnread } = useUnread(client, connected);
 
   const value = React.useMemo(
     () => ({
-      ready: Boolean(client),
-      failed: false,
+      ready: connected,
+      /* Without this the query's error state is invisible: `ready` would stay
+         false forever and every consumer would sit on a skeleton with no way
+         to tell "still connecting" from "this is never going to connect". */
+      failed: isError,
       unreadByTour,
       totalUnread,
     }),
-    [client, unreadByTour, totalUnread]
+    [connected, isError, unreadByTour, totalUnread]
   );
 
+  /* Only reachable with the env var unset, i.e. never at runtime for a given
+     build — so this branch cannot swap under a mounted tree. */
   if (!client) {
     return (
       <MessagingContext.Provider value={value}>
@@ -193,33 +173,68 @@ function ConnectedMessaging({
   );
 }
 
-/* Borrows the shared connection for as long as this provider is mounted.
+/* Borrows the shared connection for as long as this provider is mounted, and
+   reports whether it is up.
 
-   Null until connectUser resolves, which is what `ready` downstream reports:
+   False until connectUser resolves, which is what `ready` downstream reports:
    the SDK queues nothing for a client that hasn't finished connecting, so
-   handing one out early would let a thread query against a socket that isn't
-   there yet. Releasing does not disconnect — see lib/stream/client.ts. */
-function useSharedChatClient({
-  apiKey,
-  userData,
-  tokenProvider,
-}: {
-  apiKey: string;
-  userData: { id: string; name: string };
-  tokenProvider: TokenOrProvider;
-}): StreamChat | null {
-  const [client, setClient] = React.useState<StreamChat | null>(null);
+   letting a thread render early would query against a socket that isn't there
+   yet. Releasing does not disconnect — see lib/stream/client.ts. */
+function useChatConnection(
+  client: StreamChat | null,
+  credentials: Credentials | undefined
+): boolean {
+  const [connected, setConnected] = React.useState(false);
+
+  const userId = credentials?.userId;
+  const name = credentials?.name;
+  const userData = React.useMemo(
+    () => (userId ? { id: userId, name: name ?? "" } : null),
+    [userId, name]
+  );
+
+  /* A provider rather than the token string: tokens expire, and a fixed string
+     would leave the SDK unable to reconnect once it lapses. Identity still
+     comes from the session cookie on every call, so this cannot mint a token
+     for anyone but the signed-in user.
+
+     The first call spends the token the query above already fetched — going to
+     the network for it again would re-run the auth check, the profile read and
+     the user upsert for no gain. Every later call is a genuine refresh. */
+  const unspentToken = React.useRef<string | null>(null);
+  const armedToken = React.useRef<string | null>(null);
+
+  /* Declared before the connect effect so the token is in hand by the time
+     that one runs: effects in a commit fire in declaration order. Armed once
+     per distinct token, so a refetch that returns the same string doesn't
+     re-offer one that has already been spent. */
+  React.useEffect(() => {
+    const token = credentials?.chatToken;
+    if (!token || armedToken.current === token) return;
+    armedToken.current = token;
+    unspentToken.current = token;
+  }, [credentials?.chatToken]);
+
+  const tokenProvider = React.useCallback(async () => {
+    const cached = unspentToken.current;
+    if (cached) {
+      unspentToken.current = null;
+      return cached;
+    }
+    return (await fetchCredentials()).chatToken;
+  }, []);
 
   React.useEffect(() => {
+    if (!client || !userData) return;
     let live = true;
-    const handle = acquireChatClient({ apiKey, userData, tokenProvider });
+    const handle = acquireChatConnection({ client, userData, tokenProvider });
 
     /* Already resolved when the connection is being reused, so this is a
        microtask rather than a round trip — no skeleton flash on the way back
        into the inbox. */
     handle.ready
       .then(() => {
-        if (live) setClient(handle.client);
+        if (live) setConnected(true);
       })
       .catch(() => {
         /* Leaves `ready` false. The token query's own error state is what
@@ -228,12 +243,12 @@ function useSharedChatClient({
 
     return () => {
       live = false;
-      setClient(null);
-      releaseChatClient(handle);
+      setConnected(false);
+      releaseChatConnection(handle);
     };
-  }, [apiKey, userData, tokenProvider]);
+  }, [client, userData, tokenProvider]);
 
-  return client;
+  return connected;
 }
 
 /* Turns file uploads off for every composer this client builds.
@@ -281,11 +296,14 @@ const TOUR_PREFIX = "tour-";
 const bareChannelId = (value: string) =>
   value.includes(":") ? value.slice(value.lastIndexOf(":") + 1) : value;
 
-function useUnread(client: StreamChat | null) {
+function useUnread(client: StreamChat | null, connected: boolean) {
   const [unreadById, setUnreadById] = React.useState<Record<string, number>>({});
 
+  /* `connected` is in the deps, not just the guard: the client instance is now
+     stable across the connect, so nothing else would re-run this once
+     `userID` finally exists. */
   React.useEffect(() => {
-    if (!client?.userID) return;
+    if (!connected || !client?.userID) return;
     let mounted = true;
 
     const apply = (
@@ -345,7 +363,7 @@ function useUnread(client: StreamChat | null) {
       mounted = false;
       subscriptions.forEach((s) => s.unsubscribe());
     };
-  }, [client]);
+  }, [client, connected]);
 
   /* Tour threads are additionally keyed by tour id for the per-card badges;
      listing threads only contribute to the total. */

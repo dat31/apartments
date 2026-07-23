@@ -879,6 +879,7 @@
     "selectTitle": "Select a conversation",
     "selectBody": "Choose a thread on the left to read and reply.",
     "closedNotice": "This conversation is closed. Threads close once a tour is declined, or a week after the visit.",
+    "loading": "Loading conversation…",
     "loadFailed": "This conversation couldn't be loaded. Try again in a moment.",
     "connectFailed": "Messages couldn't be reached right now. Reload the page to try again.",
     "startFailed": "Couldn't start that conversation. Try again in a moment.",
