@@ -14,6 +14,7 @@ import { RenterTourCard } from "./renter-tour-card";
 import { RouteStopBadge } from "./route-stop-badge";
 import { TourDayRoute } from "./tour-day-route";
 import { groupTourDays } from "../lib/route-plan";
+import { MessagingProvider } from "@/components/messaging/chat-provider";
 
 /* Sort order for the history section: things that need attention first. */
 const ORDER: Record<TourRequest["status"], number> = {
@@ -64,138 +65,142 @@ export function RenterTours() {
   };
 
   return (
-    <div className="container mx-auto px-5 sm:px-8 py-8">
-      <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2.5">
-            <Calendar size={26} className="text-primary" /> {t("title")}
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            {total === 0 ? t("emptyHint") : t("countSub", { count: total })}
-          </p>
-        </div>
-        <Button asChild variant="secondary" className="h-11 gap-1.5">
-          <Link href="/apartments">
-            <Search size={16} /> {t("browseHomes")}
-          </Link>
-        </Button>
-      </div>
-
-      {!ready ? (
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-card flex flex-col sm:flex-row">
-              <div className="sm:w-52 shrink-0 overflow-hidden sm:self-stretch">
-                <Skeleton className="aspect-[16/9] sm:aspect-auto sm:h-full w-full" />
-              </div>
-              <div className="flex-1 p-5 flex flex-col gap-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex flex-col gap-1.5">
-                    <Skeleton className="h-6 w-20" />
-                    <Skeleton className="h-5 w-40" />
-                    <Skeleton className="h-4 w-28" />
-                  </div>
-                  <Skeleton className="h-9 w-36" />
-                </div>
-                <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="mt-auto h-8 w-24" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : total === 0 ? (
-        <div className="bg-card p-16 text-center anim-fade">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
-            <Calendar size={26} />
+    /* One Stream connection for the page, shared by every card's thread.
+       Skipped entirely while the renter has no tours — no tours, no threads. */
+    <MessagingProvider enabled={total > 0}>
+      <div className="container mx-auto px-5 sm:px-8 py-8">
+        <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2.5">
+              <Calendar size={26} className="text-primary" /> {t("title")}
+            </h1>
+            <p className="mt-1 text-muted-foreground">
+              {total === 0 ? t("emptyHint") : t("countSub", { count: total })}
+            </p>
           </div>
-          <h3 className="text-lg font-semibold">{t("emptyTitle")}</h3>
-          <p className="mt-1 text-muted-foreground text-pretty max-w-sm mx-auto">
-            {t.rich("emptyBody", {
-              b: (chunks) => (
-                <span className="text-foreground font-medium">{chunks}</span>
-              ),
-            })}
-          </p>
-          <Button asChild className="mt-5 h-11 gap-1.5">
+          <Button asChild variant="secondary" className="h-11 gap-1.5">
             <Link href="/apartments">
               <Search size={16} /> {t("browseHomes")}
             </Link>
           </Button>
         </div>
-      ) : (
-        <div className="flex flex-col gap-8">
-          {days.map((day) => {
-            const hasRoute = day.stops.length >= 2;
-            return (
-              <section key={day.date}>
-                <div className="mb-3 flex items-center gap-3">
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                    {format.dateTime(parseYmd(day.date), {
-                      weekday: "long",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </h2>
-                  <span className="h-px flex-1 bg-border" />
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {t("dayCount", { count: day.items.length })}
-                  </span>
+
+        {!ready ? (
+          <div className="flex flex-col gap-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-card flex flex-col sm:flex-row">
+                <div className="sm:w-52 shrink-0 overflow-hidden sm:self-stretch">
+                  <Skeleton className="aspect-[16/9] sm:aspect-auto sm:h-full w-full" />
                 </div>
-                <div className="flex flex-col gap-3 stagger">
-                  {day.items.map(({ tour, listing }) => {
-                    /* On days with a route, mirror the map's numbered pin
-                       beside each routeable card (wide screens only). */
-                    const stop = hasRoute
-                      ? day.stops.findIndex((s) => s.tour.id === tour.id)
-                      : -1;
-                    return (
-                      <div key={tour.id} className="relative">
-                        {stop >= 0 && (
-                          <span className="absolute top-5 -left-0.5 z-10 hidden -translate-x-full pr-2 xl:block">
-                            <RouteStopBadge n={stop + 1} size={26} />
-                          </span>
-                        )}
-                        <RenterTourCard
-                          tour={tour}
-                          listing={listing}
-                          onAcceptNew={acceptNew}
-                          onDecline={decline}
-                          onCancel={cancel}
-                        />
-                      </div>
-                    );
-                  })}
+                <div className="flex-1 p-5 flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex flex-col gap-1.5">
+                      <Skeleton className="h-6 w-20" />
+                      <Skeleton className="h-5 w-40" />
+                      <Skeleton className="h-4 w-28" />
+                    </div>
+                    <Skeleton className="h-9 w-36" />
+                  </div>
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="mt-auto h-8 w-24" />
                 </div>
-                {hasRoute && <TourDayRoute stops={day.stops} />}
-              </section>
-            );
-          })}
-          {history.length > 0 && (
-            <section>
-              {days.length > 0 && (
-                <div className="mb-3 flex items-center gap-3">
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                    {t("historySection")}
-                  </h2>
-                  <span className="h-px flex-1 bg-border" />
-                </div>
-              )}
-              <div className="flex flex-col gap-3 stagger">
-                {history.map(({ tour, listing }) => (
-                  <RenterTourCard
-                    key={tour.id}
-                    tour={tour}
-                    listing={listing}
-                    onAcceptNew={acceptNew}
-                    onDecline={decline}
-                    onCancel={cancel}
-                  />
-                ))}
               </div>
-            </section>
-          )}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        ) : total === 0 ? (
+          <div className="bg-card p-16 text-center anim-fade">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
+              <Calendar size={26} />
+            </div>
+            <h3 className="text-lg font-semibold">{t("emptyTitle")}</h3>
+            <p className="mt-1 text-muted-foreground text-pretty max-w-sm mx-auto">
+              {t.rich("emptyBody", {
+                b: (chunks) => (
+                  <span className="text-foreground font-medium">{chunks}</span>
+                ),
+              })}
+            </p>
+            <Button asChild className="mt-5 h-11 gap-1.5">
+              <Link href="/apartments">
+                <Search size={16} /> {t("browseHomes")}
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-8">
+            {days.map((day) => {
+              const hasRoute = day.stops.length >= 2;
+              return (
+                <section key={day.date}>
+                  <div className="mb-3 flex items-center gap-3">
+                    <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                      {format.dateTime(parseYmd(day.date), {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </h2>
+                    <span className="h-px flex-1 bg-border" />
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                      {t("dayCount", { count: day.items.length })}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-3 stagger">
+                    {day.items.map(({ tour, listing }) => {
+                      /* On days with a route, mirror the map's numbered pin
+                       beside each routeable card (wide screens only). */
+                      const stop = hasRoute
+                        ? day.stops.findIndex((s) => s.tour.id === tour.id)
+                        : -1;
+                      return (
+                        <div key={tour.id} className="relative">
+                          {stop >= 0 && (
+                            <span className="absolute top-5 -left-0.5 z-10 hidden -translate-x-full pr-2 xl:block">
+                              <RouteStopBadge n={stop + 1} size={26} />
+                            </span>
+                          )}
+                          <RenterTourCard
+                            tour={tour}
+                            listing={listing}
+                            onAcceptNew={acceptNew}
+                            onDecline={decline}
+                            onCancel={cancel}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {hasRoute && <TourDayRoute stops={day.stops} />}
+                </section>
+              );
+            })}
+            {history.length > 0 && (
+              <section>
+                {days.length > 0 && (
+                  <div className="mb-3 flex items-center gap-3">
+                    <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                      {t("historySection")}
+                    </h2>
+                    <span className="h-px flex-1 bg-border" />
+                  </div>
+                )}
+                <div className="flex flex-col gap-3 stagger">
+                  {history.map(({ tour, listing }) => (
+                    <RenterTourCard
+                      key={tour.id}
+                      tour={tour}
+                      listing={listing}
+                      onAcceptNew={acceptNew}
+                      onDecline={decline}
+                      onCancel={cancel}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
+      </div>
+    </MessagingProvider>
   );
 }

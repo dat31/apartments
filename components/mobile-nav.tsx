@@ -25,6 +25,7 @@ import {
   LayoutGrid,
   LogOut,
   Menu,
+  MessageCircle,
   Moon,
   Settings,
   Sun,
@@ -55,6 +56,7 @@ export function MobileNav({
   savedCount,
   savedActive,
   toursActive,
+  messagesActive,
   onManage,
   onSignOut,
   className,
@@ -64,6 +66,7 @@ export function MobileNav({
   savedCount: number;
   savedActive: boolean;
   toursActive: boolean;
+  messagesActive: boolean;
   onManage: () => void;
   onSignOut: () => void;
   className?: string;
@@ -113,51 +116,68 @@ export function MobileNav({
         </DrawerHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto">
-          {!isOwner && (
-            <>
-              <div className="py-1.5">
-                <p className={sectionLabel}>{header("browse")}</p>
-                <DrawerClose asChild>
-                  <Link
-                    href="/tour"
-                    aria-current={toursActive ? "page" : undefined}
-                    className={navRow({ tone: toursActive ? "active" : "default" })}
-                  >
-                    <Calendar size={19} className="shrink-0 opacity-90" />
-                    <span className="flex-1 leading-tight truncate">
-                      {header("tours")}
+          {/* Always rendered: owners get no Tours or Saved rows, but Messages
+              is theirs too — the desktop header shows it to both roles, and
+              without it the inbox has no mobile entry point at all. */}
+          <div className="py-1.5">
+            <p className={sectionLabel}>{header("browse")}</p>
+            {!isOwner && (
+              <DrawerClose asChild>
+                <Link
+                  href="/tour"
+                  aria-current={toursActive ? "page" : undefined}
+                  className={navRow({ tone: toursActive ? "active" : "default" })}
+                >
+                  <Calendar size={19} className="shrink-0 opacity-90" />
+                  <span className="flex-1 leading-tight truncate">
+                    {header("tours")}
+                  </span>
+                </Link>
+              </DrawerClose>
+            )}
+            <DrawerClose asChild>
+              <Link
+                href="/messages"
+                aria-current={messagesActive ? "page" : undefined}
+                className={navRow({
+                  tone: messagesActive ? "active" : "default",
+                })}
+              >
+                <MessageCircle size={19} className="shrink-0 opacity-90" />
+                <span className="flex-1 leading-tight truncate">
+                  {header("messages")}
+                </span>
+              </Link>
+            </DrawerClose>
+            {!isOwner && (
+              <DrawerClose asChild>
+                <Link
+                  href="/apartments/saved"
+                  aria-current={savedActive ? "page" : undefined}
+                  className={navRow({ tone: savedActive ? "active" : "default" })}
+                >
+                  <Heart size={19} className="shrink-0 opacity-90" />
+                  <span className="flex-1 leading-tight truncate">
+                    {header("saved")}
+                  </span>
+                  {savedCount > 0 && (
+                    <span
+                      className={cn(
+                        "inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs font-semibold tabular-nums",
+                        savedActive
+                          ? "bg-secondary-foreground text-secondary"
+                          : "bg-primary text-primary-foreground"
+                      )}
+                    >
+                      {savedCount}
                     </span>
-                  </Link>
-                </DrawerClose>
-                <DrawerClose asChild>
-                  <Link
-                    href="/apartments/saved"
-                    aria-current={savedActive ? "page" : undefined}
-                    className={navRow({ tone: savedActive ? "active" : "default" })}
-                  >
-                    <Heart size={19} className="shrink-0 opacity-90" />
-                    <span className="flex-1 leading-tight truncate">
-                      {header("saved")}
-                    </span>
-                    {savedCount > 0 && (
-                      <span
-                        className={cn(
-                          "inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs font-semibold tabular-nums",
-                          savedActive
-                            ? "bg-secondary-foreground text-secondary"
-                            : "bg-primary text-primary-foreground"
-                        )}
-                      >
-                        {savedCount}
-                      </span>
-                    )}
-                  </Link>
-                </DrawerClose>
-              </div>
+                  )}
+                </Link>
+              </DrawerClose>
+            )}
+          </div>
 
-              <Separator />
-            </>
-          )}
+          <Separator />
 
           {/* account */}
           <div className="py-1.5">

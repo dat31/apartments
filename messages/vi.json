@@ -42,6 +42,9 @@
     },
     "dashboard": {
       "title": "Bảng điều khiển chủ nhà"
+    },
+    "messages": {
+      "title": "Tin nhắn"
     }
   },
   "header": {
@@ -51,7 +54,8 @@
     "openMenu": "Mở menu",
     "closeMenu": "Đóng menu",
     "browse": "Khám phá",
-    "account": "Tài khoản"
+    "account": "Tài khoản",
+    "messages": "Tin nhắn"
   },
   "landing": {
     "footer": "Danapa — bản mẫu demo. Không cần tài khoản.",
@@ -863,6 +867,33 @@
       "previewOff": "Về thứ tự theo lịch",
       "ariaMap": "Bản đồ lộ trình các lịch xem trong ngày"
     }
+  },
+  "messaging": {
+    "title": "Tin nhắn",
+    "subtitle": "Các cuộc trò chuyện của bạn với chủ nhà và người thuê.",
+    "browseHomes": "Xem nhà",
+    "messages": "Tin nhắn",
+    "hide": "Ẩn tin nhắn",
+    "messageOwner": "Nhắn cho chủ nhà",
+    "placeholder": "Nhập tin nhắn…",
+    "selectTitle": "Chọn một cuộc trò chuyện",
+    "selectBody": "Chọn một cuộc trò chuyện bên trái để đọc và trả lời.",
+    "closedNotice": "Cuộc trò chuyện đã đóng. Tin nhắn sẽ đóng khi lịch xem bị từ chối, hoặc một tuần sau buổi xem.",
+    "loadFailed": "Không tải được cuộc trò chuyện. Vui lòng thử lại sau giây lát.",
+    "connectFailed": "Hiện chưa kết nối được với tin nhắn. Vui lòng tải lại trang.",
+    "startFailed": "Không bắt đầu được cuộc trò chuyện. Vui lòng thử lại sau giây lát.",
+    "conversations": "Cuộc trò chuyện",
+    "aboutAListing": "Về một tin đăng",
+    "activeNow": "Đang hoạt động",
+    "activeAgo": "Hoạt động {time}",
+    "offline": "Ngoại tuyến",
+    "viewListing": "Xem tin đăng",
+    "tourOn": "Lịch xem ngày {date} lúc {time}",
+    "back": "Quay lại danh sách trò chuyện",
+    "composerHint": "Nhấn Enter để gửi · Shift + Enter để xuống dòng",
+    "threadEmpty": "Chưa có tin nhắn nào — hãy chào một câu.",
+    "emptyTitle": "Chưa có tin nhắn nào",
+    "emptyBody": "Đã tìm được nơi ưng ý? Nhắn thẳng cho chủ nhà từ tin đăng để hỏi về tình trạng còn trống, chi phí hay lịch xem nhà."
   },
   "validation": {
     "email": {

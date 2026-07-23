@@ -10,6 +10,7 @@ import { useMyAvailability } from "@/hooks/use-availability";
 import { type TourRequest } from "@/schemas/tour";
 import { tourSlot } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { Calendar } from "lucide-react";
+import { MessagingProvider } from "@/components/messaging/chat-provider";
 
 const sortKey = (t: TourRequest) => {
   const s = tourSlot(t);
@@ -91,31 +92,36 @@ export function OwnerTours() {
   }
 
   return (
-    <div className="anim-fade">
-      <Section title={t("needsResponse")} items={needsResponse} render={renderCard} />
-      <Section title={t("upcoming")} items={upcoming} render={renderCard} />
-      <Section title={t("past")} items={past} render={renderCard} />
+    /* One Stream connection for the whole page — every card's thread shares
+       it. Mounted here rather than in the dashboard layout so the other tabs
+       don't open a websocket they never use. */
+    <MessagingProvider>
+      <div className="anim-fade">
+        <Section title={t("needsResponse")} items={needsResponse} render={renderCard} />
+        <Section title={t("upcoming")} items={upcoming} render={renderCard} />
+        <Section title={t("past")} items={past} render={renderCard} />
 
-      <ProposeTimeModal
-        key={proposeFor?.id ?? "none"}
-        open={!!proposeFor}
-        onClose={() => setProposeFor(null)}
-        tour={proposeFor}
-        listing={
-          proposeFor
-            ? items.find((m) => m.tour.id === proposeFor.id)?.listing ?? null
-            : null
-        }
-        template={template}
-        tours={items.map((m) => m.tour)}
-        onSubmit={(id, date, time) => {
-          proposeTime(id, date, time);
-          setProposeFor(null);
-          toast.success(t("proposedToast"), {
-            description: t("proposedToastDesc"),
-          });
-        }}
-      />
-    </div>
+        <ProposeTimeModal
+          key={proposeFor?.id ?? "none"}
+          open={!!proposeFor}
+          onClose={() => setProposeFor(null)}
+          tour={proposeFor}
+          listing={
+            proposeFor
+              ? items.find((m) => m.tour.id === proposeFor.id)?.listing ?? null
+              : null
+          }
+          template={template}
+          tours={items.map((m) => m.tour)}
+          onSubmit={(id, date, time) => {
+            proposeTime(id, date, time);
+            setProposeFor(null);
+            toast.success(t("proposedToast"), {
+              description: t("proposedToastDesc"),
+            });
+          }}
+        />
+      </div>
+    </MessagingProvider>
   );
 }

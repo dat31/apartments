@@ -14,7 +14,7 @@ import { useSaved } from "@/hooks/use-saved";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useProfile } from "@/hooks/use-profile";
 import { useUser, useSignOut } from "@/hooks/auth";
-import { Calendar, Heart } from "lucide-react";
+import { Calendar, Heart, MessageCircle } from "lucide-react";
 
 export function SiteHeader() {
   const { saved } = useSaved();
@@ -26,6 +26,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const savedActive = pathname === "/apartments/saved";
   const toursActive = pathname === "/tour";
+  const messagesActive = pathname === "/messages";
   const isOwner = profile.role === "owner";
   // Auth, saved count and role all come from client-only stores (react-query
   // cache seeded from cookies, localStorage). They're unknown during SSR, so
@@ -60,6 +61,20 @@ export function SiteHeader() {
                     </Link>
                   </Button>
                 )}
+
+                {/* No unread badge here on purpose: it would need a Stream
+                    connection on every page. See the messaging plan doc. */}
+                <Button
+                  asChild
+                  variant={messagesActive ? "default" : "ghost"}
+                  size="default"
+                  className="h-9 gap-1.5 px-3"
+                >
+                  <Link href="/messages">
+                    <MessageCircle size={16} />
+                    {header("messages")}
+                  </Link>
+                </Button>
 
                 <Button
                   asChild
@@ -103,6 +118,7 @@ export function SiteHeader() {
                 savedCount={saved.length}
                 savedActive={savedActive}
                 toursActive={toursActive}
+                messagesActive={messagesActive}
                 onManage={() => setManageOpen(true)}
                 onSignOut={() => signOut.mutate()}
               />

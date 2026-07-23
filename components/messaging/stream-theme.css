@@ -1,0 +1,269 @@
+/* Stream Chat → Hearth design tokens.
+
+   Stream's stylesheet is a complete theme in its own right (rounded bubbles,
+   its own blue brand, bordered surfaces). Rather than fight it selector by
+   selector, this file re-points its documented theme variables at the app's
+   oklch tokens, which is the customization channel Stream's theming-v2 guide
+   sanctions. Everything downstream — bubbles, badges, buttons, the composer —
+   then follows the same palette as the rest of the app, in both colour
+   schemes, with no per-component CSS.
+
+   Scoped to `.str-chat.str-chat` (the class doubled) purely for specificity:
+   Stream declares the same variables on `.str-chat`, and the doubled selector
+   wins regardless of which stylesheet the bundler emits first.
+
+   The handful of rules below the variable block are structural, not cosmetic —
+   places where Stream's own layout assumes it owns the whole viewport and our
+   two-pane grid does not. */
+
+.str-chat.str-chat {
+  --str-chat__font-family: var(--font-lexend), ui-sans-serif, system-ui,
+    sans-serif;
+
+  /* ---- surfaces ---- */
+  /* Transparent, not `--background`: the panes sit on whatever the page puts
+     behind them, exactly as the design's grid does. */
+  --str-chat__background-core-app: transparent;
+  --str-chat__background-core-elevation-0: transparent;
+  --str-chat__background-core-elevation-1: transparent;
+  --str-chat__background-core-elevation-2: var(--popover);
+  --str-chat__background-core-elevation-3: var(--accent);
+  --str-chat__background-core-surface-default: var(--background);
+  --str-chat__background-core-surface-subtle: var(--muted);
+  --str-chat__background-core-surface-card: var(--card);
+  --str-chat__background-core-surface-strong: var(--secondary);
+  --str-chat__background-core-inverse: var(--foreground);
+  --str-chat__background-core-on-accent: var(--primary-foreground);
+  --str-chat__background-core-highlight: var(--accent);
+
+  /* ---- type ---- */
+  --str-chat__text-primary: var(--foreground);
+  --str-chat__text-secondary: var(--muted-foreground);
+  --str-chat__text-tertiary: var(--muted-foreground);
+  --str-chat__text-disabled: var(--muted-foreground);
+  --str-chat__text-on-accent: var(--primary-foreground);
+  --str-chat__text-on-inverse: var(--background);
+  --str-chat__text-link: var(--primary);
+
+  /* ---- brand ---- */
+  --str-chat__accent-primary: var(--primary);
+  --str-chat__accent-error: var(--destructive);
+  --str-chat__accent-success: var(--primary);
+
+  /* ---- message bubbles ---- */
+  --str-chat__chat-bg-outgoing: var(--primary);
+  --str-chat__chat-text-outgoing: var(--primary-foreground);
+  --str-chat__chat-bg-attachment-outgoing: var(--primary);
+  --str-chat__chat-bg-incoming: var(--muted);
+  --str-chat__chat-text-incoming: var(--foreground);
+  --str-chat__chat-bg-attachment-incoming: var(--muted);
+  --str-chat__chat-border-incoming: transparent;
+  --str-chat__chat-border-outgoing: transparent;
+  --str-chat__chat-text-timestamp: var(--muted-foreground);
+  --str-chat__chat-text-username: var(--muted-foreground);
+  --str-chat__chat-text-system: var(--muted-foreground);
+  --str-chat__chat-text-typing-indicator: var(--muted-foreground);
+  --str-chat__chat-text-read: var(--primary);
+  --str-chat__quoted-message-bubble-background-color: var(--secondary);
+
+  /* ---- lines: the system is borderless, so most of them go ---- */
+  --str-chat__border-core-default: transparent;
+  --str-chat__border-core-subtle: transparent;
+  --str-chat__border-core-on-surface: transparent;
+  --str-chat__border-core-strong: var(--border);
+  --str-chat__border-utility-focused: var(--ring);
+
+  /* ---- controls ---- */
+  --str-chat__badge-bg-primary: var(--primary);
+  --str-chat__badge-text-on-accent: var(--primary-foreground);
+  --str-chat__button-primary-bg: var(--primary);
+  --str-chat__button-primary-text-on-accent: var(--primary-foreground);
+  --str-chat__button-secondary-bg: var(--secondary);
+  --str-chat__button-secondary-text: var(--secondary-foreground);
+  --str-chat__reaction-bg: var(--secondary);
+  --str-chat__reaction-text: var(--secondary-foreground);
+  --str-chat__reaction-border: transparent;
+
+  /* ---- fields ---- */
+  /* `--composer-bg` is Stream's own hook for the compose area's fill; it ships
+     undefined (transparent) so the area reads as an outline. The design wants
+     the app's filled, borderless field instead. */
+  --composer-bg: var(--input);
+  --str-chat__input-text-default: var(--foreground);
+  --str-chat__input-text-placeholder: var(--muted-foreground);
+  --str-chat__input-text-icon: var(--muted-foreground);
+  --str-chat__input-send-icon: var(--primary);
+  --str-chat__input-send-icon-disabled: var(--muted-foreground);
+
+  /* ---- avatars ---- */
+  /* The Avatar component itself is replaced (square colour blocks); these are
+     the fallbacks Stream still reaches for in its own chrome. */
+  --str-chat__avatar-bg-default: var(--secondary);
+  --str-chat__avatar-text-default: var(--secondary-foreground);
+  --str-chat__avatar-bg-placeholder: var(--muted);
+  --str-chat__avatar-text-placeholder: var(--muted-foreground);
+
+  /* ---- loading ---- */
+  --str-chat__skeleton-loading-base: var(--muted);
+  --str-chat__skeleton-loading-highlight: var(--secondary);
+
+  /* ---- geometry ----
+     globals.css already forces `border-radius: 0` globally; these keep the
+     flatness in Stream's own vocabulary so nothing depends on that big hammer. */
+  --str-chat__radius-none: 0;
+  --str-chat__radius-xxs: 0;
+  --str-chat__radius-xs: 0;
+  --str-chat__radius-sm: 0;
+  --str-chat__radius-md: 0;
+  --str-chat__radius-lg: 0;
+  --str-chat__radius-xl: 0;
+  --str-chat__radius-2xl: 0;
+  --str-chat__radius-3xl: 0;
+  --str-chat__radius-4xl: 0;
+  --str-chat__radius-max: 0;
+  --str-chat__radius-full: 0;
+  --str-chat__message-bubble-radius-tail: 0;
+  --str-chat__message-bubble-radius-group-top: 0;
+  --str-chat__message-bubble-radius-group-middle: 0;
+  --str-chat__message-bubble-radius-group-bottom: 0;
+  --str-chat__message-bubble-radius-attachment: 0;
+  --str-chat__message-bubble-radius-attachment-inline: 0;
+  --str-chat__composer-radius-fixed: 0;
+  --str-chat__composer-radius-floating: 0;
+  --str-chat__button-radius-sm: 0;
+  --str-chat__button-radius-md: 0;
+  --str-chat__button-radius-lg: 0;
+  --str-chat__button-radius-full: 0;
+
+  /* ---- measure ----
+     One 48rem column for the thread and the composer, matching the design's
+     `max-w-3xl`.
+
+     The bubble cap MUST stay a length. The design writes it as `max-w-[78%]`,
+     but its bubble sits in a plain flex column with a definite width, where a
+     percentage resolves. Stream's message row is a shrink-to-fit grid
+     (`.str-chat__message-inner { width: fit-content }`) whose bubble takes
+     `max-width: min(var(--str-chat__message-max-width), 100%)` — inside that,
+     a percentage has no definite containing block to resolve against, collapses
+     toward zero, and wins the `min()`, wrapping the text one character per
+     line. 36rem is the design's 78% of the 48rem column; the SDK's own
+     `min(…, 100%)` still keeps bubbles inside a narrower pane. */
+  --str-chat__message-composer-max-width: 48rem;
+  --str-chat__message-composer-padding: 0.75rem;
+  --str-chat__message-max-width: 36rem;
+}
+
+/* Stream's channel list is built for a full-height messenger where it doubles
+   as the mobile navigation: under 768px it takes itself out of flow and hides,
+   waiting for a drawer to reveal it. Our layout decides which pane is on show
+   (the grid swaps list ↔ thread), so that behaviour has to be handed back. */
+@media (max-width: 767px) {
+  .str-chat.str-chat__channel-list {
+    position: static;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+    width: 100%;
+  }
+}
+
+/* The list is a grid cell here, not a flex sidebar sizing itself. */
+.str-chat.str-chat__channel-list {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* Rows are flush to the pane edge in the design; Stream insets each one. */
+.str-chat .str-chat__channel-list-item-container {
+  padding: 0;
+}
+
+/* No avatar on a message row. Every conversation here has exactly two people
+   and the counterpart is named in the header, so a repeated avatar down the
+   left edge says nothing — the design has none.
+
+   Done in CSS rather than with <MessageList showAvatar={false}>: the regular
+   (non-virtualized) list drops that prop before it reaches the message, so it
+   only works on the virtualized list. */
+.str-chat .str-chat__message .str-chat__avatar:has(~ .str-chat__message-inner) {
+  display: none;
+}
+.str-chat .str-chat__message.str-chat__message--other {
+  column-gap: 0;
+}
+
+/* The design's message rhythm: 6px between blocks, where a block is a bubble
+   and the timestamp under it. Stream leaves 16px, which reads airy once the
+   bubbles lose their radius. */
+.str-chat .str-chat__li {
+  padding-block: 3px;
+}
+
+/* ---- the thread's own padding ----
+
+   The design frames the message column with `px-4 sm:px-6 py-5`; Stream ships
+   the scroller flush (`padding: 0`) and insets each message row by 12px
+   instead. Two things have to stay true at once: the inset should be the
+   design's, and the message column must stay exactly as wide as the composer
+   (48rem) or bubbles and the send field sit on different edges.
+
+   So the row padding carries the inset, and the scroller's max width is
+   widened by exactly that much — `--str-chat__message-list-scroll-max-width`
+   is declared on the main panel, which is why it is re-declared there and not
+   on `.str-chat`. */
+.str-chat .str-chat__message-list-scroll {
+  padding-block: 20px;
+}
+.str-chat .str-chat__message-list-main-panel {
+  --str-chat__message-list-scroll-max-width: calc(48rem + 2 * 16px);
+}
+.str-chat .str-chat__message {
+  padding-inline: 16px;
+}
+@media (min-width: 640px) {
+  .str-chat .str-chat__message-list-main-panel {
+    --str-chat__message-list-scroll-max-width: calc(48rem + 2 * 24px);
+  }
+  .str-chat .str-chat__message {
+    padding-inline: 24px;
+  }
+}
+
+/* Bubbles: the design's `px-3.5 py-2.5` at 15px/relaxed. Stream pads 8px and
+   inherits 16px/1.25, which reads cramped without a radius to soften it. The
+   4px the text element already contributes inline makes up the 14px.
+
+   The long selector matches Stream's own
+   (`.str-chat__message .str-chat__message-inner .str-chat__message-bubble`) —
+   a shorter one loses on specificity and the padding silently stays at 8px. */
+.str-chat
+  .str-chat__message
+  .str-chat__message-inner
+  .str-chat__message-bubble {
+  padding: 10px;
+}
+.str-chat
+  .str-chat__message
+  .str-chat__message-inner
+  .str-chat__message-bubble
+  .str-chat__message-text {
+  font-size: 15px;
+  line-height: 1.625;
+}
+
+/* `my-3` around the day chip. */
+.str-chat .str-chat__date-separator {
+  padding-block: 12px;
+}
+
+/* The composer's `px-3 sm:px-5 py-3`, with the bottom trimmed to the design's
+   `mt-1.5` gap before the Enter-to-send hint that follows it. Only the inline
+   padding below 48rem is visible — above it the composer row is centred. */
+.str-chat .str-chat__message-composer-container {
+  padding: 12px 12px 6px;
+}
+@media (min-width: 640px) {
+  .str-chat .str-chat__message-composer-container {
+    padding-inline: 20px;
+  }
+}

@@ -39,7 +39,14 @@ export function localePath(locale: Locale, href: Href): string {
     robots.ts disallow list mirrors these routes for crawlers that skip meta. */
 export async function privateMetadata(
   lang: string,
-  key: "saved" | "compare" | "tours" | "create" | "edit" | "dashboard"
+  key:
+    | "saved"
+    | "compare"
+    | "tours"
+    | "create"
+    | "edit"
+    | "dashboard"
+    | "messages"
 ): Promise<Metadata> {
   const t = await getTranslations({ locale: lang, namespace: "meta" });
   return { title: t(`${key}.title`), robots: { index: false } };

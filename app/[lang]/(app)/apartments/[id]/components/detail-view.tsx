@@ -6,6 +6,7 @@ import { LocationMapLazy } from "./location-map-lazy";
 import { Reviews } from "./reviews";
 import { SimilarHomes, SimilarHomesSkeleton } from "./similar-homes";
 import { OwnerCard, OwnerCardSkeleton } from "./owner-card";
+import { MessageOwnerButton } from "@/components/messaging/message-owner-button";
 import { SaveHomeButton } from "./save-home-button";
 import { ShareButton } from "@/components/share-button";
 import { BookTourButton } from "./book-tour-button";
@@ -149,6 +150,12 @@ export function DetailView({
                 isOwner={isOwner}
               />
             </Suspense>
+            {!isOwner && (
+              <MessageOwnerButton
+                listingId={listing.id}
+                className="mt-4 w-full h-11"
+              />
+            )}
           </div>
 
           {/* Reviews — first page server-rendered, further pages client-side. */}
@@ -170,6 +177,9 @@ export function DetailView({
             <MoveInEstimate listing={listing} variant="compact" className="mt-4" />
             <div className="mt-5 flex flex-col gap-2.5">
               {!isOwner && <BookTourButton listing={listing} mode="full" />}
+              {!isOwner && (
+                <MessageOwnerButton listingId={listing.id} className="h-11" />
+              )}
               <SaveHomeButton id={listing.id} mode="full" />
             </div>
             <Suspense fallback={<OwnerCardSkeleton className="mt-6 pt-6" />}>

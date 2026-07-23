@@ -42,6 +42,9 @@
     },
     "dashboard": {
       "title": "Owner dashboard"
+    },
+    "messages": {
+      "title": "Messages"
     }
   },
   "header": {
@@ -51,7 +54,8 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "browse": "Browse",
-    "account": "Account"
+    "account": "Account",
+    "messages": "Messages"
   },
   "landing": {
     "footer": "Danapa — a demo prototype. No account required.",
@@ -863,6 +867,33 @@
       "previewOff": "Back to schedule order",
       "ariaMap": "Map of this day's tour route"
     }
+  },
+  "messaging": {
+    "title": "Messages",
+    "subtitle": "Your conversations with owners and renters.",
+    "browseHomes": "Browse homes",
+    "messages": "Messages",
+    "hide": "Hide messages",
+    "messageOwner": "Message owner",
+    "placeholder": "Write a message…",
+    "selectTitle": "Select a conversation",
+    "selectBody": "Choose a thread on the left to read and reply.",
+    "closedNotice": "This conversation is closed. Threads close once a tour is declined, or a week after the visit.",
+    "loadFailed": "This conversation couldn't be loaded. Try again in a moment.",
+    "connectFailed": "Messages couldn't be reached right now. Reload the page to try again.",
+    "startFailed": "Couldn't start that conversation. Try again in a moment.",
+    "conversations": "Conversations",
+    "aboutAListing": "About a listing",
+    "activeNow": "Active now",
+    "activeAgo": "Active {time}",
+    "offline": "Offline",
+    "viewListing": "View listing",
+    "tourOn": "Tour on {date} at {time}",
+    "back": "Back to conversations",
+    "composerHint": "Press Enter to send · Shift + Enter for a new line",
+    "threadEmpty": "No messages yet — say hello.",
+    "emptyTitle": "No messages yet",
+    "emptyBody": "Found a place you like? Message the owner straight from the listing to ask about availability, costs, or a tour."
   },
   "validation": {
     "email": {

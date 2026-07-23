@@ -3,6 +3,10 @@ allowBuilds:
   '@swc/core': false
   msw: false
   sharp: false
+  # Both postinstalls only run a husky installer that ships in the repo, not
+  # in the published tarball — they are no-ops here.
+  stream-chat: false
+  stream-chat-react: false
   unrs-resolver: false
 ignoredBuiltDependencies:
   - sharp

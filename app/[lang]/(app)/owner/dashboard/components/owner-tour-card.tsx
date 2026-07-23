@@ -20,6 +20,7 @@ import {
   User,
   Users,
 } from "lucide-react";
+import { TourChatPanel } from "@/components/messaging/tour-chat-panel";
 
 /* One incoming tour request with the owner's available actions. */
 export function OwnerTourCard({
@@ -175,6 +176,10 @@ export function OwnerTourCard({
               {t("noAction")}
             </span>
           )}
+        </div>
+
+        <div className="border-t border-border pt-2">
+          <TourChatPanel tour={tour} />
         </div>
       </div>
     </div>
