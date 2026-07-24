@@ -2,10 +2,10 @@
 
 > Written **2026-07-24** while building renter⇄owner messaging
 > (branch `feat/renter-owner-chat`). The user-visible symptom is **fixed**
-> (commit `68ff8c1`); the underlying accumulation is **not**. This document
-> only describes the issue — it deliberately proposes no fix. Nothing here is
-> a correctness bug; it is a housekeeping / cost / abuse-surface question to
-> weigh later.
+> (commit `68ff8c1`), and the accumulation is now **bounded by a scheduled
+> sweep** (see "Mitigation shipped" at the bottom). Sections up to there
+> describe the issue as found; the closing section records what shipped and
+> what remains open.
 
 ## Symptom (fixed)
 
@@ -142,6 +142,62 @@ weighing:
    the re-measure snippet above: `total` increments, `with messages` does not.
 5. In the inbox itself the row does **not** appear (the `$exists` filter) — the
    accumulation is only visible via the server query.
+
+## Mitigation shipped (2026-07-24)
+
+Two changes, chosen after grounding the alternatives against the live app's
+channel-type grants and the Stream docs:
+
+1. **Noteless bookings no longer provision eagerly**
+   (`hooks/use-book-tour.ts`). The fire-and-forget `ensureTourChannel` at
+   booking existed solely to land the booking note as the thread's first
+   message; with no note there is nothing to land, and the tour panels
+   provision lazily on expand anyway. Removes one creation path at zero UX
+   cost.
+
+2. **Scheduled sweep** (`app/api/cron/sweep-empty-channels/route.ts`,
+   scheduled by `vercel.json`, daily 03:17 UTC). Queries
+   `{ type: 'messaging', last_message_at: { $exists: false }, created_at: { $lt: now − 30d } }`
+   and hard-deletes via the batch `DeleteChannels` API (async task). Deletion
+   is safe by construction: every surface calls an idempotent `ensure*`
+   action before touching a channel, so a swept channel is transparently
+   re-created on the next legitimate open, and an empty channel has no
+   messages or read state to lose. Auth: Vercel sends
+   `Authorization: Bearer ${CRON_SECRET}`; the route refuses to run when
+   `CRON_SECRET` is unset. Manual invocation supports `?dry=1` and `?days=N`
+   (min 1 for live runs — 0 could race a channel someone opened seconds ago).
+   Runs Vercel-side rather than as a Supabase edge function because
+   `STREAM_API_SECRET` already lives in the Vercel env for the token route —
+   no new secret distribution.
+
+   Verified 2026-07-24 against the live app, read-only: unauthenticated →
+   401; `dry=1` at the 30-day default → 0 matches (this week's channels are
+   inside the grace window); `dry=1&days=0` → exactly the 14 known empty
+   channels, 0 deleted.
+
+**Deployment requirement:** set `CRON_SECRET` (any random string) in the
+Vercel project env. Without it the route answers 503 and the cron does
+nothing.
+
+**Still open, deliberately:**
+
+- **"Users can create channels" remains granted on the `messaging` type**
+  (confirmed via `getChannelType` 2026-07-24). Any token holder can create
+  channels via the raw API, outside the server actions entirely — the sweep
+  bounds this too, but the docs' own guidance for server-side-only creation
+  is to remove that permission, and this app's client never legitimately
+  creates a channel (it only watches `ensure*`d ones). Removing it is an
+  app-wide channel-type write and awaits an explicit decision.
+- **Defer-creation-to-first-send was evaluated and rejected**: it cannot
+  close the raw-API surface above on its own, and the prebuilt `<Channel>`'s
+  `watch()` is documented get-or-create, so a thread UI for a
+  not-yet-created channel either auto-creates (defeating the deferral) or
+  errors — a bespoke pre-channel composer in the tree whose remount
+  fragility is already documented here.
+- **Bookmark edge:** a saved `/messages?channel=<id>` URL to a swept channel
+  makes `watch()` re-create it creator-only (junk) while client creation is
+  still permitted. The 30-day grace makes this rare; removing the creation
+  grant would turn it into a clean error instead.
 
 ## Related
 

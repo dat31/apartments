@@ -67,7 +67,10 @@ export function useBookTour() {
       // Open the message thread in the background so the booking note lands
       // as its first message right away. The tour card provisions lazily too,
       // so a failure here costs nothing but a slightly later first message.
-      void ensureTourChannel(tour.id).catch(() => {});
+      // Only when there IS a note: without one this call would just mint an
+      // empty channel the lazy path creates on demand anyway
+      // (docs/plans/messaging-empty-channels.md).
+      if (tour.note) void ensureTourChannel(tour.id).catch(() => {});
     },
     onError: (error) => {
       // 23505 = the one-active-tour-per-home unique index fired (a race the
