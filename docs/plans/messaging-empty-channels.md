@@ -2,20 +2,22 @@
 
 > Written **2026-07-24** while building renter⇄owner messaging
 > (branch `feat/renter-owner-chat`). The user-visible symptom is **fixed**
-> (commit `68ff8c1`); the underlying accumulation is **not**, and is parked
-> here deliberately. Nothing here is urgent — it is a housekeeping and
-> abuse-surface question, not a correctness one.
+> (commit `68ff8c1`); the underlying accumulation is **not**. This document
+> only describes the issue — it deliberately proposes no fix. Nothing here is
+> a correctness bug; it is a housekeeping / cost / abuse-surface question to
+> weigh later.
 
 ## Symptom (fixed)
 
 The `/messages` inbox listed conversations nobody had ever written in — a row
-with an avatar, a listing title and a blank preview.
+with an avatar, a listing title, and a blank message preview where the last
+message would go.
 
 Measured on the live Stream app on 2026-07-24: **20 `messaging` channels, 6
 carrying a `last_message_at`, 14 empty.** One account was a member of all 20,
-so its inbox was 70% blank rows.
+so its inbox was ~70% blank rows.
 
-Re-measure any time with the server SDK (read-only):
+Re-measure any time with the server SDK (read-only, no writes):
 
 ```bash
 pnpm exec dotenv -e .env.local -- node -e "
@@ -27,86 +29,125 @@ c.queryChannels({ type: 'messaging' }, { last_message_at: -1 }, { limit: 100 })
 "
 ```
 
-## Why it happens
+## Mechanism — why an empty channel exists at all
 
-Channel creation is **eager**, and that is on purpose. Supabase is the
-authority on who may talk to whom: `ensureTourChannel` /
-`ensureListingChannel` read the RLS-scoped `tours` / `listings` row and only
-then set channel membership. A client cannot be trusted to create a channel
-with the right two members, so the channel exists before anyone has decided to
-say anything.
+A Stream channel is created **before** any message is sent, and that ordering
+is deliberate, not incidental.
 
-Three paths create one:
+Supabase — not the browser — is the authority on who may talk to whom. The two
+server actions that provision a channel (`lib/actions/tour-chat.ts` →
+`ensureTourChannel`, `lib/actions/listing-chat.ts` → `ensureListingChannel`)
+each:
 
-| Path | Code | Leaves an empty channel when… |
-|---|---|---|
-| "Message owner" on a listing | `lib/actions/listing-chat.ts` | the renter taps it and backs out — the common case |
-| Tour booked | `hooks/use-book-tour.ts` → `ensureTourChannel` | `tours.note` is empty, so there is no seed message |
-| Tour card panel expanded | `components/messaging/tour-chat-panel.tsx` | the tour predates messaging and nobody writes |
+1. read the RLS-scoped `tours` / `listings` row for the signed-in caller, so a
+   forged id returns nothing;
+2. derive the two members from that row (renter + owner) — never from client
+   input;
+3. call `streamServer().channel(CHANNEL_TYPE, channelId, { members, … }).create()`.
 
-The first is the volume driver: any signed-in user can open any listing, so the
-ceiling is (listings × renters). This is the "channel-creation flood" the
-implementation plan accepted for v1 — empty channels, never empty *messages*,
-since sending still requires membership.
+Because membership is the security boundary and only the server can set it
+correctly, the channel has to come into existence at the moment the *intent to
+maybe talk* appears — which is earlier than the *first message*. A channel with
+two members and zero messages is the normal resting state of that gap, not an
+error.
 
-## What shipped instead
+`channel.create()` is also idempotent for a fixed channel id (tour id, or a
+`sha256(listingId:renterId)` hash for listing threads), so re-opening the same
+pairing returns the same channel rather than making a new one. That bounds
+duplicates per pairing but does nothing to prevent the *first* empty channel
+per pairing.
 
-`components/messaging/inbox.tsx` filters the query:
+## The three creation paths
+
+| Path | Entry point | Server action | Becomes an empty channel when… |
+|---|---|---|---|
+| **"Message owner" on a listing** | `components/messaging/message-owner-button.tsx` → `router.push('/messages?channel=…')` | `ensureListingChannel` | the renter taps the button, is navigated into the thread, then leaves without sending. |
+| **Tour booked** | `hooks/use-book-tour.ts` (fire-and-forget after insert) | `ensureTourChannel` | `tours.note` is empty, so there is no booking note to seed as the first message. |
+| **Tour card panel expanded** | `components/messaging/tour-chat-panel.tsx` (lazy, on expand) | `ensureTourChannel` | a tour booked before messaging shipped is opened, provisioning the channel, and nobody writes. |
+
+The first path is the volume driver. "Message owner" is on every listing detail
+page and is reachable by **any** signed-in renter, so the number of empty
+channels this path can create scales with **(listings seen × renters)** — a far
+larger surface than tours, which require a booking. The tour paths only add a
+channel per real booking, and most of those carry a seed note (the booking
+`note` becomes the thread's first message), so most tour channels are *not*
+empty.
+
+This is the "channel-creation flood" the implementation plan explicitly
+accepted for v1 (`chat-implementation-plan.md` §12, "Open decisions"). The
+containment it relied on: creating a channel is not the same as sending a
+message — **sending still requires membership**, which only ever holds the two
+real parties — so the flood is empty *channels*, never empty inboxes full of
+unsolicited *messages*.
+
+## Current inbox behaviour (why the symptom is gone but the channels aren't)
+
+`components/messaging/inbox.tsx` filters the channel-list query so empty
+channels are not listed:
 
 ```ts
 { type: CHANNEL_TYPE, members: { $in: [userId] }, last_message_at: { $exists: true } }
 ```
 
-Server-side, not a client `.filter()`, so pagination stays honest. Two
-behaviours this depends on, both verified against the installed SDK:
+The filter is applied **server-side** (in the `queryChannels` filter, not a
+client-side `.filter()` over the results), so the count and pagination stay
+consistent — a client filter would render, say, 6 of a fetched page of 20 and
+mislead "load more".
+
+Two SDK behaviours make the filter safe rather than lossy — both were verified
+against the installed `stream-chat-react` source, not assumed:
 
 - `ChannelList`'s `allowNewMessagesFromUnfilteredChannels` defaults to `true`,
-  so the first message sent or received moves the conversation into the list
-  with no refetch. Hidden ≠ orphaned.
-- The `?channel=` deep link is resolved by our own effect rather than
-  `customActiveChannel`, whose handler opens with `if (!channels.length) return`
-  — with the filter applied, a renter with no conversations tapping "Message
-  owner" would otherwise land on the empty-inbox card instead of their thread.
+  so the instant the first message is sent or received the channel moves into
+  the list on its own, with no refetch. **Hidden is not orphaned.**
+- The `?channel=…` deep link (used by "Message owner" and the listing chip) is
+  resolved by an effect in `inbox.tsx` rather than `ChannelList`'s
+  `customActiveChannel` prop, whose handler opens with
+  `if (!channels.length) return`. With the filter applied, a renter who has no
+  conversations yet and taps "Message owner" would otherwise land on the
+  empty-inbox card instead of the thread they just opened.
 
-So the inbox is correct today. The channels are simply invisible.
+Net effect: the inbox is correct, but the empty channels still exist in Stream
+— they are simply not queried. Every count above (20 total, 14 empty) is what
+the *unfiltered* server-side query returns and is unaffected by the inbox fix.
 
-## What is still open
+## What "still open" means, concretely
 
-Empty channels keep accruing. Concretely that costs:
+Empty channels keep accruing over time, one per (listing, renter) pairing that
+was opened but never written in. That is not a correctness problem — no user
+sees them, no message leaks — but it has three downstream consequences worth
+weighing:
 
-- **Dashboard noise** — channel counts stop meaning "conversations".
-- **Plan limits** — worth checking what the Stream plan counts; if it bills or
-  caps on channels rather than MAU, this becomes a real cost line.
-- **A thin abuse surface** — a signed-in user can enumerate listings and mint a
-  channel per listing. No message can be sent without membership, so the blast
-  radius is rows in Stream, not spam.
+- **Dashboard / metrics noise.** A raw `messaging` channel count no longer
+  approximates "conversations that happened"; anything reading channel counts
+  (Stream dashboard, future analytics) is inflated by the empty ones.
+- **Plan accounting.** Whether this matters depends on what the Stream plan
+  meters. If billing / limits are keyed on MAU it is irrelevant; if they are
+  keyed on channel count it is a slow-growing cost line. This has **not** been
+  checked and is the single most useful thing to confirm before deciding the
+  issue's priority.
+- **A thin enumeration surface.** A signed-in renter can walk every listing and
+  provision a channel for each, with no rate limit beyond normal request
+  throughput. The blast radius is bounded: no channel they create can carry a
+  message to the owner without membership, so this produces *rows in Stream*,
+  not spam or notifications. It is a tidiness/quota concern, not a safety one.
 
-## Options (not yet chosen)
+## Reproduction
 
-1. **Leave it.** Cheapest. Defensible while volume is low; revisit if the count
-   grows faster than real conversations. Pair with option 3 if it does.
-2. **Defer creation to the first send.** The right fix in principle. `<Channel>`
-   accepts a documented `doSendMessageRequest` prop, so the thread can render
-   against a not-yet-created channel and, on the first send, call a server
-   action that creates the channel (RLS-checked membership, as now) and posts
-   the message in one step. Everything after that is unchanged. Main risks: the
-   optimistic-send path and the error/retry states need care, and
-   `tour-chat-panel` / `message-owner-button` currently expect a channel id back
-   before they navigate.
-3. **Scheduled cleanup.** A cron deleting `messaging` channels with no
-   `last_message_at` older than N days, via the server SDK. Simple and additive
-   — no client changes. Deletes channel state (members, read state), which is
-   fine for a channel that never had a message. This is the cheapest way to
-   bound growth without touching the send path.
-4. **Raise the intent bar.** Only provision once the renter opens the thread
-   *and* focuses the composer. Reduces volume without solving it; probably not
-   worth the complexity on its own.
-
-**Leaning:** 3 as a bounded stopgap, 2 when messaging next gets a work slot —
-2 also closes the enumeration surface, which 3 only sweeps up after.
+1. Sign in as a renter.
+2. Open any listing detail page and click **"Message owner"** (VN: "Nhắn chủ
+   nhà"). You are navigated to `/messages?channel=<hash>`; the thread opens.
+3. Navigate away without sending anything.
+4. Server-side, the channel now exists with two members and zero messages. Run
+   the re-measure snippet above: `total` increments, `with messages` does not.
+5. In the inbox itself the row does **not** appear (the `$exists` filter) — the
+   accumulation is only visible via the server query.
 
 ## Related
 
-- `chat-implementation-plan.md` §12 "Open decisions" — where this was first
-  accepted for v1.
-- Commit `68ff8c1` — the inbox filter and the deep-link change.
+- `chat-implementation-plan.md` §12 "Open decisions" — where the empty-channel
+  flood was first named and accepted for v1.
+- Commit `68ff8c1` — the inbox `last_message_at` filter and the deep-link
+  handling change described under "Current inbox behaviour".
+- `lib/actions/tour-chat.ts`, `lib/actions/listing-chat.ts` — the two
+  provisioning actions.
