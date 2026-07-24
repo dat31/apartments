@@ -20,6 +20,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { AddToCalendar } from "./add-to-calendar";
+import { TourChatPanel } from "@/components/messaging/tour-chat-panel";
 
 /* One of the renter's own tour requests, with the actions available for its
    current status. Mirrors the owner card but from the renter's side. */
@@ -165,6 +166,9 @@ export function RenterTourCard({
             </Button>
           )}
         </div>
+
+        {/* Sits above the card-wide overlay link so it stays clickable. */}
+        <TourChatPanel tour={tour} />
       </div>
     </div>
   );

@@ -40,6 +40,7 @@ const PROTECTED: RegExp[] = [
   /^\/apartments\/create(\/|$)/,
   /^\/apartments\/[^/]+\/edit(\/|$)/,
   /^\/tour(\/|$)/,
+  /^\/messages(\/|$)/,
 ];
 
 /* Auth pages a signed-in user has no reason to see. /reset-password is left

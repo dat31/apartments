@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/auth";
 import { OWNER_ID_BY_KEY } from "@/lib/services/listings-map";
 import { tourKeys } from "@/hooks/use-my-tours";
+import { ensureTourChannel } from "@/lib/actions/tour-chat";
 import { type Listing } from "@/schemas/listing";
 
 /* Creates a tour request in the Supabase `tours` table for the signed-in
@@ -60,9 +61,13 @@ export function useBookTour() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (tour) => {
       // Refresh the my-tours list and the per-listing active-tour guard.
       queryClient.invalidateQueries({ queryKey: tourKeys.all });
+      // Open the message thread in the background so the booking note lands
+      // as its first message right away. The tour card provisions lazily too,
+      // so a failure here costs nothing but a slightly later first message.
+      void ensureTourChannel(tour.id).catch(() => {});
     },
     onError: (error) => {
       // 23505 = the one-active-tour-per-home unique index fired (a race the

@@ -1,0 +1,297 @@
+/* ============================================================
+   Stream Chat ← Danapa theme bridge.
+
+   Everything Stream renders is driven by CSS variables scoped to
+   `.str-chat`, so the app's look is a token mapping rather than a pile of
+   overridden rules. The SDK stylesheet goes into its own cascade layer and
+   this file's overrides into a later one, so ours win on layer order — no
+   specificity games, no `!important`.
+
+   Layout rules below are deliberately few: they only make Stream's panels
+   fill the shells in inbox.tsx / tour-chat-panel.tsx, which size themselves.
+   ============================================================ */
+
+@layer stream, stream-overrides;
+@import "stream-chat-react/dist/css/index.css" layer(stream);
+
+@layer stream-overrides {
+  .str-chat {
+    font-family: var(--font-sans);
+
+    /* --- surfaces --- */
+    --str-chat__background-color: var(--background);
+    --str-chat__secondary-background-color: var(--card);
+    --str-chat__background-core-app: var(--background);
+    --str-chat__background-core-elevation-0: var(--background);
+    --str-chat__background-core-elevation-1: var(--card);
+    --str-chat__background-core-elevation-2: var(--popover);
+    --str-chat__background-core-elevation-3: var(--popover);
+    --str-chat__background-core-surface-default: var(--background);
+    --str-chat__background-core-surface-card: var(--card);
+    --str-chat__background-core-surface-subtle: var(--muted);
+    --str-chat__background-core-surface-strong: var(--secondary);
+    --str-chat__background-core-highlight: var(--accent);
+    --str-chat__background-core-on-accent: var(--primary-foreground);
+    --str-chat__background-utility-hover: var(--accent);
+    --str-chat__background-utility-selected: var(--secondary);
+    --str-chat__background-utility-disabled: var(--muted);
+    --str-chat__border-core-on-surface: var(--border);
+
+    /* --- text --- */
+    --str-chat__text-color: var(--foreground);
+    --str-chat__text-primary: var(--foreground);
+    --str-chat__text-secondary: var(--muted-foreground);
+    --str-chat__text-tertiary: var(--muted-foreground);
+    --str-chat__text-disabled: var(--muted-foreground);
+    --str-chat__text-on-accent: var(--primary-foreground);
+    --str-chat__text-link: var(--primary);
+
+    /* --- brand --- */
+    --str-chat__accent-primary: var(--primary);
+    --str-chat__accent-error: var(--destructive);
+    --str-chat__badge-bg-primary: var(--primary);
+    --str-chat__button-primary-bg: var(--primary);
+    --str-chat__button-secondary-bg: var(--secondary);
+    --str-chat__button-destructive-bg: var(--destructive);
+
+    /* --- bubbles: mine = primary, theirs = muted --- */
+    --str-chat__chat-bg-outgoing: var(--primary);
+    --str-chat__chat-text-outgoing: var(--primary-foreground);
+    --str-chat__chat-border-outgoing: transparent;
+    --str-chat__chat-bg-attachment-outgoing: var(--primary);
+    --str-chat__chat-bg-incoming: var(--muted);
+    --str-chat__chat-text-incoming: var(--foreground);
+    --str-chat__chat-border-incoming: transparent;
+    --str-chat__chat-bg-attachment-incoming: var(--muted);
+    --str-chat__chat-text-timestamp: var(--muted-foreground);
+    --str-chat__chat-text-username: var(--foreground);
+    --str-chat__chat-text-typing-indicator: var(--muted-foreground);
+    --str-chat__chat-text-system: var(--muted-foreground);
+    --str-chat__chat-text-link: var(--primary);
+
+    /* --- square corners: the design system has no radius --- */
+    --str-chat__radius-none: 0;
+    --str-chat__radius-xxs: 0;
+    --str-chat__radius-xs: 0;
+    --str-chat__radius-sm: 0;
+    --str-chat__radius-md: 0;
+    --str-chat__radius-lg: 0;
+    --str-chat__radius-xl: 0;
+    --str-chat__radius-2xl: 0;
+    --str-chat__radius-3xl: 0;
+    --str-chat__radius-4xl: 0;
+    --str-chat__radius-full: 0;
+    --str-chat__radius-max: 0;
+    --str-chat__radius-0: 0;
+    --str-chat__radius-2: 0;
+    --str-chat__radius-4: 0;
+    --str-chat__radius-6: 0;
+    --str-chat__radius-8: 0;
+    --str-chat__radius-12: 0;
+    --str-chat__radius-16: 0;
+    --str-chat__radius-20: 0;
+    --str-chat__radius-24: 0;
+    --str-chat__radius-32: 0;
+    --str-chat__message-bubble-radius-tail: 0;
+    --str-chat__message-bubble-radius-group-top: 0;
+    --str-chat__message-bubble-radius-group-middle: 0;
+    --str-chat__message-bubble-radius-group-bottom: 0;
+    --str-chat__message-bubble-radius-attachment: 0;
+    --str-chat__message-bubble-radius-attachment-inline: 0;
+    --str-chat__composer-radius-fixed: 0;
+    --str-chat__composer-radius-floating: 0;
+    --str-chat__button-radius-sm: 0;
+    --str-chat__button-radius-md: 0;
+    --str-chat__button-radius-lg: 0;
+    --str-chat__button-radius-full: 0;
+    --str-chat__modal-border-radius: 0;
+    --str-chat__notification-border-radius: 0;
+    --str-chat__message-options-border-radius: 0;
+    --str-chat__device-radius: 0;
+    --str-chat__switch-field-border-radius: 0;
+    --str-chat__attachment-preview-media-video-indicator-border-radius: 0;
+
+    /* The 78% cap moves to .str-chat__message-inner below — see the note
+       there for why a percentage on the bubble itself cannot work. */
+    --str-chat__message-max-width: 100%;
+    --str-chat__message-with-attachment-max-width: 100%;
+    --str-chat__message-list-scroll-max-width: 48rem; /* max-w-3xl */
+  }
+
+  /* The SDK ships a fixed sidebar width; the inbox owns its own grid track,
+     so the list just fills the pane it was given.
+
+     Below 768px the SDK also switches the list into its own mobile pattern —
+     "hide when nav closed; when open show as overlay" — with
+     `position: absolute; visibility: hidden; pointer-events: none` and a
+     translate off-canvas, waiting for a nav toggle we don't have. Our design
+     is the other mobile pattern: the list *is* the default view and the
+     thread replaces it (inbox.tsx swaps the two panes). So the overlay mode
+     is neutralised here; without these resets the conversation list is
+     invisible on every phone. */
+  .str-chat__channel-list {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    background: transparent;
+    /* The SDK draws a sidebar divider in a pinned light grey (wrong in dark
+       mode); the design has no rule between the two panes. */
+    border: none;
+    position: relative;
+    inset: auto;
+    transform: none;
+    visibility: visible;
+    pointer-events: auto;
+    z-index: auto;
+    flex-basis: auto;
+    transition: none;
+  }
+
+  /* Make the thread fill its pane and scroll inside it. Each of these is a
+     flex item of the one above; without `flex: 1` + `min-height: 0` the
+     chain sizes to its content instead, and a long conversation pushes the
+     composer off the bottom of the card it lives in. */
+  .str-chat__channel,
+  .str-chat__container,
+  .str-chat__main-panel {
+    flex: 1 1 0%;
+    min-height: 0;
+    min-width: 0;
+  }
+
+  /* Timestamps are numeric — keep them from shifting between minutes. */
+  .str-chat__message-metadata,
+  .str-chat__channel-list-item-timestamp,
+  .str-chat__message-status {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The design shows no avatar column in the thread — the header already
+     says who you are talking to, and these are always two-party threads. */
+  .str-chat__message-list .str-chat__message > .str-chat__avatar--with-border {
+    display: none;
+  }
+
+  /* Message rows sit in a centred 48rem column with a gutter outside it, so
+     the bubbles line up with the composer (also 48rem) rather than with the
+     pane edge. The SDK's own max-width var is scoped tighter than `.str-chat`,
+     so the width is set on the element here. */
+  .str-chat__message-list .str-chat__message-list-scroll {
+    --thread-gutter: 1rem; /* px-4 */
+    max-width: calc(48rem + 2 * var(--thread-gutter));
+    margin-inline: auto;
+    padding: 1.25rem var(--thread-gutter); /* py-5 */
+  }
+  @media (min-width: 640px) {
+    .str-chat__message-list .str-chat__message-list-scroll {
+      --thread-gutter: 1.5rem; /* sm:px-6 */
+    }
+  }
+  /* The gutter above is the only inset; the row's own padding would double it. */
+  .str-chat__message-list .str-chat__message {
+    padding-inline: 0;
+  }
+  .str-chat__li {
+    padding-block: 0.1875rem; /* gap-1.5 between bubbles */
+  }
+  /* max-w-[78%] belongs here, not on the bubble. The bubble sits in a
+     min-content grid track, so a percentage there resolves against the track
+     the bubble itself sized — it shrinks the bubble, which re-wraps the text,
+     which shrinks the track, and a one-word message ends up one letter wide.
+     `.str-chat__message-inner` is the item of a grid whose column is the full
+     768px thread width, so 78% there means what the design means. */
+  .str-chat__message-list .str-chat__message-inner {
+    max-width: 78%;
+  }
+  /* px-3.5 py-2.5 at 15px. Padding goes on the bubble and the text element is
+     zeroed, so the two don't stack. Only spacing and type — never the bubble's
+     background, which would bleed onto attachments. */
+  .str-chat__message-bubble {
+    padding: 0.625rem 0.875rem;
+  }
+  .str-chat__message-text {
+    padding: 0;
+    font-size: 0.9375rem; /* text-[15px] */
+    line-height: 1.625;
+  }
+  /* The SDK ships `word-break: break-word`, which the spec maps to
+     `overflow-wrap: anywhere` — that drops a word's min-content width to one
+     character, and the bubble sits in a min-content grid column. A one-word
+     message ("Ok") therefore renders one letter per line. `break-word` on
+     overflow-wrap alone still wraps long unbreakable strings without
+     shrinking the intrinsic width. */
+  .str-chat__message-bubble,
+  .str-chat__message-text {
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+
+  /* The design has no sticky day pill — only the inline separators. */
+  .str-chat__date-separator--floating {
+    display: none;
+  }
+  /* A clock time under every bubble, muted and numeric. */
+  .str-chat__message-metadata {
+    padding-inline: 0.25rem;
+    font-size: 0.6875rem; /* text-[11px] */
+    color: var(--muted-foreground);
+  }
+
+  /* Day separator — a centered pill in the app's muted surface. */
+  .str-chat__date-separator-date {
+    background: var(--muted);
+    color: var(--muted-foreground);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  /* Composer: a borderless field on --input with the send button beside it,
+     both capped to the message column's width. The SDK's container paints a
+     card-coloured band and its own padding; thread-composer.tsx owns the
+     spacing, and the design puts the composer straight on the page. */
+  .str-chat__message-composer-container {
+    background: transparent;
+    padding: 0;
+  }
+  /* The SDK draws a 1px rule above the composer and around the compose area,
+     in a pinned light grey that also reads wrong in dark mode. The design is
+     borderless. */
+  .str-chat__message-composer-container,
+  .str-chat__message-composer-compose-area {
+    border: none;
+  }
+  .str-chat__message-composer {
+    max-width: 48rem;
+    margin-inline: auto;
+    padding: 0;
+    gap: 0.5rem;
+    align-items: flex-end;
+    background: transparent;
+  }
+  .str-chat__message-composer-controls {
+    align-items: center;
+  }
+  .str-chat__message-composer .str-chat__textarea textarea {
+    background: var(--input);
+    border: none;
+    color: var(--foreground);
+    padding: 11px 14px;
+    font-size: 15px;
+    min-height: 44px;
+    max-height: 132px;
+    line-height: 1.625;
+  }
+  .str-chat__message-composer .str-chat__send-button {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+  }
+  .str-chat__message-composer .str-chat__send-button:disabled {
+    background: var(--muted);
+    color: var(--muted-foreground);
+  }
+}

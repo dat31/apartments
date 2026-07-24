@@ -25,6 +25,7 @@ import {
   LayoutGrid,
   LogOut,
   Menu,
+  MessagesSquare,
   Moon,
   Settings,
   Sun,
@@ -55,6 +56,7 @@ export function MobileNav({
   savedCount,
   savedActive,
   toursActive,
+  messagesActive,
   onManage,
   onSignOut,
   className,
@@ -64,6 +66,7 @@ export function MobileNav({
   savedCount: number;
   savedActive: boolean;
   toursActive: boolean;
+  messagesActive: boolean;
   onManage: () => void;
   onSignOut: () => void;
   className?: string;
@@ -113,9 +116,12 @@ export function MobileNav({
         </DrawerHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto">
-          {!isOwner && (
-            <>
-              <div className="py-1.5">
+          {/* This block renders for both roles: Messages is the only route
+              here an owner also needs, and gating the whole section on
+              !isOwner would leave /messages unreachable on an owner's phone. */}
+          <div className="py-1.5">
+            {!isOwner && (
+              <>
                 <p className={sectionLabel}>{header("browse")}</p>
                 <DrawerClose asChild>
                   <Link
@@ -153,11 +159,23 @@ export function MobileNav({
                     )}
                   </Link>
                 </DrawerClose>
-              </div>
+              </>
+            )}
+            <DrawerClose asChild>
+              <Link
+                href="/messages"
+                aria-current={messagesActive ? "page" : undefined}
+                className={navRow({ tone: messagesActive ? "active" : "default" })}
+              >
+                <MessagesSquare size={19} className="shrink-0 opacity-90" />
+                <span className="flex-1 leading-tight truncate">
+                  {header("messages")}
+                </span>
+              </Link>
+            </DrawerClose>
+          </div>
 
-              <Separator />
-            </>
-          )}
+          <Separator />
 
           {/* account */}
           <div className="py-1.5">

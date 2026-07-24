@@ -42,6 +42,9 @@
     },
     "dashboard": {
       "title": "Owner dashboard"
+    },
+    "messages": {
+      "title": "Messages"
     }
   },
   "header": {
@@ -51,7 +54,8 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "browse": "Browse",
-    "account": "Account"
+    "account": "Account",
+    "messages": "Messages"
   },
   "landing": {
     "footer": "Danapa — a demo prototype. No account required.",
@@ -863,6 +867,36 @@
       "previewOff": "Back to schedule order",
       "ariaMap": "Map of this day's tour route"
     }
+  },
+  "messaging": {
+    "title": "Messages",
+    "connectionFailed": "Couldn't connect to messaging. Try reloading the page.",
+    "selectThreadTitle": "Select a conversation",
+    "selectThreadBody": "Choose a thread on the left to read and reply.",
+    "emptyInboxTitle": "No messages yet",
+    "emptyInboxRenter": "Book a tour or message a host from a listing, and the conversation shows up here.",
+    "emptyInboxOwner": "When a renter books a tour or asks about one of your homes, their message lands here.",
+    "emptyThread": "No messages yet — say hello.",
+    "youPrefix": "You:",
+    "threadClosed": "This conversation is closed.",
+    "enterHint": "Press Enter to send · Shift + Enter for a new line",
+    "back": "Back to conversations",
+    "unknownPerson": "Someone",
+    "tourSlot": "Tour on {date} at {time}",
+    "viewListing": "View listing",
+    "panelToggle": "Messages",
+    "messageOwner": "Message owner",
+    "ownListing": "This is your own listing.",
+    "startFailed": "Couldn't start the conversation. Try again.",
+    "countSub": "{count, plural, one {# conversation} other {# conversations}}",
+    "emptySubtitle": "Messages you send will show up here.",
+    "conversations": "Conversations",
+    "browseHomes": "Browse homes",
+    "roleOwner": "Owner",
+    "roleRenter": "Renter",
+    "chipPrice": "{price}/mo · View →",
+    "composerPlaceholder": "Message…",
+    "composerPlaceholderNamed": "Message {name}…"
   },
   "validation": {
     "email": {
