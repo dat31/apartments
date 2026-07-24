@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   ChannelListItemTimestamp,
   useChatContext,
@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { PALETTE } from "@/lib/data/listings";
 import { useProfile } from "@/hooks/use-profile";
+import { parseYmd } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
+import { isTourAttachment } from "@/lib/stream/tour-attachment";
 import { MessagingAttachment } from "./tour-attachment";
 import {
   TourAttachmentPreviewList,
@@ -106,6 +108,7 @@ function ConversationRow({
   watchers,
 }: ChannelListItemUIProps) {
   const t = useTranslations("messaging");
+  const format = useFormatter();
   const { client } = useChatContext("ConversationRow");
 
   const name = displayTitle || "";
@@ -114,6 +117,26 @@ function ConversationRow({
   )?.user;
   const listingTitle = channel.data?.listing_title;
   const mine = !!lastMessage?.user?.id && lastMessage.user.id === client.userID;
+
+  /* The SDK renders a tour-only message as its generic "Attachment" preview.
+     A tour is our only attachment kind, so give it a meaningful preview —
+     "Tour · <date>", per the design. A tour sent with text keeps the text
+     preview the SDK already produced. */
+  const tourAttachment = lastMessage?.attachments?.find((attachment) =>
+    isTourAttachment(attachment)
+  );
+  const preview =
+    tourAttachment && !lastMessage?.text?.trim()
+      ? tourAttachment.tour_date
+        ? t("tourPreview", {
+            date: format.dateTime(parseYmd(tourAttachment.tour_date), {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+            }),
+          })
+        : t("tourRequest")
+      : latestMessagePreview;
 
   const handleSelect = (event: React.MouseEvent) => {
     if (onSelect) onSelect(event);
@@ -174,7 +197,7 @@ function ConversationRow({
             )}
           >
             {mine && <span>{t("youPrefix")} </span>}
-            {latestMessagePreview}
+            {preview}
           </span>
           {!!unread && (
             <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center bg-primary px-1 text-xs font-semibold tabular-nums text-primary-foreground">

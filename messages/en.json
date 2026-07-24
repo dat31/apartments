@@ -904,6 +904,7 @@
     "tourAttached": "Tour attached",
     "removeAttachedTour": "Remove attached tour",
     "tourRequest": "Tour request",
+    "tourPreview": "Tour · {date}",
     "noToursRenter": "No tour booked for this home yet. Book one from the listing to attach it here.",
     "noToursOwner": "No tour requests for this home from this renter yet."
   },
