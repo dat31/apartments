@@ -9,6 +9,7 @@ import { OwnerCard, OwnerCardSkeleton } from "./owner-card";
 import { SaveHomeButton } from "./save-home-button";
 import { ShareButton } from "@/components/share-button";
 import { BookTourButton } from "./book-tour-button";
+import { MessageOwnerButton } from "@/components/messaging/message-owner-button";
 import { RecordRecentlyViewed } from "./record-recently-viewed";
 import { AvailabilityLabel } from "./availability-label";
 import { CostsSection } from "./costs-section";
@@ -149,6 +150,12 @@ export function DetailView({
                 isOwner={isOwner}
               />
             </Suspense>
+            {!isOwner && (
+              <MessageOwnerButton
+                listingId={listing.id}
+                className="mt-4 h-11 w-full gap-2"
+              />
+            )}
           </div>
 
           {/* Reviews — first page server-rendered, further pages client-side. */}
@@ -171,6 +178,7 @@ export function DetailView({
             <div className="mt-5 flex flex-col gap-2.5">
               {!isOwner && <BookTourButton listing={listing} mode="full" />}
               <SaveHomeButton id={listing.id} mode="full" />
+              {!isOwner && <MessageOwnerButton listingId={listing.id} />}
             </div>
             <Suspense fallback={<OwnerCardSkeleton className="mt-6 pt-6" />}>
               <OwnerCard

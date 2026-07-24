@@ -42,6 +42,9 @@
     },
     "dashboard": {
       "title": "Bảng điều khiển chủ nhà"
+    },
+    "messages": {
+      "title": "Tin nhắn"
     }
   },
   "header": {
@@ -51,7 +54,8 @@
     "openMenu": "Mở menu",
     "closeMenu": "Đóng menu",
     "browse": "Khám phá",
-    "account": "Tài khoản"
+    "account": "Tài khoản",
+    "messages": "Tin nhắn"
   },
   "landing": {
     "footer": "Danapa — bản mẫu demo. Không cần tài khoản.",
@@ -863,6 +867,37 @@
       "previewOff": "Về thứ tự theo lịch",
       "ariaMap": "Bản đồ lộ trình các lịch xem trong ngày"
     }
+  },
+  "messaging": {
+    "title": "Tin nhắn",
+    "unreadBadge": "tin nhắn chưa đọc",
+    "connectionFailed": "Không kết nối được tin nhắn. Hãy tải lại trang.",
+    "selectThreadTitle": "Chọn một cuộc trò chuyện",
+    "selectThreadBody": "Chọn một cuộc trò chuyện bên trái để đọc và trả lời.",
+    "emptyInboxTitle": "Chưa có tin nhắn",
+    "emptyInboxRenter": "Đặt lịch xem nhà hoặc nhắn cho chủ nhà từ trang tin đăng, cuộc trò chuyện sẽ hiện ở đây.",
+    "emptyInboxOwner": "Khi người thuê đặt lịch xem hoặc hỏi về nhà của bạn, tin nhắn sẽ hiện ở đây.",
+    "emptyThread": "Chưa có tin nhắn nào — hãy chào một câu.",
+    "youPrefix": "Bạn:",
+    "threadClosed": "Cuộc trò chuyện này đã đóng.",
+    "enterHint": "Nhấn Enter để gửi · Shift + Enter để xuống dòng",
+    "back": "Quay lại danh sách",
+    "unknownPerson": "Người dùng",
+    "tourSlot": "Lịch xem {date} lúc {time}",
+    "viewListing": "Xem tin đăng",
+    "panelToggle": "Tin nhắn",
+    "messageOwner": "Nhắn chủ nhà",
+    "ownListing": "Đây là tin đăng của chính bạn.",
+    "startFailed": "Không mở được cuộc trò chuyện. Hãy thử lại.",
+    "countSub": "{count, plural, other {# cuộc trò chuyện}}",
+    "emptySubtitle": "Tin nhắn bạn gửi sẽ hiện ở đây.",
+    "conversations": "Cuộc trò chuyện",
+    "browseHomes": "Tìm nhà",
+    "roleOwner": "Chủ nhà",
+    "roleRenter": "Người thuê",
+    "chipPrice": "{price}/tháng · Xem →",
+    "composerPlaceholder": "Nhắn tin…",
+    "composerPlaceholderNamed": "Nhắn cho {name}…"
   },
   "validation": {
     "email": {

@@ -10,6 +10,7 @@ import { useMyAvailability } from "@/hooks/use-availability";
 import { type TourRequest } from "@/schemas/tour";
 import { tourSlot } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { Calendar } from "lucide-react";
+import { MessagingProvider } from "@/components/messaging/chat-provider";
 
 const sortKey = (t: TourRequest) => {
   const s = tourSlot(t);
@@ -91,6 +92,9 @@ export function OwnerTours() {
   }
 
   return (
+    /* One Stream connection for every card's chat panel; children render
+       immediately, so the dashboard never waits on the socket. */
+    <MessagingProvider>
     <div className="anim-fade">
       <Section title={t("needsResponse")} items={needsResponse} render={renderCard} />
       <Section title={t("upcoming")} items={upcoming} render={renderCard} />
@@ -117,5 +121,6 @@ export function OwnerTours() {
         }}
       />
     </div>
+    </MessagingProvider>
   );
 }

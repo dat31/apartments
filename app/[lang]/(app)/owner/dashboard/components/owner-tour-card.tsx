@@ -20,6 +20,7 @@ import {
   User,
   Users,
 } from "lucide-react";
+import { TourChatPanel } from "@/components/messaging/tour-chat-panel";
 
 /* One incoming tour request with the owner's available actions. */
 export function OwnerTourCard({
@@ -176,6 +177,8 @@ export function OwnerTourCard({
             </span>
           )}
         </div>
+
+        <TourChatPanel tour={tour} />
       </div>
     </div>
   );

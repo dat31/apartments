@@ -10,11 +10,12 @@ import { Logo } from "@/components/logo";
 import { AccountMenu } from "@/components/account-menu";
 import { MobileNav } from "@/components/mobile-nav";
 import { ManageProfileDialog } from "@/components/manage-profile-dialog";
+import { MessagesUnreadBadge } from "@/components/messaging/unread-badge";
 import { useSaved } from "@/hooks/use-saved";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useProfile } from "@/hooks/use-profile";
 import { useUser, useSignOut } from "@/hooks/auth";
-import { Calendar, Heart } from "lucide-react";
+import { Calendar, Heart, MessagesSquare } from "lucide-react";
 
 export function SiteHeader() {
   const { saved } = useSaved();
@@ -26,6 +27,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const savedActive = pathname === "/apartments/saved";
   const toursActive = pathname === "/tour";
+  const messagesActive = pathname === "/messages";
   const isOwner = profile.role === "owner";
   // Auth, saved count and role all come from client-only stores (react-query
   // cache seeded from cookies, localStorage). They're unknown during SSR, so
@@ -47,6 +49,24 @@ export function SiteHeader() {
           {isSignedIn ? (
             <>
               <div className="hidden md:flex items-center gap-2">
+                {/* The unread badge is socket-free: MessagesUnreadBadge reads a
+                    server-fetched count over HTTP, so browsing still opens no
+                    websocket (chat-implementation-plan.md §3). It updates live
+                    only on pages that already hold a connection, via the
+                    provider's cache bridge. */}
+                <Button
+                  asChild
+                  variant={messagesActive ? "default" : "ghost"}
+                  size="default"
+                  className="h-9 gap-1.5 px-3"
+                >
+                  <Link href="/messages">
+                    <MessagesSquare size={16} />
+                    {header("messages")}
+                    <MessagesUnreadBadge active={messagesActive} />
+                  </Link>
+                </Button>
+
                 {!isOwner && (
                   <Button
                     asChild
@@ -103,6 +123,7 @@ export function SiteHeader() {
                 savedCount={saved.length}
                 savedActive={savedActive}
                 toursActive={toursActive}
+                messagesActive={messagesActive}
                 onManage={() => setManageOpen(true)}
                 onSignOut={() => signOut.mutate()}
               />

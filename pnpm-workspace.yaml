@@ -3,6 +3,11 @@ allowBuilds:
   '@swc/core': false
   msw: false
   sharp: false
+  # Both Stream packages declare a postinstall that only runs a husky installer
+  # they don't ship — denying the build keeps pnpm's approval prompt out of
+  # every later install.
+  stream-chat: false
+  stream-chat-react: false
   unrs-resolver: false
 ignoredBuiltDependencies:
   - sharp

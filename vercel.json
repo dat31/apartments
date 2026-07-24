@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/sweep-empty-channels",
+      "schedule": "17 3 * * *"
+    }
+  ]
+}
