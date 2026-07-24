@@ -1,5 +1,6 @@
 import "stream-chat";
 import type { DefaultChannelData } from "stream-chat-react";
+import type { TourRequest } from "@/schemas/tour";
 
 /* Module augmentation for the custom fields this app stores on Stream
    records. Extending `DefaultChannelData` keeps the SDK's own `name`/`image`
@@ -23,6 +24,18 @@ declare module "stream-chat" {
     listing_price?: number;
     tour_date?: string; // YYYY-MM-DD
     tour_time?: string; // HH:mm
+  }
+
+  /* Custom fields on a message attachment. A picked tour rides on the
+     message as an attachment of `type: "tour"` (see lib/stream/tour-attachment.ts);
+     these are the snapshot fields the tour card renders from. */
+  interface CustomAttachmentData {
+    tour_id?: string;
+    listing_id?: string;
+    tour_date?: string; // YYYY-MM-DD
+    tour_time?: string; // HH:mm
+    tour_status?: TourRequest["status"];
+    tour_note?: string;
   }
 
   interface CustomUserData {
