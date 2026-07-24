@@ -98,13 +98,41 @@ function InboxPanes({
   const { channel: active, client, setActiveChannel } = useChatContext("Inbox");
   const userId = client.userID;
 
-  /* Referentially stable, or ChannelList re-runs its query on every render. */
+  /* Referentially stable, or ChannelList re-runs its query on every render.
+
+     `last_message_at: { $exists: true }` hides conversations nobody has
+     written in yet. Provisioning creates the channel up front — opening a
+     listing's "Message owner" or a tour card is enough — so without this the
+     inbox fills with rows that have no message to show. Filtering server-side
+     keeps pagination honest; a client-side filter would render 5 of a page of
+     20. The channel is not orphaned: ChannelList's
+     `allowNewMessagesFromUnfilteredChannels` defaults to true, so the moment
+     the first message is sent or received the conversation moves into the
+     list on its own. */
   const filters = React.useMemo<ChannelFilters>(
-    () => ({ type: CHANNEL_TYPE, members: { $in: userId ? [userId] : [] } }),
+    () => ({
+      type: CHANNEL_TYPE,
+      members: { $in: userId ? [userId] : [] },
+      last_message_at: { $exists: true },
+    }),
     [userId]
   );
   const sort = React.useMemo<ChannelSort>(() => ({ last_message_at: -1 }), []);
   const options = React.useMemo<ChannelOptions>(() => ({ limit: 20 }), []);
+
+  /* Deep link (?channel=…) is opened here rather than through ChannelList's
+     `customActiveChannel`, because that handler starts with
+     `if (!channels.length) return` — so a renter with no conversations yet who
+     taps "Message owner" would land on the empty-inbox card instead of the
+     thread they just opened. Resolving the channel ourselves works whether or
+     not it is in the filtered list. One-shot: re-running would yank the user
+     back into the thread after they tapped back to the list. */
+  const openedDeepLink = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!initialChannelId || openedDeepLink.current === initialChannelId) return;
+    openedDeepLink.current = initialChannelId;
+    setActiveChannel(client.channel(CHANNEL_TYPE, initialChannelId));
+  }, [initialChannelId, client, setActiveChannel]);
 
   /* The design's "CONVERSATIONS · n" row is exactly Stream's ChannelListHeader
      slot, and it renders inside ChannelListContext — so the count comes from
@@ -132,9 +160,9 @@ function InboxPanes({
             filters={filters}
             sort={sort}
             options={options}
-            customActiveChannel={initialChannelId}
             /* Otherwise a phone opens straight into whichever thread happens
-               to be newest, with no way back to the list. */
+               to be newest, with no way back to the list. The deep link is
+               handled by the effect above instead. */
             setActiveChannelOnMount={false}
           />
         </WithComponents>
