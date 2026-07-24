@@ -897,7 +897,15 @@
     "roleRenter": "Renter",
     "chipPrice": "{price}/mo · View →",
     "composerPlaceholder": "Message…",
-    "composerPlaceholderNamed": "Message {name}…"
+    "composerPlaceholderNamed": "Message {name}…",
+    "attachTour": "Attach a tour",
+    "referenceTour": "Reference a tour",
+    "attachTourAria": "Attach a tour request",
+    "tourAttached": "Tour attached",
+    "removeAttachedTour": "Remove attached tour",
+    "tourRequest": "Tour request",
+    "noToursRenter": "No tour booked for this home yet. Book one from the listing to attach it here.",
+    "noToursOwner": "No tour requests for this home from this renter yet."
   },
   "validation": {
     "email": {

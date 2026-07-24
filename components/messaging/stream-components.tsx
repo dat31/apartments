@@ -17,6 +17,11 @@ import { Button } from "@/components/ui/button";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { PALETTE } from "@/lib/data/listings";
 import { useProfile } from "@/hooks/use-profile";
+import { MessagingAttachment } from "./tour-attachment";
+import {
+  TourAttachmentPreviewList,
+  TourAttachmentSelector,
+} from "./tour-attachment-composer";
 
 /* ============================================================
    The three regions where the design is structurally different from
@@ -225,23 +230,23 @@ function MessagingEmptyState({ listType }: EmptyStateIndicatorProps) {
   );
 }
 
-/* v1 is plain text, and the design's composer is a field plus a send button.
-   Uploads, polls and location sharing are already off on the `messaging`
-   channel type, but the SDK still renders the attachment menu because that
-   type ships a built-in `giphy` command — `selectCommand` alone keeps it
-   alive. Removing the region here is the local, reversible fix.
-
-   Completion contract (custom-ui.md — composer): every sub-feature this slot
-   would have offered is disabled server-side, so each is N/A by product
-   decision rather than omission — file upload (`uploads: false`), polls
-   (`polls: false`), location (`shared_locations: false`). Note this hides the
+/* The composer's only attachment kind is a tour (see tour-attachment-composer):
+   the picker replaces the SDK's default AttachmentSelector, so the prebuilt
+   attachment menu — file upload, polls, location, and the `giphy` command that
+   kept that menu alive under `uploads: false` — never renders. This hides the
    entry point, not the command: `/giphy` typed into the field still resolves
-   until the command is dropped from the channel type. */
-const NoAttachmentSelector = () => null;
+   until the command is dropped from the channel type.
 
+   The three tour slots:
+   • Attachment ............ renders a sent tour as a card, delegating any other
+                             attachment type to the SDK's own <Attachment>.
+   • AttachmentSelector .... the picker button + tour menu.
+   • AttachmentPreviewList . the staged "Tour attached" chip. */
 export const messagingComponents = {
   Avatar: MessagingAvatar,
-  AttachmentSelector: NoAttachmentSelector,
+  Attachment: MessagingAttachment,
+  AttachmentSelector: TourAttachmentSelector,
+  AttachmentPreviewList: TourAttachmentPreviewList,
   ChannelListItemUI: ConversationRow,
   EmptyStateIndicator: MessagingEmptyState,
 };
