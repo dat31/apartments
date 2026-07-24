@@ -870,6 +870,7 @@
   },
   "messaging": {
     "title": "Tin nhắn",
+    "unreadBadge": "tin nhắn chưa đọc",
     "connectionFailed": "Không kết nối được tin nhắn. Hãy tải lại trang.",
     "selectThreadTitle": "Chọn một cuộc trò chuyện",
     "selectThreadBody": "Chọn một cuộc trò chuyện bên trái để đọc và trả lời.",

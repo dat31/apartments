@@ -10,6 +10,7 @@ import { Logo } from "@/components/logo";
 import { AccountMenu } from "@/components/account-menu";
 import { MobileNav } from "@/components/mobile-nav";
 import { ManageProfileDialog } from "@/components/manage-profile-dialog";
+import { MessagesUnreadBadge } from "@/components/messaging/unread-badge";
 import { useSaved } from "@/hooks/use-saved";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useProfile } from "@/hooks/use-profile";
@@ -48,10 +49,11 @@ export function SiteHeader() {
           {isSignedIn ? (
             <>
               <div className="hidden md:flex items-center gap-2">
-                {/* A plain link, deliberately: a live unread badge here would
-                    need a Stream websocket on every page in the app. Unread
-                    counts live where the provider is mounted — the inbox rows
-                    and the tour-card panels. */}
+                {/* The unread badge is socket-free: MessagesUnreadBadge reads a
+                    server-fetched count over HTTP, so browsing still opens no
+                    websocket (chat-implementation-plan.md §3). It updates live
+                    only on pages that already hold a connection, via the
+                    provider's cache bridge. */}
                 <Button
                   asChild
                   variant={messagesActive ? "default" : "ghost"}
@@ -61,6 +63,7 @@ export function SiteHeader() {
                   <Link href="/messages">
                     <MessagesSquare size={16} />
                     {header("messages")}
+                    <MessagesUnreadBadge active={messagesActive} />
                   </Link>
                 </Button>
 

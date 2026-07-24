@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
 import { ProfileAvatar } from "@/components/profile-avatar";
+import { MessagesUnreadBadge } from "@/components/messaging/unread-badge";
 import { type Profile } from "@/schemas/profile";
 import {
   Calendar,
@@ -171,6 +172,7 @@ export function MobileNav({
                 <span className="flex-1 leading-tight truncate">
                   {header("messages")}
                 </span>
+                <MessagesUnreadBadge active={messagesActive} variant="drawer" />
               </Link>
             </DrawerClose>
           </div>

@@ -1,12 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import { Chat, WithComponents, useCreateChatClient } from "stream-chat-react";
 import type { Event, StreamChat } from "stream-chat";
 import { useUser } from "@/hooks/auth";
+import { unreadKeys } from "@/hooks/use-unread-count";
 import { type Locale } from "@/i18n/routing";
 import { CHANNEL_TYPE, tourChannelId } from "@/lib/stream/channel";
 import { streamI18n } from "@/lib/stream/i18n";
@@ -87,6 +88,7 @@ export function MessagingProvider({
   enabled?: boolean;
 }) {
   const { data: user } = useUser();
+  const queryClient = useQueryClient();
   const [client, setClient] = React.useState<StreamChat | null>(null);
 
   /* Keyed on the user id so a sign-out or account switch can never reuse the
@@ -102,6 +104,19 @@ export function MessagingProvider({
   });
 
   const { unreadByTour, totalUnread } = useUnread(client);
+
+  /* Bridge the live socket total into the nav badge's cache entry
+     (docs/plans/messaging-nav-badge.md). On a page that already holds a
+     connection this is fresher than the badge's own fetch and costs nothing
+     extra — reading a thread here zeroes the header badge instantly.
+
+     Gated on `client`: useUnread resets to 0 while the socket connects, and
+     writing that transient 0 would blank a correct badge for a beat on every
+     chat-page load. */
+  React.useEffect(() => {
+    if (!client) return;
+    queryClient.setQueryData(unreadKeys.total(user?.id), totalUnread);
+  }, [client, totalUnread, user?.id, queryClient]);
 
   const value = React.useMemo(
     () => ({

@@ -870,6 +870,7 @@
   },
   "messaging": {
     "title": "Messages",
+    "unreadBadge": "unread messages",
     "connectionFailed": "Couldn't connect to messaging. Try reloading the page.",
     "selectThreadTitle": "Select a conversation",
     "selectThreadBody": "Choose a thread on the left to read and reply.",
