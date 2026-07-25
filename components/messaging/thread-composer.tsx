@@ -44,7 +44,7 @@ export function ThreadComposer() {
   const firstName = (other?.name || "").trim().split(/\s+/)[0];
 
   return (
-    <div className="shrink-0 px-3 py-3 sm:px-5">
+    <div className="shrink-0 py-3">
       <MessageComposer
         additionalTextareaProps={{
           placeholder: firstName

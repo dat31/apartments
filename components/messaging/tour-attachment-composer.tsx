@@ -113,7 +113,7 @@ export function TourAttachmentSelector() {
           type="button"
           aria-label={t("attachTourAria")}
           className={cn(
-            "inline-flex h-11 w-11 shrink-0 items-center justify-center transition-colors focus-ring",
+            "inline-flex p-3 !mb-3 shrink-0 items-center justify-center transition-colors focus-ring",
             open
               ? "bg-accent text-accent-foreground"
               : "text-muted-foreground hover:bg-muted hover:text-foreground"

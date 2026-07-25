@@ -55,13 +55,13 @@ export function ThreadHeader({ onBack }: { onBack?: () => void }) {
       : null;
 
   return (
-    <div className="flex shrink-0 items-center gap-3 py-3 pl-4 sm:pl-5">
+    <div className="flex shrink-0 items-center gap-3 py-3 lg:pl-5">
       {onBack && (
         <button
           type="button"
           onClick={onBack}
           aria-label={t("back")}
-          className="-ml-1 inline-flex h-9 w-9 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-foreground focus-ring lg:hidden"
+          className="!-ml-3 inline-flex h-9 w-9 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-foreground focus-ring lg:hidden"
         >
           <ChevronLeft size={20} />
         </button>
