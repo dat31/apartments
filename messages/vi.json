@@ -897,7 +897,16 @@
     "roleRenter": "Người thuê",
     "chipPrice": "{price}/tháng · Xem →",
     "composerPlaceholder": "Nhắn tin…",
-    "composerPlaceholderNamed": "Nhắn cho {name}…"
+    "composerPlaceholderNamed": "Nhắn cho {name}…",
+    "attachTour": "Đính kèm lịch xem",
+    "referenceTour": "Tham chiếu lịch xem",
+    "attachTourAria": "Đính kèm yêu cầu xem nhà",
+    "tourAttached": "Đã đính kèm lịch xem",
+    "removeAttachedTour": "Bỏ lịch xem đã đính kèm",
+    "tourRequest": "Lịch xem nhà",
+    "tourPreview": "Lịch xem · {date}",
+    "noToursRenter": "Chưa có lịch xem cho nhà này. Đặt một lịch từ trang tin đăng để đính kèm vào đây.",
+    "noToursOwner": "Chưa có yêu cầu xem nhà này từ người thuê này."
   },
   "validation": {
     "email": {

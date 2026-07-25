@@ -10,7 +10,6 @@ import { useMyTours, type MyTour } from "@/hooks/use-my-tours";
 import { type TourRequest } from "@/schemas/tour";
 import { parseYmd } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { Calendar, Search } from "lucide-react";
-import { MessagingProvider } from "@/components/messaging/chat-provider";
 import { RenterTourCard } from "./renter-tour-card";
 import { RouteStopBadge } from "./route-stop-badge";
 import { TourDayRoute } from "./tour-day-route";
@@ -65,10 +64,9 @@ export function RenterTours() {
   };
 
   return (
-    /* One Stream connection for every card's chat panel. It renders its
-       children immediately — the tour list never waits on the socket — and
-       skips the connection entirely when there are no tours to talk about. */
-    <MessagingProvider enabled={total > 0}>
+    /* TODO: messaging temporarily removed from tour cards (broken). The
+       MessagingProvider that fed the inline TourChatPanel is dropped for now —
+       restore both together. */
     <div className="container mx-auto px-5 sm:px-8 py-8">
       <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
         <div>
@@ -202,6 +200,5 @@ export function RenterTours() {
         </div>
       )}
     </div>
-    </MessagingProvider>
   );
 }

@@ -21,7 +21,7 @@ import "./stream-theme.css";
    Mounted only by pages that show conversations (/messages, /tour, the owner
    dashboard) — browsing the rest of the app costs no websocket.
 
-   Two structural rules, each one a fixed bug:
+   Three structural rules, each one a fixed bug:
 
    1. `children` sit at the same position in the tree on every render. React
       reconciles by position and type, so wrapping them in <Chat> *later* —
@@ -35,6 +35,15 @@ import "./stream-theme.css";
       instantiation, connectUser, strict-mode double-mount protection and
       disconnect — no module-level client, no manual connect/disconnect, no
       ref-counted acquire/release layer.
+
+   3. <ChatClientHost> is rendered *after* `children`, so the socket is the
+      last thing torn down. React destroys effects in tree order, and the
+      SDK's teardown outlives the commit: MessageComposerProvider's cleanup
+      finishes asynchronously (`createDraft().finally(() => composer.clear())`,
+      uncaught), and clear() reads channel.getConfig(). Host the connection
+      first and disconnectUser() is queued ahead of that — the channel is dead
+      by the time it runs and every navigation off a thread throws
+      "You can't use a channel after client.disconnect() was called".
    ============================================================ */
 
 type Credentials = {
@@ -131,14 +140,15 @@ export function MessagingProvider({
 
   return (
     <MessagingContext.Provider value={value}>
+      {children}
       {/* useCreateChatClient connects unconditionally, so it can only be
           called once real credentials exist. Hosting it in a null-rendering
           sibling keeps that conditional legal without ever moving `children`
-          (see rule 1 above). */}
+          (see rule 1 above). Last in the tree, never first: the socket has to
+          outlive the surfaces that are still shutting down (rule 3). */}
       {credentials ? (
         <ChatClientHost credentials={credentials} onClient={setClient} />
       ) : null}
-      {children}
     </MessagingContext.Provider>
   );
 }
