@@ -12,6 +12,7 @@ import { DistrictsSection } from "./components/districts-section";
 import { NewestSection } from "./components/newest-section";
 import { TrendingSection } from "./components/trending-section";
 import { LandingFooter } from "./components/landing-footer";
+import { PostHogErrorTestButton } from "./components/posthog-error-test-button";
 
 // Title/description come from the layout defaults; the page only adds its
 // canonical + hreflang alternates.
@@ -73,6 +74,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
           <DistrictsSection />
           <NewestSection />
           <TrendingSection />
+          <PostHogErrorTestButton />
         </div>
       </main>
 
