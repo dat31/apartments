@@ -4,7 +4,6 @@ import { useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { logAuthError } from "@/lib/auth-log";
 import type { SignUpValues } from "@/schemas/auth";
-import posthog from "posthog-js";
 
 export function useSignUp() {
   return useMutation({
@@ -29,13 +28,10 @@ export function useSignUp() {
         );
         throw error;
       }
-      if (data.user) {
-        posthog.identify(data.user.id, {
-          email: data.user.email,
-          name: values.name || undefined,
-          role: values.role,
-        });
-      }
+      // posthog.identify is handled by the auth listener in <Providers>, which
+      // only fires once there's a session. A signup awaiting email confirmation
+      // stays anonymous until first sign-in; PostHog merges that history in
+      // when identify finally runs.
       // No session means email confirmation is required before sign-in.
       return { needsConfirmation: !data.session };
     },

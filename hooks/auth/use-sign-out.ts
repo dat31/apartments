@@ -9,13 +9,15 @@ export function useSignOut() {
   return useMutation({
     mutationFn: async () => {
       const supabase = createClient();
+      // Captured before signOut so the event still carries the user's identity.
+      // posthog.reset() is left to the auth listener in <Providers>, so it also
+      // covers sign-outs we don't originate (expiry, another tab).
       posthog.capture("user_signed_out");
       const { error } = await supabase.auth.signOut();
       if (error) {
         logAuthError("sign-out", {}, error);
         throw error;
       }
-      posthog.reset();
     },
   });
 }
