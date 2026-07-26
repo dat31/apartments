@@ -56,6 +56,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { MonthCalendar } from "./month-calendar";
 import { TimeSlots } from "./time-slots";
 import { RecaptchaCheck } from "./recaptcha-check";
+import posthog from "posthog-js";
 
 type Step = "pick" | "verify" | "done";
 
@@ -179,6 +180,7 @@ export function BookTourDialog({
         renterEmail: form.getValues("email").trim() || profile.email,
       });
     } catch (e) {
+      posthog.captureException(e instanceof Error ? e : new Error(String(e)));
       // Unique-index race: a live tour for this home already exists. Surface it
       // softly and close — the detail-page CTA refetches into the guard state.
       if ((e as { code?: string })?.code === "23505") {
@@ -189,6 +191,12 @@ export function BookTourDialog({
       toast.error(t("bookError"));
       return;
     }
+    posthog.capture("tour_booked", {
+      listing_id: listing.id,
+      listing_district: listing.district,
+      tour_date: booking.getValues().date,
+      tour_time: booking.getValues().time,
+    });
     // Success is shown by the dialog's "done" step — no toast (it would double
     // up with the confirmation screen). The user closes the dialog themselves.
     setStep("done");

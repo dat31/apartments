@@ -23,6 +23,7 @@ import { PasswordField, FILLED_INPUT } from "../components/password-field";
 import { createSignInSchema, type SignInValues } from "@/schemas/auth";
 import { useSignIn } from "@/hooks/auth";
 import { safeInternalPath } from "@/lib/redirects";
+import posthog from "posthog-js";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -44,10 +45,12 @@ export default function SignInPage() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       await signIn.mutateAsync(values);
+      posthog.capture("user_signed_in", { remember: values.remember });
       const next = new URLSearchParams(window.location.search).get("next");
       router.push(safeInternalPath(next, "/apartments"));
       router.refresh();
     } catch (err) {
+      posthog.captureException(err instanceof Error ? err : new Error(String(err)));
       toast.error(
         err instanceof Error ? err.message : t("errorToast")
       );

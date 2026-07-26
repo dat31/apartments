@@ -20,6 +20,7 @@ import { AuthDivider } from "../components/auth-divider";
 import { PasswordField, FILLED_INPUT } from "../components/password-field";
 import { createSignUpSchema, type SignUpValues } from "@/schemas/auth";
 import { useSignUp } from "@/hooks/auth";
+import posthog from "posthog-js";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -50,6 +51,7 @@ export default function SignUpPage() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       const { needsConfirmation } = await signUp.mutateAsync(values);
+      posthog.capture("user_signed_up", { role: values.role });
       if (needsConfirmation) {
         toast.success(t("confirmToast"));
         router.push("/signin");
@@ -58,6 +60,7 @@ export default function SignUpPage() {
         router.refresh();
       }
     } catch (err) {
+      posthog.captureException(err instanceof Error ? err : new Error(String(err)));
       toast.error(
         err instanceof Error ? err.message : t("errorToast")
       );

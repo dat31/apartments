@@ -28,6 +28,10 @@ export function useSignUp() {
         );
         throw error;
       }
+      // posthog.identify is handled by the auth listener in <Providers>, which
+      // only fires once there's a session. A signup awaiting email confirmation
+      // stays anonymous until first sign-in; PostHog merges that history in
+      // when identify finally runs.
       // No session means email confirmation is required before sign-in.
       return { needsConfirmation: !data.session };
     },

@@ -1,17 +1,25 @@
 "use client";
 
+import { useEffect } from "react";
 import "./globals.css";
+import posthog from "posthog-js";
 
 /* Last-resort boundary for errors thrown by the root/[lang] layout itself —
    app/[lang]/error.tsx only covers segments below it. Replaces the root
    layout when active, so it must render its own <html>/<body>, and it runs
    without the intl provider, hence the static bilingual copy. */
 export default function GlobalError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // Nothing above this boundary is left to catch the error, so report it here.
+  useEffect(() => {
+    posthog.captureException(error);
+  }, [error]);
+
   return (
     <html lang="vi">
       <body className="min-h-screen flex items-center justify-center bg-background text-foreground antialiased">

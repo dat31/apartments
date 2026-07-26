@@ -46,3 +46,5 @@ skills-lock.json
 .mcp.json
 # next-agents-md
 .next-docs/
+# posthog wizard scratch output
+.posthog-events.json

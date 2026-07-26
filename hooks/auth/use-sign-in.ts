@@ -17,6 +17,7 @@ export function useSignIn() {
         logAuthError("sign-in", { email: values.email }, error);
         throw error;
       }
+      // posthog.identify is handled by the auth listener in <Providers>.
     },
   });
 }

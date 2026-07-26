@@ -47,6 +47,7 @@ import {
   type ListingFormValues,
 } from "@/schemas/listing";
 import { ArrowLeft, Clock } from "lucide-react";
+import posthog from "posthog-js";
 
 const DASHBOARD = "/owner/dashboard";
 
@@ -116,9 +117,17 @@ export function ListingForm({
     const core = formToCore(v);
     try {
       if (isEdit && listingId) await updateListing(listingId, core, status);
-      else await addListing(core, status);
+      else {
+        await addListing(core, status);
+        posthog.capture("listing_created", {
+          listing_status: status,
+          listing_type: core.type,
+          listing_district: core.district,
+        });
+      }
       router.push(DASHBOARD);
-    } catch {
+    } catch (err) {
+      posthog.captureException(err instanceof Error ? err : new Error(String(err)));
       toast.error(t("saveError"));
       setSaving(false);
     }

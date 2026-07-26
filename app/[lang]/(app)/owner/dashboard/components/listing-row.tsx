@@ -9,6 +9,7 @@ import { PALETTE } from "@/lib/data/listings";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { BedDouble, Eye, MapPin, Pencil, Trash2 } from "lucide-react";
 import { useMoney } from "@/hooks/use-money";
+import posthog from "posthog-js";
 
 /* A single owner-listing management row: cover, meta, and quick actions. */
 export function ListingRow({
@@ -84,7 +85,13 @@ export function ListingRow({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onToggleStatus(listing.id)}
+            onClick={() => {
+              onToggleStatus(listing.id);
+              posthog.capture("listing_status_toggled", {
+                listing_id: listing.id,
+                new_status: isActive ? "draft" : "active",
+              });
+            }}
           >
             {isActive ? t("listings.pause") : t("listings.publish")}
           </Button>
