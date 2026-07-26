@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { logAuthError } from "@/lib/auth-log";
 import type { SignUpValues } from "@/schemas/auth";
+import posthog from "posthog-js";
 
 export function useSignUp() {
   return useMutation({
@@ -27,6 +28,13 @@ export function useSignUp() {
           error
         );
         throw error;
+      }
+      if (data.user) {
+        posthog.identify(data.user.id, {
+          email: data.user.email,
+          name: values.name || undefined,
+          role: values.role,
+        });
       }
       // No session means email confirmation is required before sign-in.
       return { needsConfirmation: !data.session };

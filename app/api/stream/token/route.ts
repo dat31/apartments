@@ -6,6 +6,7 @@ import {
   upsertStreamUsers,
 } from "@/lib/stream/server";
 import { STREAM_TOKEN_TTL_SECONDS } from "@/lib/stream/channel";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 /* Mints a Stream Chat token for the *caller* — the session cookie is the only
    identity input, so there is no user_id parameter to forge. Takes no
@@ -42,6 +43,14 @@ export async function GET() {
 
     const exp = Math.floor(Date.now() / 1000) + STREAM_TOKEN_TTL_SECONDS;
     const chatToken = streamServer().createToken(user.id, exp);
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: user.id,
+      event: "chat_token_minted",
+      properties: { source: "api" },
+    });
+    await posthog.shutdown();
 
     return NextResponse.json(
       {

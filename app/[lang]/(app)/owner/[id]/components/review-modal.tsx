@@ -17,6 +17,7 @@ import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { FILLED_INPUT } from "@/app/[lang]/(auth)/components/password-field";
 import { StarPicker } from "./star-picker";
 import { createReviewFormSchema, type ReviewFormValues } from "@/schemas/review";
+import posthog from "posthog-js";
 
 export function ReviewModal({
   open,
@@ -61,6 +62,7 @@ export function ReviewModal({
         <form
           className="px-6 pb-6 flex flex-col gap-5"
           onSubmit={handleSubmit((data) => {
+            posthog.capture("owner_review_submitted", { rating: data.rating });
             onSubmit(data);
             onClose();
           })}

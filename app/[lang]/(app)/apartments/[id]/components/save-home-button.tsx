@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSaved } from "@/hooks/use-saved";
+import posthog from "posthog-js";
 
 /* Self-contained save toggle for the booking card — owns the shortlist hook
    so the booking aside / mobile bar can stay server-rendered. */
@@ -18,6 +19,11 @@ export function SaveHomeButton({
   const { isSaved, toggleSave } = useSaved();
   const saved = isSaved(id);
 
+  const handleToggle = () => {
+    toggleSave(id);
+    posthog.capture("listing_saved", { listing_id: id, saved: !saved });
+  };
+
   if (mode === "icon") {
     return (
       <Button
@@ -25,7 +31,7 @@ export function SaveHomeButton({
         size="icon"
         className="size-11"
         aria-label={saved ? t("saved") : t("save")}
-        onClick={() => toggleSave(id)}
+        onClick={handleToggle}
       >
         <Heart size={20} />
       </Button>
@@ -37,7 +43,7 @@ export function SaveHomeButton({
       variant="secondary"
       size="lg"
       className="h-12 gap-2"
-      onClick={() => toggleSave(id)}
+      onClick={handleToggle}
     >
       <Heart size={18} /> {saved ? t("saved") : t("save")}
     </Button>

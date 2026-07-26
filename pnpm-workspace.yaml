@@ -1,6 +1,8 @@
 allowBuilds:
   '@parcel/watcher': false
+  '@posthog/cli': false
   '@swc/core': false
+  core-js: false
   msw: false
   sharp: false
   # Both Stream packages declare a postinstall that only runs a husky installer

@@ -27,6 +27,7 @@ import {
   type CalEvent,
 } from "../lib/calendar";
 import { TOUR_DURATION_MIN } from "../lib/route-plan";
+import posthog from "posthog-js";
 
 /* Add a confirmed tour to the renter's calendar (improvement #5). Offers a
    Google Calendar template link, an Outlook compose link, and an .ics download
@@ -102,19 +103,28 @@ export function AddToCalendar({
       icon: <GoogleMark size={16} />,
       label: t("calendar.google"),
       sub: t("calendar.opensEvent"),
-      onSelect: () => openTab(googleCalUrl(buildEvent())),
+      onSelect: () => {
+        posthog.capture("calendar_export_clicked", { calendar_provider: "google", listing_id: listing.id });
+        openTab(googleCalUrl(buildEvent()));
+      },
     },
     {
       icon: <CalendarPlus size={16} className="text-primary" />,
       label: t("calendar.outlook"),
       sub: t("calendar.opensEvent"),
-      onSelect: () => openTab(outlookCalUrl(buildEvent())),
+      onSelect: () => {
+        posthog.capture("calendar_export_clicked", { calendar_provider: "outlook", listing_id: listing.id });
+        openTab(outlookCalUrl(buildEvent()));
+      },
     },
     {
       icon: <AppleMark size={16} />,
       label: t("calendar.apple"),
       sub: t("calendar.downloadsIcs"),
-      onSelect: downloadIcs,
+      onSelect: () => {
+        posthog.capture("calendar_export_clicked", { calendar_provider: "apple", listing_id: listing.id });
+        downloadIcs();
+      },
     },
   ];
 

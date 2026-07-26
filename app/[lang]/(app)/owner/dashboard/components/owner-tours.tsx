@@ -11,6 +11,7 @@ import { type TourRequest } from "@/schemas/tour";
 import { tourSlot } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { Calendar } from "lucide-react";
 import { MessagingProvider } from "@/components/messaging/chat-provider";
+import posthog from "posthog-js";
 
 const sortKey = (t: TourRequest) => {
   const s = tourSlot(t);
@@ -56,6 +57,7 @@ export function OwnerTours() {
 
   const handleAccept = (id: string) => {
     acceptTour(id);
+    posthog.capture("tour_accepted", { tour_id: id });
     toast.success(t("confirmedToast"), {
       description: t("confirmedToastDesc"),
     });
@@ -63,6 +65,7 @@ export function OwnerTours() {
 
   const handleDecline = (id: string) => {
     declineTour(id);
+    posthog.capture("tour_declined", { tour_id: id });
     toast(t("declinedToast"));
   };
 
@@ -114,6 +117,7 @@ export function OwnerTours() {
         tours={items.map((m) => m.tour)}
         onSubmit={(id, date, time) => {
           proposeTime(id, date, time);
+          posthog.capture("tour_time_proposed", { tour_id: id, proposed_date: date, proposed_time: time });
           setProposeFor(null);
           toast.success(t("proposedToast"), {
             description: t("proposedToastDesc"),

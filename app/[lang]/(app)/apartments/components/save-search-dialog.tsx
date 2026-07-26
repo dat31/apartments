@@ -40,6 +40,7 @@ import { useSavedSearches } from "../hooks/use-saved-searches";
 import { useDescribeSearch } from "../hooks/use-describe-search";
 import { AlertToggle } from "./alert-toggle";
 import { FilterChips } from "./filter-chips";
+import posthog from "posthog-js";
 
 /* Save confirmation: auto-generated (editable) name plus the email-alerts
    toggle. At the cap it becomes a "delete one first" notice instead of a
@@ -81,9 +82,11 @@ export function SaveSearchDialog({
         queryString: filtersToQuery(filters),
         alerts,
       });
+      posthog.capture("search_saved", { alerts_enabled: alerts });
       toast.success(t("savedToast"));
       onClose();
     } catch (err) {
+      posthog.captureException(err instanceof Error ? err : new Error(String(err)));
       toast.error(
         err instanceof Error && err.message.includes("saved_search_cap_reached")
           ? t("capToast")
