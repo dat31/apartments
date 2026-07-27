@@ -28,6 +28,7 @@ export function ListingCard({
   badge,
   select,
   now,
+  priority,
 }: {
   listing: Listing;
   badge?: { icon: ReactNode; label: string };
@@ -35,6 +36,10 @@ export function ListingCard({
   /** Reference time (epoch ms) for the availability label. Static call sites
       pass a clock read inside a cache boundary; omit it to use the live time. */
   now?: number;
+  /** Eager-load + preload the cover photo. Set it only on the handful of cards
+      that are above the fold — every card that opts in competes for the same
+      early bandwidth, so blanket use is worse than none. */
+  priority?: boolean;
 }) {
   const t = useTranslations("apartments");
   const format = useFormatter();
@@ -83,6 +88,11 @@ export function ListingCard({
               fill
               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
               className="object-cover"
+              priority={priority}
+              /* `priority` alone only drops loading="lazy" and adds a preload
+                 link — Next passes fetchPriority straight through, so the LCP
+                 hint has to be set separately. */
+              fetchPriority={priority ? "high" : undefined}
             />
           ) : (
             <span
