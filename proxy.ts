@@ -22,10 +22,11 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Run on every request except API routes, Next internals, files with an
-  // extension, and the generated og-image routes (extensionless URLs like
-  // /vi/opengraph-image that must not be locale-redirected). This lets
-  // next-intl handle locale routing and lets the auth session refresh before
-  // Server Components read it.
-  matcher: "/((?!api|_next|_vercel|.*\\..*|.*opengraph-image).*)",
+  // Run on every request except API routes, the PostHog reverse proxy
+  // (/ingest/* is rewritten to PostHog in next.config.ts and must not be
+  // locale-rewritten), Next internals, files with an extension, and the
+  // generated og-image routes (extensionless URLs like /vi/opengraph-image
+  // that must not be locale-redirected). This lets next-intl handle locale
+  // routing and lets the auth session refresh before Server Components read it.
+  matcher: "/((?!api|ingest|_next|_vercel|.*\\..*|.*opengraph-image).*)",
 };
