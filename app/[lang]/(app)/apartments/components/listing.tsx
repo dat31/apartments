@@ -24,8 +24,11 @@ export function Listing({
   return (
     <>
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
-        {pageResults.map((l) => (
-          <ListingCard key={l.id} listing={l} />
+        {pageResults.map((l, i) => (
+          /* The grid tops out at three columns, so the first three cards are
+             the only ones reliably above the fold — preload just those covers
+             and leave the rest lazy. */
+          <ListingCard key={l.id} listing={l} priority={i < 3} />
         ))}
       </div>
       {totalPages > 1 && (
