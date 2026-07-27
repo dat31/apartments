@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useTranslations } from "next-intl";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, useWatch, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
 import {
@@ -48,7 +48,6 @@ export function ManageProfileDialog({
     register,
     handleSubmit,
     control,
-    watch,
     reset,
     formState: { errors },
   } = useForm<ManageProfileValues>({
@@ -71,8 +70,8 @@ export function ManageProfileDialog({
       });
   }, [open, profile, reset]);
 
-  const name = watch("name");
-  const palette = watch("palette");
+  const name = useWatch({ control, name: "name" });
+  const palette = useWatch({ control, name: "palette" });
   const roleLabel = profile.role === "owner" ? t("owner") : t("renter");
   const isMobile = useIsMobile();
 
