@@ -12,6 +12,15 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+# playwright-cli scratch snapshots
+/.playwright/
+/.playwright-cli/
+# signed-in storage state written by e2e/auth.setup.ts — contains real tokens
+/e2e/.auth/
 
 # next.js
 /.next/
