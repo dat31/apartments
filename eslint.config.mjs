@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated v8 coverage report.
+    "coverage/**",
   ]),
   // Playwright fixtures call `use(value)` to hand a fixture to the test. The
   // React Hooks rule sees the bare `use` identifier and mistakes it for
