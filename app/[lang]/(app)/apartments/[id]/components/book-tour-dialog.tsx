@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useTranslations, useFormatter } from "next-intl";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -129,27 +129,39 @@ export function BookTourDialog({
     resolver: zodResolver(tourBookingSchema),
     defaultValues: { date: "", time: "", moveIn: "", people: "", note: "" },
   });
-  const date = booking.watch("date");
-  const time = booking.watch("time");
+  const [date, time, moveIn, people] = useWatch({
+    control: booking.control,
+    name: ["date", "time", "moveIn", "people"],
+  });
 
   const form = useForm<TourSignInValues>({
     resolver: zodResolver(tourSignInSchema),
     defaultValues: { name: "", email: "", password: "" },
   });
 
-  // Reset the whole flow each time the dialog opens.
+  // Reset the whole flow each time the dialog opens. The step state is rewound
+  // during render on the closed→open edge (React's "adjust state on prop
+  // change" pattern) rather than in the effect below, which would cost an extra
+  // render pass; the form resets stay in the effect since they touch RHF.
+  const [wasOpen, setWasOpen] = React.useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setStep("pick");
+      setRobot(false);
+      setAuthed(!!user);
+    }
+  }
+
   React.useEffect(() => {
     if (!open) return;
     booking.reset({ date: "", time: "", moveIn: "", people: "", note: "" });
-    setStep("pick");
-    setRobot(false);
-    setAuthed(!!user);
     form.reset({
       name: profile.name,
       email: profile.email,
       password: "",
     });
-  }, [open, user, profile.name, profile.email, form, booking]);
+  }, [open, profile.name, profile.email, form, booking]);
 
   const slots = date ? openSlotsFor(template, date, occupied) : [];
 
@@ -350,7 +362,7 @@ export function BookTourDialog({
                     </FieldLabel>
                     <DatePicker
                       id="tour-movein"
-                      value={booking.watch("moveIn") || undefined}
+                      value={moveIn || undefined}
                       onChange={(v) =>
                         booking.setValue("moveIn", v ?? "")
                       }
@@ -364,7 +376,7 @@ export function BookTourDialog({
                       {t("peopleLabel")}
                     </FieldLabel>
                     <Select
-                      value={booking.watch("people")}
+                      value={people}
                       onValueChange={(v) => booking.setValue("people", v)}
                     >
                       <SelectTrigger

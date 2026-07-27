@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -32,7 +32,7 @@ export default function SignUpPage() {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
@@ -45,8 +45,8 @@ export default function SignUpPage() {
     },
   });
 
-  const role = watch("role");
-  const agree = watch("agree");
+  const role = useWatch({ control, name: "role" });
+  const agree = useWatch({ control, name: "agree" });
 
   const onSubmit = handleSubmit(async (values) => {
     try {

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { notFound } from "next/navigation";
 import { toast } from "sonner";
 import { useRouter } from "@/i18n/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ import { AmenityPicker } from "./amenity-picker";
 import { LocationPicker } from "./location-picker";
 import { CostsTermsSection } from "./costs-terms-section";
 import { useListings } from "@/hooks/use-listings";
+import { todayYmd } from "../[id]/constants/tours";
 import { TYPES } from "@/schemas/listing";
 import {
   DISTRICTS,
@@ -50,6 +51,13 @@ import { ArrowLeft, Clock } from "lucide-react";
 import posthog from "posthog-js";
 
 const DASHBOARD = "/owner/dashboard";
+
+// `today` is a client-only value: an empty server snapshot keeps prerender and
+// hydration in agreement, and the never-firing subscribe means the date is read
+// once on mount. `todayYmd` is Da Nang-relative, so repeat calls within a day
+// return the same string and the snapshot stays stable.
+const subscribeNever = () => () => {};
+const noTodayOnServer = () => "";
 
 export function ListingForm({
   mode,
@@ -77,18 +85,19 @@ export function ListingForm({
   });
   const {
     register,
-    watch,
+    control,
     setValue,
     handleSubmit,
     formState: { errors },
   } = form;
 
-  // Resolve "today" after mount so the date input's min matches the client
-  // clock without risking an SSR/hydration mismatch.
-  const [today, setToday] = React.useState("");
-  React.useEffect(() => {
-    setToday(new Date().toISOString().slice(0, 10));
-  }, []);
+  // Resolve "today" after mount so the date input's min matches the clock
+  // without risking an SSR/hydration mismatch.
+  const today = React.useSyncExternalStore(
+    subscribeNever,
+    todayYmd,
+    noTodayOnServer
+  );
 
   // On a direct load / refresh of the edit page the owner's listings may not
   // be in cache yet, so `existing` arrives after the first render — populate
@@ -103,13 +112,40 @@ export function ListingForm({
 
   const [saving, setSaving] = React.useState(false);
 
-  const values = watch();
+  const [
+    images,
+    type,
+    beds,
+    baths,
+    district,
+    available,
+    lat,
+    lng,
+    amenities,
+    costs,
+    price,
+  ] = useWatch({
+    control,
+    name: [
+      "images",
+      "type",
+      "beds",
+      "baths",
+      "district",
+      "available",
+      "lat",
+      "lng",
+      "amenities",
+      "costs",
+      "price",
+    ],
+  });
 
   // Keep the listing's own district selectable even if it predates the list.
   const districtOptions =
-    !values.district || DISTRICTS.includes(values.district as never)
+    !district || DISTRICTS.includes(district as never)
       ? [...DISTRICTS]
-      : [values.district, ...DISTRICTS];
+      : [district, ...DISTRICTS];
 
   const save = async (v: ListingFormValues, status: "active" | "draft") => {
     if (saving) return;
@@ -175,7 +211,7 @@ export function ListingForm({
             {t("photosHint")}
           </p>
           <PhotoUploader
-            value={values.images}
+            value={images}
             onChange={(next) => setField("images", next)}
           />
         </section>
@@ -199,7 +235,7 @@ export function ListingForm({
             <Field>
               <FieldLabel>{t("homeType")}</FieldLabel>
               <Select
-                value={values.type}
+                value={type}
                 onValueChange={(v) => setField("type", v)}
               >
                 <SelectTrigger className="w-full h-9">
@@ -233,7 +269,7 @@ export function ListingForm({
             <Field>
               <FieldLabel>{t("bedrooms")}</FieldLabel>
               <Select
-                value={values.beds}
+                value={beds}
                 onValueChange={(v) => setField("beds", v)}
               >
                 <SelectTrigger className="w-full h-9">
@@ -252,7 +288,7 @@ export function ListingForm({
             <Field>
               <FieldLabel>{t("bathrooms")}</FieldLabel>
               <Select
-                value={values.baths}
+                value={baths}
                 onValueChange={(v) => setField("baths", v)}
               >
                 <SelectTrigger className="w-full h-9">
@@ -285,7 +321,7 @@ export function ListingForm({
           <Field data-invalid={!!errors.district}>
             <FieldLabel>{t("district")}</FieldLabel>
             <Select
-              value={values.district}
+              value={district}
               onValueChange={(v) => setField("district", v)}
             >
               <SelectTrigger
@@ -312,7 +348,7 @@ export function ListingForm({
             <div className="flex flex-wrap items-center gap-3">
               <Chip
                 className="h-8"
-                active={values.available === "now"}
+                active={available === "now"}
                 onClick={() => setField("available", "now")}
               >
                 <Clock size={16} /> {t("now")}
@@ -321,12 +357,10 @@ export function ListingForm({
               <DatePicker
                 min={today || undefined}
                 placeholder={t("pickDate")}
-                value={values.available === "now" ? undefined : values.available}
+                value={available === "now" ? undefined : available}
                 onChange={(v) => setField("available", v || "now")}
                 className={cn(
-                  values.available !== "now" &&
-                    values.available &&
-                    "ring-2 ring-primary"
+                  available !== "now" && available && "ring-2 ring-primary"
                 )}
               />
             </div>
@@ -351,12 +385,8 @@ export function ListingForm({
             {t("location.blurb")}
           </p>
           <LocationPicker
-            district={values.district}
-            value={
-              values.lat != null && values.lng != null
-                ? { lat: values.lat, lng: values.lng }
-                : null
-            }
+            district={district}
+            value={lat != null && lng != null ? { lat, lng } : null}
             onChange={(p) => {
               setValue("lat", p?.lat ?? null, { shouldDirty: true });
               setValue("lng", p?.lng ?? null, { shouldDirty: true });
@@ -368,18 +398,18 @@ export function ListingForm({
         <section className="bg-card p-6">
           <h2 className="font-semibold mb-4">{t("amenities")}</h2>
           <AmenityPicker
-            value={values.amenities}
+            value={amenities}
             onChange={(next) => setField("amenities", next)}
           />
         </section>
 
         {/* Costs & terms */}
         <CostsTermsSection
-          value={values.costs}
+          value={costs}
           onChange={(costs) =>
             setValue("costs", costs, { shouldDirty: true })
           }
-          price={values.price}
+          price={price}
         />
         </div>
 

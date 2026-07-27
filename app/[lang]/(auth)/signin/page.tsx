@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -35,12 +35,14 @@ export default function SignInPage() {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: "", password: "", remember: true },
   });
+
+  const remember = useWatch({ control, name: "remember" });
 
   const onSubmit = handleSubmit(async (values) => {
     try {
@@ -113,7 +115,7 @@ export default function SignInPage() {
 
         <label className="flex items-start gap-2.5 cursor-pointer select-none text-sm text-muted-foreground leading-snug">
           <Checkbox
-            checked={watch("remember")}
+            checked={remember}
             onCheckedChange={(v) => setValue("remember", v === true)}
             className="mt-px"
           />
