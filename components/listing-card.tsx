@@ -132,7 +132,12 @@ export function ListingCard({
         </span>
       </div>
       <div className="p-4 flex flex-col flex-1">
-        <span className="text-lg font-semibold tracking-tight">
+        {/* testid: the e2e sort/filter specs read the price off the card, and
+            the formatted string alone isn't uniquely locatable. */}
+        <span
+          data-testid="listing-price"
+          className="text-lg font-semibold tracking-tight"
+        >
           {money(listing.price)}
           <span className="text-sm font-normal text-muted-foreground">
             {t("card.perMonth")}
