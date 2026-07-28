@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/auth";
+import { useHydrated } from "@/hooks/use-hydrated";
 import {
   savedListingsKeys,
   type SavedFacets,
@@ -51,6 +52,7 @@ export function useSaved() {
   const queryClient = useQueryClient();
   const { data: user, isPending: userPending } = useUser();
   const userId = user?.id;
+  const hydrated = useHydrated();
 
   const query = useQuery({
     queryKey: savedKeys.list(userId),
@@ -69,7 +71,16 @@ export function useSaved() {
     },
   });
 
-  const saved = useMemo(() => query.data ?? [], [query.data]);
+  /* Empty until hydration, whatever the cache already holds. The shortlist is
+     client-only (localStorage / an authed fetch), so the server always streams
+     the unsaved state — but consumers sit inside Suspense boundaries that
+     hydrate *after* the header's useSaved() has filled the shared query cache.
+     Without this gate those boundaries hydrate against a populated list and
+     React reports a mismatch on the Heart's label and colours. */
+  const saved = useMemo(
+    () => (hydrated ? (query.data ?? []) : []),
+    [hydrated, query.data]
+  );
 
   const mutation = useMutation({
     mutationFn: async ({ id, next }: { id: string; next: boolean }) => {
@@ -188,7 +199,7 @@ export function useSaved() {
     saved,
     toggleSave,
     isSaved,
-    ready: !userPending && !query.isLoading,
+    ready: hydrated && !userPending && !query.isLoading,
     // Cache scope for the saved-listings queries (per user, "guest" when anon).
     scope: userId ?? "guest",
   };
