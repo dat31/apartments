@@ -18,7 +18,7 @@ import {
 import { useSavedSearches } from "../hooks/use-saved-searches";
 import { SavedSearchCard } from "./saved-search-card";
 
-/* Saved-searches strip, shown full-width above the browse filters + results.
+/* Saved-searches strip, shown full-width below the browse filters + results.
    A client island like RecentlyViewed: per-user data can't live in the
    prerendered shell. Renders nothing for guests and for users with no saved
    searches, so the page is unchanged until the feature is used. Live match
@@ -54,7 +54,7 @@ export function SavedSearchesStrip() {
   const alertsOn = searches.filter((s) => s.alerts).length;
 
   return (
-    <section className="mb-8 anim-fade" aria-label={t("aria")}>
+    <section className="mt-10 anim-fade" aria-label={t("aria")}>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight">
           {t("title")}
