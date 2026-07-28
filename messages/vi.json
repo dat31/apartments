@@ -241,6 +241,8 @@
       "area": "Diện tích lớn nhất"
     },
     "filtersPanel": {
+      "basic": "Cơ bản",
+      "advanced": "Nâng cao",
       "search": "Tìm kiếm",
       "searchPlaceholder": "Khu vực, loại, hoặc tên…",
       "homeType": "Loại nhà",

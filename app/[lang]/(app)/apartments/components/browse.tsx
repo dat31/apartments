@@ -75,15 +75,6 @@ export async function Browse({
         </div>
       </div>
 
-      {/* Saved-searches strip — per-user client island; renders nothing for
-          guests or when the user hasn't saved a search yet. */}
-      <SavedSearchesStrip />
-
-      {/* Recently-viewed strip — a client island that hydrates from
-          localStorage; full-width above the filters + results, renders nothing
-          until there's history. */}
-      <RecentlyViewed />
-
       <div className="flex gap-8">
         <aside className="hidden lg:block w-72 shrink-0">
           <div className="sticky top-24 bg-sidebar text-sidebar-foreground p-6">
@@ -145,6 +136,15 @@ export async function Browse({
           </Suspense>
         </div>
       </div>
+
+      {/* Saved-searches strip — per-user client island; renders nothing for
+          guests or when the user hasn't saved a search yet. */}
+      <SavedSearchesStrip />
+
+      {/* Recently-viewed strip — a client island that hydrates from
+          localStorage; full-width below the filters + results, renders nothing
+          until there's history. */}
+      <RecentlyViewed />
     </div>
   );
 }

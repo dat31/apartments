@@ -6,6 +6,12 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/chip";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Check, Search } from "lucide-react";
 import { AMENITY_ICONS } from "@/components/icons";
 import { AMENITIES } from "@/lib/data/listings";
@@ -67,11 +73,37 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
     setParams({ amenities: next.length ? next.join(",") : null });
   };
 
+  /* Advanced group: bedrooms, move-in, minimum area, amenities. How many of
+     them the URL currently carries — shown on the trigger so a collapsed
+     group never hides an active filter. */
+  const advancedCount =
+    Number(filters.beds !== "Any") +
+    Number(filters.avail !== "any") +
+    Number(!!filters.minArea) +
+    filters.amenities.length;
+
+  /* The group opens itself the first time an advanced filter is in play (a
+     restored search, a saved search), then leaves the user in control. It
+     can't just derive its initial state from the count: the panel renders
+     once before the client has read the URL, so that would desync the
+     server markup from hydration. */
+  const [advancedOpen, setAdvancedOpen] = React.useState(false);
+  const autoOpened = React.useRef(false);
+  React.useEffect(() => {
+    if (autoOpened.current || advancedCount === 0) return;
+    autoOpened.current = true;
+    setAdvancedOpen(true);
+  }, [advancedCount]);
+
   const heading =
     "text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-3";
+  const groupLabel =
+    "text-[11px] font-semibold uppercase tracking-[0.16em] text-foreground/70";
 
   return (
     <div className="flex flex-col gap-7">
+      <div className={groupLabel}>{t("filtersPanel.basic")}</div>
+
       <div>
         <h4 className={heading}>{t("filtersPanel.search")}</h4>
         <div className="relative">
@@ -98,21 +130,6 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
               onClick={() => setParams({ type: opt === "All" ? null : opt })}
             >
               {opt === "All" ? t("filtersPanel.all") : t(`types.${opt}`)}
-            </Chip>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h4 className={heading}>{t("filtersPanel.moveInBy")}</h4>
-        <div className="flex flex-wrap gap-2">
-          {AVAIL_KEYS.map((k) => (
-            <Chip
-              key={k}
-              active={filters.avail === k}
-              onClick={() => setParams({ avail: k === "any" ? null : k })}
-            >
-              {t(`filtersPanel.avail.${k}`)}
             </Chip>
           ))}
         </div>
@@ -156,72 +173,106 @@ export function FiltersPanel({ districts = [] }: { districts?: string[] }) {
         </div>
       </div>
 
-      <div>
-        <h4 className={heading}>{t("filtersPanel.bedrooms")}</h4>
-        <div className="flex flex-wrap gap-2">
-          {["Any", "Studio", "1", "2", "3+"].map((b) => (
-            <Chip
-              key={b}
-              active={filters.beds === b}
-              onClick={() => setParams({ beds: b === "Any" ? null : b })}
-            >
-              {b === "Any"
-                ? t("filtersPanel.any")
-                : b === "Studio"
-                  ? t("filtersPanel.studio")
-                  : b}
-            </Chip>
-          ))}
-        </div>
-      </div>
+      <Accordion
+        type="single"
+        collapsible
+        value={advancedOpen ? "advanced" : ""}
+        onValueChange={(v) => setAdvancedOpen(v === "advanced")}
+      >
+        <AccordionItem value="advanced" className="border-t">
+          <AccordionTrigger className="items-center gap-2 py-3 hover:no-underline">
+            <span className={groupLabel}>{t("filtersPanel.advanced")}</span>
+            {advancedCount > 0 && (
+              <span className="inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs font-semibold bg-primary text-primary-foreground">
+                {advancedCount}
+              </span>
+            )}
+          </AccordionTrigger>
+          <AccordionContent className="h-auto flex flex-col gap-7 pt-3 pb-0">
+            <div>
+              <h4 className={heading}>{t("filtersPanel.bedrooms")}</h4>
+              <div className="flex flex-wrap gap-2">
+                {["Any", "Studio", "1", "2", "3+"].map((b) => (
+                  <Chip
+                    key={b}
+                    active={filters.beds === b}
+                    onClick={() => setParams({ beds: b === "Any" ? null : b })}
+                  >
+                    {b === "Any"
+                      ? t("filtersPanel.any")
+                      : b === "Studio"
+                        ? t("filtersPanel.studio")
+                        : b}
+                  </Chip>
+                ))}
+              </div>
+            </div>
 
-      <div>
-        <h4 className={heading}>{t("filtersPanel.minArea")}</h4>
-        <div className="flex flex-wrap gap-2">
-          {MIN_AREA_OPTIONS.map((v) => (
-            <Chip
-              key={v || "any"}
-              active={filters.minArea === v}
-              onClick={() => setParams({ minArea: v || null })}
-            >
-              {v ? `${v} m²+` : t("filtersPanel.any")}
-            </Chip>
-          ))}
-        </div>
-      </div>
+            <div>
+              <h4 className={heading}>{t("filtersPanel.moveInBy")}</h4>
+              <div className="flex flex-wrap gap-2">
+                {AVAIL_KEYS.map((k) => (
+                  <Chip
+                    key={k}
+                    active={filters.avail === k}
+                    onClick={() => setParams({ avail: k === "any" ? null : k })}
+                  >
+                    {t(`filtersPanel.avail.${k}`)}
+                  </Chip>
+                ))}
+              </div>
+            </div>
 
-      <div>
-        <h4 className={heading}>{t("filtersPanel.amenities")}</h4>
-        <div className="flex flex-col gap-1">
-          {AMENITIES.map((a) => {
-            const I = AMENITY_ICONS[a.icon];
-            const on = filters.amenities.includes(a.id);
-            return (
-              <button
-                key={a.id}
-                type="button"
-                onClick={() => toggleAmenity(a.id)}
-                className={cn(
-                  "flex items-center gap-3 px-3 h-10 text-[15px] transition-colors focus-ring",
-                  on
-                    ? "bg-accent text-accent-foreground"
-                    : "hover:bg-muted text-foreground"
-                )}
-              >
-                <span
-                  className={cn(
-                    "inline-flex items-center justify-center w-5 h-5",
-                    on ? "text-primary" : "text-muted-foreground"
-                  )}
-                >
-                  {on ? <Check size={18} /> : <I size={18} />}
-                </span>
-                {t(`amenities.${a.id}`)}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+            <div>
+              <h4 className={heading}>{t("filtersPanel.minArea")}</h4>
+              <div className="flex flex-wrap gap-2">
+                {MIN_AREA_OPTIONS.map((v) => (
+                  <Chip
+                    key={v || "any"}
+                    active={filters.minArea === v}
+                    onClick={() => setParams({ minArea: v || null })}
+                  >
+                    {v ? `${v} m²+` : t("filtersPanel.any")}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h4 className={heading}>{t("filtersPanel.amenities")}</h4>
+              <div className="flex flex-col gap-1">
+                {AMENITIES.map((a) => {
+                  const I = AMENITY_ICONS[a.icon];
+                  const on = filters.amenities.includes(a.id);
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => toggleAmenity(a.id)}
+                      className={cn(
+                        "flex items-center gap-3 px-3 h-10 text-[15px] transition-colors focus-ring",
+                        on
+                          ? "bg-accent text-accent-foreground"
+                          : "hover:bg-muted text-foreground"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "inline-flex items-center justify-center w-5 h-5",
+                          on ? "text-primary" : "text-muted-foreground"
+                        )}
+                      >
+                        {on ? <Check size={18} /> : <I size={18} />}
+                      </span>
+                      {t(`amenities.${a.id}`)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <div className="flex flex-col gap-2.5">
         <SaveSearch />

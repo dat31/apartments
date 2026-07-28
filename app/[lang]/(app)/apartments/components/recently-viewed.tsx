@@ -4,7 +4,7 @@ import * as React from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
-import { Clock, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/client";
@@ -20,7 +20,7 @@ import {
   subscribeRecentlyViewed,
 } from "../lib/recently-viewed";
 
-/* "Recently viewed" strip, shown full-width above the browse filters + results.
+/* "Recently viewed" strip, shown full-width below the browse filters + results.
 
    A client island below the browse page's static shell so the shell stays
    prerenderable. Reads the localStorage ring buffer (written by the detail
@@ -92,11 +92,9 @@ export function RecentlyViewed({ excludeId }: { excludeId?: string }) {
   if (query.isSuccess && query.data.length === 0) return null;
 
   return (
-    <section className="mb-8 anim-fade" aria-label={t("aria")}>
+    <section className="mt-10 anim-fade" aria-label={t("aria")}>
       <div className="mb-3 flex items-center justify-between gap-4">
-        <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight">
-          <Clock size={17} className="text-muted-foreground" /> {t("title")}
-        </h2>
+        <h2 className="text-base font-semibold tracking-tight">{t("title")}</h2>
         <button
           type="button"
           onClick={clear}
