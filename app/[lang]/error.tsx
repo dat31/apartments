@@ -1,13 +1,28 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { ErrorShell } from "@/components/error-shell";
 import { Home } from "lucide-react";
+import posthog from "posthog-js";
 
-export default function Error({ reset }: { error: Error; reset: () => void }) {
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
   const t = useTranslations("errors");
+
+  // React swallows errors it hands to a boundary, so PostHog's automatic
+  // exception capture never sees them — report explicitly.
+  useEffect(() => {
+    posthog.captureException(error);
+  }, [error]);
+
   return (
     <ErrorShell>
       <div className="flex items-center justify-center" aria-hidden="true">

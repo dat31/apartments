@@ -13,5 +13,6 @@ if (!process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN) {
     defaults: "2026-01-30",
     capture_exceptions: true,
     debug: process.env.NODE_ENV === "development",
+    capture_performance: true,
   });
 }
