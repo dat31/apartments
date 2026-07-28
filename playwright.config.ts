@@ -14,8 +14,11 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: process.env.CI ? "list" : [["list"], ["html", { open: "never" }]],
+  // Modest on a 2-core GitHub runner; the dev server compiles routes on first
+  // hit, so piling on workers there mostly contends for the same compile.
+  workers: process.env.CI ? 2 : undefined,
+  // The HTML report is uploaded as a CI artifact on failure.
+  reporter: [["list"], ["html", { open: "never" }]],
 
   // `cacheComponents` compiles routes on demand, so the first hit on a route
   // can take several seconds. Playwright's defaults are too tight for that.
@@ -61,7 +64,12 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: "pnpm dev",
+    /* Testing the production build would be better — it is what actually
+       ships — but /apartments blanks on ~half of production-build loads
+       (issue #89), so 8 of 28 specs fail there. Until that is fixed, CI runs
+       the same dev server as local. Set E2E_PRODUCTION_BUILD=1 to serve a
+       build instead; the workflow flips to that once #89 closes. */
+    command: process.env.E2E_PRODUCTION_BUILD ? "pnpm start" : "pnpm dev",
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

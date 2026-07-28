@@ -18,6 +18,59 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
-      # Unit tests only — the Playwright suite needs a Supabase test account
-      # and stays local until those secrets are wired up.
+      # Unit tests need no secrets, no database and no browser, so they run
+      # here and report in about a minute regardless of the e2e job.
       - run: pnpm test
+
+  e2e:
+    runs-on: ubuntu-latest
+    # Separate job so lint/typecheck/unit still report fast while this runs.
+    env:
+      # The suite drives a real app against the live Supabase project. Every
+      # spec is read-only by design — nothing here writes a row.
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      # Optional: only the messaging surface reads these, and no spec exercises
+      # it. Left unset they are empty strings, which the app tolerates.
+      NEXT_PUBLIC_STREAM_API_KEY: ${{ secrets.NEXT_PUBLIC_STREAM_API_KEY }}
+      STREAM_API_SECRET: ${{ secrets.STREAM_API_SECRET }}
+      # Optional: the authenticated specs skip cleanly when these are absent.
+      E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Cache the browser download (~130 MB) against the resolved Playwright
+      # version, so a dependency bump invalidates it automatically.
+      - name: Resolve Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      - if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+      # System libraries live outside the cached directory, so they still have
+      # to be installed when the browser itself was restored from cache.
+      - if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      # Runs against `next dev`, same as local. Testing the production build
+      # would be better, but /apartments blanks on ~half of production-build
+      # loads (#89) and 8 of 28 specs fail there. Once #89 is fixed, add a
+      # `pnpm build` step above and set E2E_PRODUCTION_BUILD=1 here.
+      - run: pnpm exec playwright test
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
