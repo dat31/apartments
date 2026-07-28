@@ -241,6 +241,8 @@
       "area": "Largest area"
     },
     "filtersPanel": {
+      "basic": "Basic",
+      "advanced": "Advanced",
       "search": "Search",
       "searchPlaceholder": "Area, type, or name…",
       "homeType": "Home type",
