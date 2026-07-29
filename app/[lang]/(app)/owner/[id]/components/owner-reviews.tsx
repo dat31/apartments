@@ -7,12 +7,14 @@ import { SkeletonReviewCard } from "@/components/skeleton-review-card";
 import {
   REVIEWS_PER_PAGE,
   reviewPageCount,
-  reviewsForPage,
 } from "@/app/[lang]/(app)/apartments/[id]/lib/reviews";
 import { ReviewPager } from "@/app/[lang]/(app)/apartments/[id]/components/review-pager";
-import { avgOf } from "@/lib/data/listings";
 import { getOwnerProfile } from "@/lib/services/owners";
-import { getReviewsForOwner, ownerUuidOf } from "@/lib/services/reviews";
+import {
+  getReviewStats,
+  getReviewsPage,
+  ownerUuidOf,
+} from "@/lib/services/reviews";
 import { ReviewsEmptyBody, WriteReviewButton } from "./write-review-button";
 
 /* Reviews written about this owner. Async server component owning its own
@@ -20,27 +22,29 @@ import { ReviewsEmptyBody, WriteReviewButton } from "./write-review-button";
    listings query in <OwnerHomes>.
 
    The summary, the rating breakdown and the first page of cards are server
-   HTML; <ReviewPager> takes over on the client for pages 2+ (no round-trip),
-   and <WriteReviewButton> is the only other client island. A posted review
-   expires this owner's cache tag and the panel refreshes the route, so every
-   number here stays in step with the cards. */
+   HTML; <ReviewPager> takes over on the client for pages 2+, fetching them by
+   row range, and <WriteReviewButton> is the only other client island.
+
+   Count, average and breakdown come from the owner_review_stats aggregate,
+   not from the fetched page — the page holds four rows, so deriving them here
+   would be wrong for any owner with more reviews than that. Both reads share
+   one cache tag, so a posted review expires them together and the numbers can
+   never disagree with the cards. */
 export async function OwnerReviews({ id }: { id: string }) {
-  const [t, tr, owner, reviews] = await Promise.all([
+  const [t, tr, owner, stats, firstPageReviews] = await Promise.all([
     getTranslations("owner"),
     getTranslations("detail.reviews"),
     getOwnerProfile(id),
-    getReviewsForOwner(id),
+    getReviewStats(id),
+    getReviewsPage(id, 1),
   ]);
   if (!owner) return null;
 
   const firstName = owner.name.split(" ")[0];
-  const avg = avgOf(reviews);
-  const pageCount = reviewPageCount(reviews);
+  const { total, avg } = stats;
+  const pageCount = reviewPageCount(total);
 
-  const dist = [5, 4, 3, 2, 1].map((s) => ({
-    s,
-    n: reviews.filter((r) => r.rating === s).length,
-  }));
+  const dist = [5, 4, 3, 2, 1].map((s) => ({ s, n: stats.dist[s] ?? 0 }));
   const maxN = Math.max(1, ...dist.map((d) => d.n));
 
   return (
@@ -51,9 +55,9 @@ export async function OwnerReviews({ id }: { id: string }) {
           <p className="mt-1 flex items-center gap-2 text-muted-foreground">
             <StarRow value={avg} size={16} />
             <span className="text-foreground font-medium tabular-nums">
-              {reviews.length ? avg.toFixed(1) : "—"}
+              {total ? avg.toFixed(1) : "—"}
             </span>
-            · {tr("count", { count: reviews.length })}
+            · {tr("count", { count: total })}
           </p>
         </div>
         <WriteReviewButton
@@ -63,7 +67,7 @@ export async function OwnerReviews({ id }: { id: string }) {
         />
       </div>
 
-      {reviews.length === 0 ? (
+      {total === 0 ? (
         <div className="bg-card p-14 text-center anim-fade">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
             <Star size={26} />
@@ -102,11 +106,12 @@ export async function OwnerReviews({ id }: { id: string }) {
           </div>
           <div>
             <ReviewPager
-              reviews={reviews}
+              ownerId={ownerUuidOf(id) ?? id}
+              total={total}
               pageCount={pageCount}
               firstPage={
                 <div className="grid sm:grid-cols-2 gap-4 stagger">
-                  {reviewsForPage(reviews, 1).map((r) => (
+                  {firstPageReviews.map((r) => (
                     <ReviewCard key={r.id} r={r} />
                   ))}
                 </div>

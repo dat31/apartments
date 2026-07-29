@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Gallery } from "./gallery";
 import { LocationMapLazy } from "./location-map-lazy";
-import { Reviews } from "./reviews";
+import { Reviews, ReviewsSkeleton } from "./reviews";
 import { SimilarHomes, SimilarHomesSkeleton } from "./similar-homes";
 import { OwnerCard, OwnerCardSkeleton } from "./owner-card";
 import { SaveHomeButton } from "./save-home-button";
@@ -20,15 +20,12 @@ import { PALETTE, AMENITIES } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { coordsOf } from "@/lib/geo";
 import { districtLabel, type Listing } from "@/schemas/listing";
-import { type Review } from "@/schemas/review";
 
 export function DetailView({
   listing,
-  reviews,
   isOwner = false,
 }: {
   listing: Listing;
-  reviews: Review[];
   isOwner?: boolean;
 }) {
   const t = useTranslations("detail");
@@ -158,8 +155,12 @@ export function DetailView({
             )}
           </div>
 
-          {/* Reviews — first page server-rendered, further pages client-side. */}
-          <Reviews reviews={reviews} ownerKey={listing.owner} />
+          {/* Reviews — first page server-rendered, further pages fetched by
+              the client pager. Streams on its own so the listing content
+              above it never waits on the review queries. */}
+          <Suspense fallback={<ReviewsSkeleton />}>
+            <Reviews ownerKey={listing.owner} />
+          </Suspense>
         </div>
 
         {/* Sticky booking card (tablet / desktop) */}
