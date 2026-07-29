@@ -737,6 +737,7 @@
       "german": "German"
     },
     "writeReview": "Write a review",
+    "editReview": "Edit your review",
     "reviewsEmptyBody": "Be the first to share what it's like renting from {name}.",
     "ratingBreakdown": "Rating breakdown",
     "homesBy": "{count, plural, one {# home} other {# homes}} by {name}",
@@ -746,19 +747,25 @@
     "noListings": "{name} has no active listings at the moment.",
     "reviewPosted": "Review posted",
     "reviewPostedDesc": "Thanks for sharing your experience with {name}.",
+    "reviewUpdated": "Review updated",
+    "reviewUpdatedDesc": "Your review of {name} now shows what you just wrote.",
     "starPicker": {
       "stars": "{count, plural, one {# star} other {# stars}}",
       "tapToRate": "Tap to rate"
     },
     "modal": {
       "title": "Review {name}",
+      "editTitle": "Edit your review of {name}",
       "intro": "Share how it went renting from {name}. Your review helps other renters.",
+      "editIntro": "Update what you wrote about renting from {name}. This replaces your current review.",
       "rating": "Your rating",
       "review": "Your review",
       "reviewPlaceholder": "What stood out — the place, the communication, the little touches?",
       "submit": "Post review",
+      "update": "Save changes",
       "postingAs": "Posting as {name}",
-      "submitting": "Posting…"
+      "submitting": "Posting…",
+      "updating": "Saving…"
     },
     "reviewFailed": "Couldn't post your review. Please try again.",
     "reviewOwnProfile": "You can't review your own profile.",

@@ -22,6 +22,8 @@ export function ReviewModal({
   onClose,
   firstName,
   authorName,
+  initial,
+  isEdit,
   onSubmit,
 }: {
   open: boolean;
@@ -30,6 +32,10 @@ export function ReviewModal({
   /* The signed-in writer's display name. Shown instead of a name field —
      reviews are attributed to the poster's profile, not to free text. */
   authorName: string;
+  /* The review this writer already left for this owner, when there is one —
+     a renter gets one review per owner, so re-opening the form edits it. */
+  initial?: { rating: number; text: string };
+  isEdit: boolean;
   /* Persists the review and reports whether it landed. Returning false keeps
      the dialog open so the writer doesn't lose what they typed — the caller
      has already surfaced the reason as a toast. */
@@ -52,9 +58,14 @@ export function ReviewModal({
     defaultValues: { rating: 0, text: "" },
   });
 
+  /* Re-seeded on every open rather than through defaultValues, so an edit
+     always starts from what's stored — including right after a submit, when
+     the row behind `initial` has just changed. */
   React.useEffect(() => {
-    if (open) reset({ rating: 0, text: "" });
-  }, [open, reset]);
+    if (open) {
+      reset({ rating: initial?.rating ?? 0, text: initial?.text ?? "" });
+    }
+  }, [open, reset, initial?.rating, initial?.text]);
 
   return (
     <Dialog
@@ -64,19 +75,23 @@ export function ReviewModal({
       <DialogContent className="max-w-md p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="text-xl font-semibold tracking-tight">
-            {t("title", { name: firstName })}
+            {isEdit ? t("editTitle", { name: firstName }) : t("title", { name: firstName })}
           </DialogTitle>
         </DialogHeader>
         <form
           className="px-6 pb-6 flex flex-col gap-5"
           onSubmit={handleSubmit(async (data) => {
-            posthog.capture("owner_review_submitted", { rating: data.rating });
+            posthog.capture("owner_review_submitted", {
+              rating: data.rating,
+              // First review or a rewrite — two different behaviours to read.
+              mode: isEdit ? "edit" : "create",
+            });
             if (await onSubmit(data)) onClose();
           })}
           noValidate
         >
           <p className="text-sm text-muted-foreground -mt-1 text-pretty">
-            {t("intro", { name: firstName })}
+            {isEdit ? t("editIntro", { name: firstName }) : t("intro", { name: firstName })}
           </p>
 
           <Field data-invalid={!!errors.rating}>
@@ -114,7 +129,13 @@ export function ReviewModal({
             className="w-full h-12"
             disabled={isSubmitting}
           >
-            {isSubmitting ? t("submitting") : t("submit")}
+            {isSubmitting
+              ? isEdit
+                ? t("updating")
+                : t("submitting")
+              : isEdit
+                ? t("update")
+                : t("submit")}
           </Button>
         </form>
       </DialogContent>
