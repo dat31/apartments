@@ -2,7 +2,7 @@ import { useTranslations, useFormatter } from "next-intl";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bath, BedDouble, Check, Clock, MapPin, Maximize } from "lucide-react";
+import { Bath, BedDouble, Check, MapPin, Maximize } from "lucide-react";
 import { PALETTE, availInfo } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
@@ -149,8 +149,7 @@ export function ListingCard({
         <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
           <MapPin size={14} /> {districtLabel(listing.district)}
         </p>
-        <p className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-primary">
-          <Clock size={14} />{" "}
+        <p className="mt-1.5 text-sm font-medium text-primary">
           {avail.kind === "now"
             ? t("card.availableNow")
             : t("card.availableOn", {

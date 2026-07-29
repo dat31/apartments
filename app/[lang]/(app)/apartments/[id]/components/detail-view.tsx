@@ -14,7 +14,7 @@ import { RecordRecentlyViewed } from "./record-recently-viewed";
 import { AvailabilityLabel } from "./availability-label";
 import { CostsSection } from "./costs-section";
 import { MoveInEstimate } from "./move-in-estimate";
-import { Bath, BedDouble, Clock, MapPin, Maximize } from "lucide-react";
+import { Bath, BedDouble, MapPin, Maximize } from "lucide-react";
 import { AMENITY_ICONS } from "@/components/icons";
 import { PALETTE, AMENITIES } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
@@ -172,8 +172,8 @@ export function DetailView({
               </span>
               <span className="text-muted-foreground">{t("perMonth")}</span>
             </div>
-            <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-primary">
-              <Clock size={16} /> <AvailabilityLabel listing={listing} />
+            <p className="mt-3 text-sm font-medium text-primary">
+              <AvailabilityLabel listing={listing} />
             </p>
             <MoveInEstimate listing={listing} variant="compact" className="mt-4" />
             <div className="mt-5 flex flex-col gap-2.5">
@@ -218,8 +218,8 @@ export function DetailView({
                 {t("perMonthShort")}
               </span>
             </div>
-            <p className="flex items-center gap-1 text-xs font-medium text-primary truncate">
-              <Clock size={13} /> <AvailabilityLabel listing={listing} />
+            <p className="text-xs font-medium text-primary truncate">
+              <AvailabilityLabel listing={listing} />
             </p>
           </div>
           <SaveHomeButton id={listing.id} mode="icon" />

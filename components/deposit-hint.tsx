@@ -1,5 +1,4 @@
 import { useTranslations } from "next-intl";
-import { KeyRound } from "lucide-react";
 import { useMoney } from "@/hooks/use-money";
 import { depositCash } from "@/lib/listing-costs";
 import { cn } from "@/lib/utils";
@@ -32,11 +31,11 @@ export function DepositHint({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 text-xs text-muted-foreground tabular-nums",
+        "inline-block text-xs text-muted-foreground tabular-nums",
         className
       )}
     >
-      <KeyRound size={12} className="shrink-0" /> {label}
+      {label}
     </span>
   );
 }
