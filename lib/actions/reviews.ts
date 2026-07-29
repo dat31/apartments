@@ -3,7 +3,7 @@
 import { updateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { ReviewInputSchema, type ReviewInput } from "@/schemas/review";
-import { ownerKeyOf, ownerUuidOf, reviewsTag } from "@/lib/services/reviews";
+import { ownerUuidOf, reviewsTag } from "@/lib/services/reviews";
 
 /* ============================================================
    Leave-a-review write path.
@@ -67,6 +67,6 @@ export async function createReview(
     return { ok: false, error: "failed" };
   }
 
-  updateTag(reviewsTag(ownerKeyOf(uuid)));
+  updateTag(reviewsTag(uuid));
   return { ok: true };
 }

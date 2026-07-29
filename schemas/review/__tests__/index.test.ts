@@ -4,27 +4,29 @@ import {
   ReviewSchema,
   createReviewFormSchema,
 } from "@/schemas/review";
-import { SEED_REVIEWS } from "@/lib/data/listings";
+import { makeReview, OWNER_ID } from "@/tests/factories";
 
 /** Schemas are factories taking a translator; an identity stub keeps the
     assertions about message keys rather than Vietnamese copy. */
 const t = (key: string) => key;
 
 describe("ReviewSchema", () => {
-  it("accepts every seeded review", () => {
-    for (const review of SEED_REVIEWS) {
-      expect(ReviewSchema.safeParse(review).success).toBe(true);
-    }
+  it("accepts a complete review", () => {
+    expect(ReviewSchema.safeParse(makeReview()).success).toBe(true);
+    expect(
+      ReviewSchema.safeParse(makeReview({ stay: "Modern 1-bed by the river" }))
+        .success
+    ).toBe(true);
   });
 
   it("treats the stay reference as optional", () => {
-    const withoutStay: Record<string, unknown> = { ...SEED_REVIEWS[0] };
+    const withoutStay: Record<string, unknown> = { ...makeReview() };
     delete withoutStay.stay;
     expect(ReviewSchema.safeParse(withoutStay).success).toBe(true);
   });
 
   it("rejects a non-numeric rating", () => {
-    expect(ReviewSchema.safeParse({ ...SEED_REVIEWS[0], rating: "5" }).success).toBe(false);
+    expect(ReviewSchema.safeParse({ ...makeReview(), rating: "5" }).success).toBe(false);
   });
 });
 
@@ -55,12 +57,12 @@ describe("createReviewFormSchema", () => {
 
 describe("ReviewInputSchema", () => {
   const valid = {
-    ownerId: "maya",
+    ownerId: OWNER_ID,
     rating: 5,
     text: "Great place to stay.",
   };
 
-  it("accepts a seed owner key and a real listing reference", () => {
+  it("accepts an owner uuid and an optional listing reference", () => {
     expect(ReviewInputSchema.safeParse(valid).success).toBe(true);
     expect(
       ReviewInputSchema.safeParse({
@@ -68,6 +70,12 @@ describe("ReviewInputSchema", () => {
         listingId: "11111111-1111-1111-1111-111111111111",
       }).success
     ).toBe(true);
+  });
+
+  it("rejects an owner id that isn't a uuid", () => {
+    expect(
+      ReviewInputSchema.safeParse({ ...valid, ownerId: "maya" }).success
+    ).toBe(false);
   });
 
   it("keeps the rating within 1–5 and whole", () => {

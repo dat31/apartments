@@ -2,19 +2,15 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { type Owner } from "@/schemas/owner";
-import { getOwner as getSeedOwner } from "@/lib/data/listings";
 import type { Tables } from "@/lib/database.types";
 
 /* ============================================================
    Owners service — resolves the host shown on the listing detail
-   and owner pages. Owners come from two places:
+   and owner pages.
 
-   • Seed owners ("you"/"maya"/"leo") keep their curated OWNERS
-     profiles from @/lib/data/listings.
-   • Real signed-up owners live in the `profiles` table, keyed by
-     their auth uuid. profiles is anon-readable (RLS
-     `profiles_select_public`), so the cookieless public client
-     works inside a "use cache" boundary.
+   Owners are `profiles` rows, addressed by their auth uuid.
+   profiles is anon-readable (RLS `profiles_select_public`), so the
+   cookieless public client works inside a "use cache" boundary.
    ============================================================ */
 
 const UUID_RE =
@@ -25,9 +21,9 @@ type ProfileRow = Pick<
   "id" | "name" | "bio" | "palette" | "created_at"
 >;
 
-/* Real profiles only carry name/bio/palette/joined. The remaining
-   host-stats fields have no DB backing yet, so fill them with neutral
-   defaults so the owner page's badges and stat grid still render. */
+/* Profiles only carry name/bio/palette/joined. The remaining host-stats
+   fields have no DB backing yet, so fill them with neutral defaults so the
+   owner page's badges and stat grid still render. */
 function profileToOwner(row: ProfileRow): Owner {
   return {
     key: row.id,
@@ -43,15 +39,12 @@ function profileToOwner(row: ProfileRow): Owner {
   };
 }
 
-/** Resolve an owner by seed key ("you"/"maya"/"leo") or by a real profile
-    uuid. Returns null when neither matches (e.g. a deleted user). */
+/** Resolve an owner by profile uuid. Returns null when the id isn't a uuid
+    or has no row (e.g. a deleted user). */
 export async function getOwnerProfile(id: string): Promise<Owner | null> {
   "use cache";
   cacheLife("hours");
   cacheTag(`owner:${id}`);
-
-  const seed = getSeedOwner(id);
-  if (seed) return seed;
 
   if (!UUID_RE.test(id)) return null;
 

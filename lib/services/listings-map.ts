@@ -29,19 +29,6 @@ const TYPE_SLUGS = Object.fromEntries(
   Object.entries(TYPE_LABELS).map(([slug, label]) => [label, slug])
 ) as Record<string, ListingRow["type"]>;
 
-/* Seed owners get stable uuids so the (still seed-backed) owner/review
-   pages keep resolving by their "you"/"maya"/"leo" keys. Unknown owners
-   fall back to their raw uuid. Keep in sync with the seed migration. */
-export const OWNER_ID_BY_KEY: Record<string, string> = {
-  you: "11111111-1111-1111-1111-111111111111",
-  maya: "22222222-2222-2222-2222-222222222222",
-  leo: "33333333-3333-3333-3333-333333333333",
-};
-
-export const OWNER_KEY_BY_ID: Record<string, string> = Object.fromEntries(
-  Object.entries(OWNER_ID_BY_KEY).map(([key, id]) => [id, key])
-);
-
 /* Costs & terms columns → the domain's nested `costs`, or undefined when
    the row has none of them (legacy rows, owners who skipped the section). */
 function toCosts(row: ListingRow): ListingCosts | undefined {
@@ -79,7 +66,7 @@ export function toListing(row: ListingRow): Listing {
     city: row.city,
     palette: row.palette,
     amenities: row.amenities,
-    owner: OWNER_KEY_BY_ID[row.owner_id] ?? row.owner_id,
+    owner: row.owner_id,
     status: row.status,
     views: row.views,
     available: row.available_from ?? "now",

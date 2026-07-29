@@ -10,8 +10,8 @@ import { getOwnerProfile } from "@/lib/services/owners";
    into the owner's profile.
 
    Async server component that fetches its own owner (getOwnerProfile is
-   "use cache"d; seed owners resolve with no query), so it can stream inside
-   its own <Suspense> instead of blocking the listing content above it.
+   "use cache"d), so it can stream inside its own <Suspense> instead of
+   blocking the listing content above it.
    Rendered twice — inline on mobile, in the sticky sidebar on desktop — with
    `className` carrying the position-specific spacing. */
 export async function OwnerCard({

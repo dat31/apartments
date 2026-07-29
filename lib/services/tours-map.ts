@@ -1,13 +1,9 @@
 import type { Tables } from "@/lib/database.types";
 import { type TourRequest } from "@/schemas/tour";
-import { OWNER_KEY_BY_ID } from "./listings-map";
 
 /* Pure row → domain mapping for `tours`, split out so it can run in the
    browser (the renter booking flow and the my-tours page read straight from
-   the client Supabase client). No `server-only`, no cache, no React.
-
-   Owner ids are mapped back to their "you"/"maya"/"leo" keys (mirroring
-   listings-map) so the rest of the app keeps addressing owners by key. */
+   the client Supabase client). No `server-only`, no cache, no React. */
 
 type TourRow = Tables<"tours">;
 
@@ -20,7 +16,7 @@ export function toTourRequest(row: TourRow): TourRequest {
   return {
     id: row.id,
     listingId: row.listing_id,
-    ownerKey: OWNER_KEY_BY_ID[row.owner_id] ?? row.owner_id,
+    ownerKey: row.owner_id,
     date: row.date,
     time: hhmm(row.time) ?? row.time,
     note: row.note ?? "",

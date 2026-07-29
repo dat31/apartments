@@ -8,11 +8,20 @@ import { OwnerInfo, OwnerInfoSkeleton } from "./components/owner-info";
 import { OwnerReviews, OwnerReviewsSkeleton } from "./components/owner-reviews";
 import { OwnerHomes, OwnerHomesSkeleton } from "./components/owner-homes";
 import { getOwnerProfile } from "@/lib/services/owners";
-import { OWNERS } from "@/lib/data/listings";
+import { getActiveOwnerIds } from "@/lib/services/listings";
 import { pageAlternates } from "@/lib/seo";
 
-export function generateStaticParams() {
-  return Object.keys(OWNERS).map((id) => ({ id }));
+/* Prerender a profile for every host with an active listing. Mirrors the
+   listing detail page: if Supabase is unreachable at build time, prerender
+   nothing rather than failing the build — profiles then render on demand
+   (dynamicParams defaults to true) and cache on first request. */
+export async function generateStaticParams() {
+  try {
+    const ownerIds = await getActiveOwnerIds();
+    return ownerIds.map((id) => ({ id }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({

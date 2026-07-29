@@ -25,7 +25,6 @@ export async function OwnerInfo({ id }: { id: string }) {
   // The page 404s on an unknown owner before this ever renders.
   if (!owner) return null;
 
-  const displayName = owner.key === "you" ? t("you") : owner.name;
   const color = PALETTE[owner.palette % PALETTE.length][0];
 
   // owner.joined is a "YYYY-MM" key → locale month + year.
@@ -82,7 +81,7 @@ export async function OwnerInfo({ id }: { id: string }) {
             )}
           </div>
           <h1 className="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight text-balance">
-            {displayName}
+            {owner.name}
           </h1>
           <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground">
             <span className="flex items-center gap-1.5">

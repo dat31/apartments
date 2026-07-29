@@ -2,15 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   availInfo,
   avgOf,
-  getOwner,
   initialsOf,
-  OWNERS,
-  reviewsFor,
-  SEED_REVIEWS,
   USD_TO_VND,
 } from "@/lib/data/listings";
 import type { Review } from "@/schemas/review";
-import { makeListing } from "@/tests/factories";
+import { makeListing, makeReview } from "@/tests/factories";
 
 const NOW = new Date("2026-06-15T09:00:00");
 
@@ -80,8 +76,7 @@ describe("initialsOf", () => {
 });
 
 describe("avgOf", () => {
-  const review = (rating: number): Review =>
-    ({ ...SEED_REVIEWS[0], id: `r-${rating}`, rating }) as Review;
+  const review = (rating: number): Review => makeReview({ rating });
 
   it("returns 0 for an empty list rather than NaN", () => {
     // A bare reduce would divide by zero here.
@@ -91,34 +86,6 @@ describe("avgOf", () => {
   it("averages the ratings", () => {
     expect(avgOf([review(5), review(4)])).toBe(4.5);
     expect(avgOf([review(5)])).toBe(5);
-  });
-});
-
-describe("reviewsFor", () => {
-  it("selects only the given owner's reviews", () => {
-    const result = reviewsFor(SEED_REVIEWS, "maya");
-    expect(result.length).toBeGreaterThan(0);
-    expect(result.every((r) => r.owner === "maya")).toBe(true);
-  });
-
-  it("returns an empty list for an unknown owner", () => {
-    expect(reviewsFor(SEED_REVIEWS, "nobody")).toEqual([]);
-  });
-});
-
-describe("getOwner", () => {
-  it("looks up a seeded owner", () => {
-    expect(getOwner("maya")?.name).toBe("Maya Okonkwo");
-  });
-
-  it("returns undefined for an unknown key", () => {
-    expect(getOwner("nobody")).toBeUndefined();
-  });
-
-  it("keys every owner by its own key", () => {
-    for (const [key, owner] of Object.entries(OWNERS)) {
-      expect(owner.key).toBe(key);
-    }
   });
 });
 

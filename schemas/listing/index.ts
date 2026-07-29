@@ -3,7 +3,7 @@ import { z } from "zod";
 /* ============================================================
    Listing domain schemas + types.
    Reusable types are derived from the zod schemas (z.infer).
-   Seed data and helpers live in @/lib/data/listings.
+   Presentation config and display helpers live in @/lib/data/listings.
    ============================================================ */
 
 export const TYPES = ["Studio", "Apartment", "Loft", "Townhouse", "House"] as const;

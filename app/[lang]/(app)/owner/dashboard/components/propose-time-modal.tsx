@@ -21,6 +21,7 @@ import {
   parseYmd,
 } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { User } from "lucide-react";
+import { useUser } from "@/hooks/auth";
 
 /* Owner suggests an alternative slot to the renter, chosen from the owner's
    own availability minus already-booked slots. */
@@ -62,16 +63,14 @@ export function ProposeTimeModal({
   const [time, setTime] = React.useState("");
 
   // Avoid double-booking the owner: exclude the tour being rescheduled, and
-  // scope occupied slots to this owner (their key is "you" for the seed owner,
-  // their uuid otherwise). All `tours` already belong to this owner, so the
-  // key just needs to match what toTourRequest mapped onto them.
+  // scope occupied slots to this owner. All `tours` here already belong to
+  // them, so the id just needs to match what toTourRequest put on the rows.
+  const { data: user } = useUser();
+  const ownerId = tour?.ownerKey ?? user?.id ?? "";
   const occupied = React.useMemo(
     () =>
-      occupiedSet(
-        tour ? tours.filter((t) => t.id !== tour.id) : tours,
-        tour?.ownerKey ?? "you"
-      ),
-    [tours, tour]
+      occupiedSet(tour ? tours.filter((t) => t.id !== tour.id) : tours, ownerId),
+    [tours, tour, ownerId]
   );
   const slots = date ? openSlotsFor(template, date, occupied) : [];
 

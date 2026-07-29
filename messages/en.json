@@ -710,7 +710,8 @@
       "presetWeekday": "Weekdays 10–4",
       "presetAll": "Every day, all hours",
       "presetClear": "Clear all"
-    }
+    },
+    "hostFallback": "Host"
   },
   "owner": {
     "back": "Back",

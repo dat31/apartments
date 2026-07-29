@@ -1,4 +1,6 @@
 import { District, type Listing, type ListingCosts } from "@/schemas/listing";
+import type { Owner } from "@/schemas/owner";
+import type { Review } from "@/schemas/review";
 import type { TourRequest } from "@/schemas/tour";
 
 /* Fixture builders for the unit suite. Every factory returns a complete,
@@ -62,6 +64,39 @@ export function testId(n: number = ++seq): string {
   return `00000000-0000-4000-8000-${hex}`;
 }
 
+/** A stable owner uuid for fixtures — owners, listings and tours are all
+    keyed by profile uuid. */
+export const OWNER_ID = "00000000-0000-4000-8000-00000000dead";
+
+export function makeOwner(overrides: Partial<Owner> = {}): Owner {
+  return {
+    key: OWNER_ID,
+    name: "Maya Okonkwo",
+    palette: 5,
+    joined: "2019-08",
+    verified: true,
+    superhost: true,
+    responseRate: 97,
+    responseTime: "within a few hours",
+    languages: ["English", "French"],
+    bio: "Architect by training, host by habit.",
+    ...overrides,
+  };
+}
+
+export function makeReview(overrides: Partial<Review> = {}): Review {
+  return {
+    id: testId(),
+    owner: OWNER_ID,
+    author: "Priya Nair",
+    initials: "PN",
+    rating: 5,
+    date: "2026-04",
+    text: "Spotless and exactly as listed.",
+    ...overrides,
+  };
+}
+
 export function makeCosts(overrides: Partial<ListingCosts> = {}): ListingCosts {
   return {
     util: {},
@@ -83,7 +118,7 @@ export function makeListing(overrides: Partial<Listing> = {}): Listing {
     city: "Da Nang",
     palette: 0,
     amenities: [],
-    owner: "you",
+    owner: OWNER_ID,
     status: "active",
     views: 0,
     available: "now",
@@ -96,7 +131,7 @@ export function makeTour(overrides: Partial<TourRequest> = {}): TourRequest {
   return {
     id: testId(),
     listingId: testId(),
-    ownerKey: "you",
+    ownerKey: OWNER_ID,
     date: "2026-08-01",
     time: "10:00",
     note: "",

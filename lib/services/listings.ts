@@ -8,7 +8,7 @@ import {
   getTrending,
   type DistrictTile,
 } from "@/app/[lang]/lib/landing";
-import { OWNER_ID_BY_KEY, toListing } from "./listings-map";
+import { toListing } from "./listings-map";
 
 /* ============================================================
    Listings service — the single read path between Supabase and
@@ -102,18 +102,18 @@ export async function getTrendingShowcase(): Promise<{
   };
 }
 
-/** A seed owner's active listings, oldest first. Reads the real `listings`
-    rows (uuid ids) so cards can be saved/shortlisted — unlike the seed data,
-    whose "l1"-style ids have no matching row. Unknown owner keys yield []. */
-export async function getListingsByOwner(ownerKey: string): Promise<Listing[]> {
+/** An owner's active listings, oldest first, plus the cache's reference time
+    for the cards' relative availability labels — the owner page prerenders,
+    and reading the clock is only allowed inside a cache boundary like this
+    one. Anything that isn't a profile uuid yields [] rather than a query. */
+export async function getListingsByOwner(
+  ownerId: string
+): Promise<{ listings: Listing[]; now: number }> {
   "use cache";
   cacheLife("hours");
-  cacheTag("listings", `owner-listings:${ownerKey}`);
+  cacheTag("listings", `owner-listings:${ownerId}`);
 
-  // Seed owners map their key → uuid; real owners are already a uuid.
-  const ownerId =
-    OWNER_ID_BY_KEY[ownerKey] ?? (UUID_RE.test(ownerKey) ? ownerKey : null);
-  if (!ownerId) return [];
+  if (!UUID_RE.test(ownerId)) return { listings: [], now: Date.now() };
 
   const supabase = createPublicClient();
   const { data, error } = await supabase
@@ -125,11 +125,23 @@ export async function getListingsByOwner(ownerKey: string): Promise<Listing[]> {
 
   if (error)
     throw new Error(`Failed to load owner listings: ${error.message}`);
-  return (data ?? []).map(toListing);
+  return { listings: (data ?? []).map(toListing), now: Date.now() };
 }
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Profile uuids of every host with at least one active listing — the owner
+    pages worth prerendering and listing in the sitemap. Shares
+    getActiveListings' cache entry, so it costs no extra query. */
+export async function getActiveOwnerIds(): Promise<string[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("listings");
+
+  const listings = await getActiveListings();
+  return [...new Set(listings.map((l) => l.owner))];
+}
 
 export type SimilarResult = { picks: Listing[]; districtScoped: boolean };
 

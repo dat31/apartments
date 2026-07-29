@@ -15,7 +15,7 @@ const HOMES_PREVIEW = 3;
    listings read streams below its own <Suspense> instead of holding up the
    hero and the reviews above it. */
 export async function OwnerHomes({ id }: { id: string }) {
-  const [t, owner, homes] = await Promise.all([
+  const [t, owner, { listings: homes, now }] = await Promise.all([
     getTranslations("owner"),
     getOwnerProfile(id),
     getListingsByOwner(id),
@@ -56,7 +56,7 @@ export async function OwnerHomes({ id }: { id: string }) {
         <>
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
             {homes.slice(0, HOMES_PREVIEW).map((l) => (
-              <ListingCard key={l.id} listing={l} />
+              <ListingCard key={l.id} listing={l} now={now} />
             ))}
           </div>
           {homes.length > HOMES_PREVIEW && (

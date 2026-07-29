@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-/* A published review of an owner. Seed reviews live in @/lib/data/listings;
-   posted ones come from the `reviews` table (see @/lib/services/reviews). */
+/* A published review of an owner, sourced from the `reviews` table
+   (see @/lib/services/reviews). */
 export const ReviewSchema = z.object({
   id: z.string(),
   owner: z.string(),
@@ -32,11 +32,11 @@ export type ReviewFormValues = z.infer<
 /* The server action's payload — revalidated on the server since Server
    Actions are public endpoints and the client schema can't be trusted. */
 export const ReviewInputSchema = z.object({
-  ownerId: z.string().min(1),
+  // guid, not uuid: the demo profile ids ("1111…") don't carry RFC-4122
+  // version and variant bits, and a shape check is all these need.
+  ownerId: z.guid(),
   rating: z.number().int().min(1).max(5),
   text: z.string().min(4).max(2000),
-  // guid, not uuid: the seeded ids ("1111…") don't carry RFC-4122 version
-  // and variant bits, and a shape check is all this needs.
   listingId: z.guid().optional(),
 });
 export type ReviewInput = z.infer<typeof ReviewInputSchema>;

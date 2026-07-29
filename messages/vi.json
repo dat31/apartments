@@ -710,7 +710,8 @@
       "presetWeekday": "Ngày thường 10–4",
       "presetAll": "Mọi ngày, mọi giờ",
       "presetClear": "Xóa hết"
-    }
+    },
+    "hostFallback": "Chủ nhà"
   },
   "owner": {
     "back": "Quay lại",
