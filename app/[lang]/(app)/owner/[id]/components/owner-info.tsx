@@ -1,32 +1,31 @@
+import { Suspense } from "react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Calendar, Check, Clock, Globe, MessageSquare, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StarRow } from "@/components/star-row";
-import { PALETTE, avgOf, initialsOf } from "@/lib/data/listings";
+import { PALETTE, initialsOf } from "@/lib/data/listings";
 import { getOwnerProfile } from "@/lib/services/owners";
-import { getReviewsForOwner } from "@/lib/services/reviews";
+import {
+  OwnerRatingSummary,
+  OwnerRatingSummarySkeleton,
+} from "./owner-rating-summary";
 
-/* The owner hero — avatar, badges, bio, rating summary and the host stats
-   grid. Async server component owning its own reads (both services are
-   "use cache"d, so the reviews query it shares with <OwnerReviews> below runs
-   once), streaming inside its own <Suspense>.
+/* The owner hero — avatar, badges, bio and the host stats grid. Async server
+   component reading only the owner, so it paints as soon as that resolves.
 
-   The rating box needs the review list, so this region resolves alongside the
-   reviews one rather than ahead of it — but the homes query never blocks it. */
+   The rating box is the one part that needs the review list, so it streams
+   separately as <OwnerRatingSummary> below its own boundary; neither the
+   reviews nor the listings query holds up the identity half of the hero. */
 export async function OwnerInfo({ id }: { id: string }) {
-  const [t, tr, format, owner, reviews] = await Promise.all([
+  const [t, format, owner] = await Promise.all([
     getTranslations("owner"),
-    getTranslations("detail.reviews"),
     getFormatter(),
     getOwnerProfile(id),
-    getReviewsForOwner(id),
   ]);
   // The page 404s on an unknown owner before this ever renders.
   if (!owner) return null;
 
   const displayName = owner.key === "you" ? t("you") : owner.name;
-  const avg = avgOf(reviews);
   const color = PALETTE[owner.palette % PALETTE.length][0];
 
   // owner.joined is a "YYYY-MM" key → locale month + year.
@@ -95,17 +94,9 @@ export async function OwnerInfo({ id }: { id: string }) {
           </p>
         </div>
 
-        <div className="sm:w-44 shrink-0 bg-secondary text-secondary-foreground p-5 flex sm:flex-col items-center sm:text-center gap-4 sm:gap-1.5">
-          <div className="text-5xl font-semibold tracking-tight tabular-nums leading-none">
-            {reviews.length ? avg.toFixed(1) : "—"}
-          </div>
-          <div className="flex flex-col items-center gap-1.5">
-            <StarRow value={avg} size={17} />
-            <p className="text-sm text-muted-foreground">
-              {tr("count", { count: reviews.length })}
-            </p>
-          </div>
-        </div>
+        <Suspense fallback={<OwnerRatingSummarySkeleton />}>
+          <OwnerRatingSummary id={id} />
+        </Suspense>
       </div>
 
       <div className="mt-7 grid grid-cols-2 lg:grid-cols-4 gap-px bg-border">
@@ -136,13 +127,7 @@ export function OwnerInfoSkeleton() {
           <Skeleton className="skeleton mt-4 h-4 w-full max-w-xl" />
           <Skeleton className="skeleton mt-2 h-4 w-4/5 max-w-xl" />
         </div>
-        <div className="sm:w-44 shrink-0 bg-secondary p-5 flex sm:flex-col items-center gap-4 sm:gap-1.5">
-          <Skeleton className="skeleton h-12 w-16" />
-          <div className="flex flex-col items-center gap-1.5">
-            <Skeleton className="skeleton h-4 w-24" />
-            <Skeleton className="skeleton h-4 w-20" />
-          </div>
-        </div>
+        <OwnerRatingSummarySkeleton />
       </div>
       <div className="mt-7 grid grid-cols-2 lg:grid-cols-4 gap-px bg-border">
         {Array.from({ length: 4 }).map((_, i) => (
