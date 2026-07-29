@@ -737,6 +737,7 @@
       "german": "Tiếng Đức"
     },
     "writeReview": "Viết đánh giá",
+    "editReview": "Sửa đánh giá của bạn",
     "reviewsEmptyBody": "Hãy là người đầu tiên chia sẻ trải nghiệm thuê nhà từ {name}.",
     "ratingBreakdown": "Phân bố đánh giá",
     "homesBy": "{count, plural, other {# nhà}} của {name}",
@@ -746,19 +747,25 @@
     "noListings": "{name} hiện chưa có tin đăng nào đang hiển thị.",
     "reviewPosted": "Đã đăng đánh giá",
     "reviewPostedDesc": "Cảm ơn bạn đã chia sẻ trải nghiệm với {name}.",
+    "reviewUpdated": "Đã cập nhật đánh giá",
+    "reviewUpdatedDesc": "Đánh giá của bạn về {name} đã hiển thị nội dung vừa sửa.",
     "starPicker": {
       "stars": "{count, plural, other {# sao}}",
       "tapToRate": "Chạm để chấm điểm"
     },
     "modal": {
       "title": "Đánh giá {name}",
+      "editTitle": "Sửa đánh giá của bạn về {name}",
       "intro": "Chia sẻ trải nghiệm thuê nhà từ {name}. Đánh giá của bạn giúp ích cho những người thuê khác.",
+      "editIntro": "Cập nhật những gì bạn đã viết về việc thuê nhà từ {name}. Nội dung này sẽ thay thế đánh giá hiện tại của bạn.",
       "rating": "Đánh giá của bạn",
       "review": "Bài đánh giá của bạn",
       "reviewPlaceholder": "Điều gì khiến bạn ấn tượng — chỗ ở, cách giao tiếp, hay những chi tiết nhỏ?",
       "submit": "Đăng đánh giá",
+      "update": "Lưu thay đổi",
       "postingAs": "Đăng với tên {name}",
-      "submitting": "Đang đăng…"
+      "submitting": "Đang đăng…",
+      "updating": "Đang lưu…"
     },
     "reviewFailed": "Không thể đăng đánh giá. Vui lòng thử lại.",
     "reviewOwnProfile": "Bạn không thể tự đánh giá hồ sơ của mình.",
