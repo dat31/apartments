@@ -753,12 +753,16 @@
       "title": "Review {name}",
       "intro": "Share how it went renting from {name}. Your review helps other renters.",
       "rating": "Your rating",
-      "name": "Your name",
-      "namePlaceholder": "e.g. Alex Moreno",
       "review": "Your review",
       "reviewPlaceholder": "What stood out — the place, the communication, the little touches?",
-      "submit": "Post review"
-    }
+      "submit": "Post review",
+      "postingAs": "Posting as {name}",
+      "submitting": "Posting…"
+    },
+    "reviewFailed": "Couldn't post your review. Please try again.",
+    "reviewOwnProfile": "You can't review your own profile.",
+    "reviewAuthorFallback": "Renter",
+    "reviewsEmptySelf": "No one has reviewed you yet. Reviews appear here once renters share their experience."
   },
   "saved": {
     "title": "Saved homes",

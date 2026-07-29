@@ -5,7 +5,7 @@ import { JsonLd } from "@/components/json-ld";
 import { listingJsonLd } from "../lib/json-ld";
 import { createClient } from "@/lib/supabase/server";
 import { getListingById } from "@/lib/services/listings";
-import { reviewsFor, SEED_REVIEWS } from "@/lib/data/listings";
+import { getReviewsForOwner } from "@/lib/services/reviews";
 import type { Locale } from "@/i18n/routing";
 
 /* The listing-dependent half of the detail page. Lives below a Suspense
@@ -18,11 +18,12 @@ export async function DetailContent({ id }: { id: string }) {
   const listing = await getListingById(id);
   if (!listing) notFound();
 
-  // Reviews are seed data (no reviews table yet) and resolve synchronously.
-  // The host card and the "Similar homes" row each fetch their own data below
-  // their own Suspense boundaries (see DetailView), so neither query blocks the
-  // main listing content.
-  const reviews = reviewsFor(SEED_REVIEWS, listing.owner);
+  // Reviews posted about this host, merged with the curated seed ones. Cached
+  // per owner, so this is a cache read on all but the first request. The host
+  // card and the "Similar homes" row each fetch their own data below their own
+  // Suspense boundaries (see DetailView), so neither query blocks the main
+  // listing content.
+  const reviews = await getReviewsForOwner(listing.owner);
 
   // Is the viewer the host of this listing? Real listings store the owner's
   // auth uuid (see toListing), so a direct id match is enough to hide the

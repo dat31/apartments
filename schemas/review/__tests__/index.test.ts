@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { ReviewSchema, createReviewFormSchema } from "@/schemas/review";
+import {
+  ReviewInputSchema,
+  ReviewSchema,
+  createReviewFormSchema,
+} from "@/schemas/review";
 import { SEED_REVIEWS } from "@/lib/data/listings";
 
 /** Schemas are factories taking a translator; an identity stub keeps the
@@ -26,7 +30,7 @@ describe("ReviewSchema", () => {
 
 describe("createReviewFormSchema", () => {
   const schema = createReviewFormSchema(t);
-  const valid = { rating: 5, author: "Priya Nair", text: "Great place to stay." };
+  const valid = { rating: 5, text: "Great place to stay." };
 
   it("accepts a filled-in review", () => {
     expect(schema.safeParse(valid).success).toBe(true);
@@ -41,7 +45,51 @@ describe("createReviewFormSchema", () => {
     expect(schema.safeParse({ ...valid, text: "good" }).success).toBe(true);
   });
 
-  it("requires an author", () => {
-    expect(schema.safeParse({ ...valid, author: "" }).success).toBe(false);
+  /* The writer is identified by author_id server-side (RLS
+     `reviews_insert_author`), so the form never collects a name. */
+  it("collects no author name", () => {
+    const parsed = schema.parse({ ...valid, author: "Priya Nair" });
+    expect(parsed).not.toHaveProperty("author");
+  });
+});
+
+describe("ReviewInputSchema", () => {
+  const valid = {
+    ownerId: "maya",
+    rating: 5,
+    text: "Great place to stay.",
+  };
+
+  it("accepts a seed owner key and a real listing reference", () => {
+    expect(ReviewInputSchema.safeParse(valid).success).toBe(true);
+    expect(
+      ReviewInputSchema.safeParse({
+        ...valid,
+        listingId: "11111111-1111-1111-1111-111111111111",
+      }).success
+    ).toBe(true);
+  });
+
+  it("keeps the rating within 1–5 and whole", () => {
+    for (const rating of [0, 6, 4.5]) {
+      expect(ReviewInputSchema.safeParse({ ...valid, rating }).success).toBe(
+        false
+      );
+    }
+  });
+
+  it("rejects a listing reference that isn't a uuid", () => {
+    expect(
+      ReviewInputSchema.safeParse({ ...valid, listingId: "not-a-uuid" }).success
+    ).toBe(false);
+  });
+
+  it("rejects text that is too short or unbounded", () => {
+    expect(ReviewInputSchema.safeParse({ ...valid, text: "ok" }).success).toBe(
+      false
+    );
+    expect(
+      ReviewInputSchema.safeParse({ ...valid, text: "x".repeat(2001) }).success
+    ).toBe(false);
   });
 });
