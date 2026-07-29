@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getDistrictTiles, getNewest, getTrending } from "../landing";
+import {
+  getDistrictTiles,
+  getNewest,
+  getTrending,
+  SHOWCASE_SIZE,
+} from "../landing";
 import { District } from "@/schemas/listing";
 import { makeListing } from "@/tests/factories";
 
@@ -54,8 +59,11 @@ describe("getNewest", () => {
     expect(getNewest(oldestFirst, 3).map((l) => l.id)).toEqual(["5", "4", "3"]);
   });
 
-  it("defaults to four", () => {
-    expect(getNewest(oldestFirst)).toHaveLength(4);
+  it("defaults to a full showcase row", () => {
+    const plenty = Array.from({ length: SHOWCASE_SIZE + 2 }, (_, i) =>
+      makeListing({ id: String(i + 1) })
+    );
+    expect(getNewest(plenty)).toHaveLength(SHOWCASE_SIZE);
   });
 
   it("returns everything when there are fewer than the limit", () => {
