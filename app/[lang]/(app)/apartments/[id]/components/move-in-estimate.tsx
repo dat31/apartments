@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { Check, Wallet } from "lucide-react";
+import { Check } from "lucide-react";
 import { useMoney } from "@/hooks/use-money";
 import { moveInEstimate } from "@/lib/listing-costs";
 import { cn } from "@/lib/utils";
@@ -53,7 +53,6 @@ export function MoveInEstimate({
   return (
     <div className={cn("relative overflow-hidden bg-secondary p-5 sm:p-6", className)}>
       <div className="flex items-center gap-2">
-        <Wallet size={16} className="text-primary" />
         <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           {t("moveIn")}
         </span>

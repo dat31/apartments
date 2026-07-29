@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { CalendarDays, Check, KeyRound, Receipt } from "lucide-react";
+import { Check } from "lucide-react";
 import { UTILITY_ICONS } from "@/components/icons";
 import { useMoney } from "@/hooks/use-money";
 import { depositCash, hasAnyCost, utilityQuote } from "@/lib/listing-costs";
@@ -52,9 +52,7 @@ export function CostsSection({ listing }: { listing: Listing }) {
   return (
     <section className="mt-8" aria-label={t("aria")}>
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-3">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Receipt size={19} className="text-primary" /> {t("title")}
-        </h2>
+        <h2 className="text-lg font-semibold">{t("title")}</h2>
         <TransparentPricing listing={listing} />
       </div>
 
@@ -62,8 +60,8 @@ export function CostsSection({ listing }: { listing: Listing }) {
 
       {/* Deposit + minimum lease */}
       <div className="mt-3 grid sm:grid-cols-2 gap-2.5">
-        <CostFact icon={KeyRound} label={t("deposit")} value={depositValue} />
-        <CostFact icon={CalendarDays} label={t("minLease")} value={leaseValue} />
+        <CostFact label={t("deposit")} value={depositValue} />
+        <CostFact label={t("minLease")} value={leaseValue} />
       </div>
 
       {/* Utilities */}
