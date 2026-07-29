@@ -51,7 +51,10 @@ export function ListingCard({
   return (
     <Card
       className={cn(
-        "group/listing relative gap-0 overflow-hidden py-0 ring-0 transition-transform hover:-translate-y-1 hover:bg-accent",
+        /* h-full: in a grid the card is the stretched item already, but inside
+           a carousel slide it's a nested child — without it the card collapses
+           to its content and the row's bottom edges go ragged. */
+        "group/listing relative h-full gap-0 overflow-hidden py-0 ring-0 transition-transform hover:-translate-y-1 hover:bg-accent",
         inactive && "opacity-55"
       )}
       style={
@@ -143,7 +146,10 @@ export function ListingCard({
             {t("card.perMonth")}
           </span>
         </span>
-        <h3 className="mt-1 font-medium leading-snug text-pretty">
+        {/* Two lines, always: clamped so a long title can't push the card, and
+            floored at 2lh so a short one still reserves the same block — that
+            keeps district/availability on the same baseline across a row. */}
+        <h3 className="mt-1 min-h-[2lh] font-medium leading-snug text-pretty line-clamp-2">
           {listing.title}
         </h3>
         <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
@@ -160,7 +166,10 @@ export function ListingCard({
               })}
         </p>
         <DepositHint listing={listing} className="mt-1" />
-        <div className="mt-3 pt-3 flex items-center gap-4 text-sm text-muted-foreground">
+        {/* mt-auto pins the specs row to the card's bottom edge, absorbing the
+            one row of slack a missing deposit hint leaves; pt-6 keeps the same
+            24px minimum gap the old mt-3 pt-3 gave. */}
+        <div className="mt-auto pt-6 flex items-center gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <BedDouble size={16} />{" "}
             {listing.beds === 0

@@ -6,6 +6,7 @@ import {
   getDistrictTiles,
   getNewest,
   getTrending,
+  SHOWCASE_SIZE,
   type DistrictTile,
 } from "@/app/[lang]/lib/landing";
 import { toListing } from "./listings-map";
@@ -81,7 +82,10 @@ export async function getNewestShowcase(): Promise<{
   cacheLife(SHOWCASE_LIFE);
   cacheTag("listings");
 
-  return { listings: getNewest(await getActiveListings()), now: Date.now() };
+  return {
+    listings: getNewest(await getActiveListings(), SHOWCASE_SIZE),
+    now: Date.now(),
+  };
 }
 
 /** Most-watched active homes, kept disjoint from the newest row so no home
@@ -95,9 +99,15 @@ export async function getTrendingShowcase(): Promise<{
   cacheTag("listings");
 
   const listings = await getActiveListings();
-  const newest = getNewest(listings);
+  /* Same size as the newest row — this set is what keeps the two disjoint, so
+     it has to cover exactly what that row renders. */
+  const newest = getNewest(listings, SHOWCASE_SIZE);
   return {
-    listings: getTrending(listings, 4, new Set(newest.map((l) => l.id))),
+    listings: getTrending(
+      listings,
+      SHOWCASE_SIZE,
+      new Set(newest.map((l) => l.id))
+    ),
     now: Date.now(),
   };
 }

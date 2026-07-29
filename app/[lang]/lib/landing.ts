@@ -4,6 +4,13 @@ import { districtLabel, type Listing } from "@/schemas/listing";
    live active listings from Supabase; these mirror the curation the design
    applies (district counts, newest first, trending by views). */
 
+/** How many homes each landing carousel shows. One number for both rows: they
+    have to stay the same length for the disjoint `exclude` handoff in
+    getTrendingShowcase to be predictable, and the skeleton fallback mirrors it.
+    Keep it above what fits on screen (~4.3 slides at 1380px) so the carousel
+    can actually scroll and its arrows aren't dead controls. */
+export const SHOWCASE_SIZE = 6;
+
 export type DistrictTile = {
   slug: string;
   name: string;
@@ -38,7 +45,10 @@ export function getDistrictTiles(listings: Listing[]): DistrictTile[] {
     order (oldest-first, as getActiveListings returns) — the tail is newest, so
     we take the last `limit` and reverse. Works with real uuid ids, which carry
     no orderable number of their own. */
-export function getNewest(listings: Listing[], limit = 4): Listing[] {
+export function getNewest(
+  listings: Listing[],
+  limit = SHOWCASE_SIZE
+): Listing[] {
   const active = listings.filter((l) => l.status === "active");
   return active.slice(-limit).reverse();
 }
@@ -48,7 +58,7 @@ export function getNewest(listings: Listing[], limit = 4): Listing[] {
    appear under "trending"). */
 export function getTrending(
   listings: Listing[],
-  limit = 4,
+  limit = SHOWCASE_SIZE,
   exclude: Set<string> = new Set()
 ): Listing[] {
   return listings
