@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-/* Owner (host) profile. Seed data lives in @/lib/data/listings (OWNERS). */
+/* Owner (host) profile, sourced from the `profiles` table and keyed by the
+   host's auth uuid (see @/lib/services/owners). */
 export const OwnerSchema = z.object({
   key: z.string(),
   name: z.string(),

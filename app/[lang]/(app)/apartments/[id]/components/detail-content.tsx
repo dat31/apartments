@@ -5,7 +5,6 @@ import { JsonLd } from "@/components/json-ld";
 import { listingJsonLd } from "../lib/json-ld";
 import { createClient } from "@/lib/supabase/server";
 import { getListingById } from "@/lib/services/listings";
-import { reviewsFor, SEED_REVIEWS } from "@/lib/data/listings";
 import type { Locale } from "@/i18n/routing";
 
 /* The listing-dependent half of the detail page. Lives below a Suspense
@@ -17,12 +16,6 @@ export async function DetailContent({ id }: { id: string }) {
   // hides) resolves to null and 404s.
   const listing = await getListingById(id);
   if (!listing) notFound();
-
-  // Reviews are seed data (no reviews table yet) and resolve synchronously.
-  // The host card and the "Similar homes" row each fetch their own data below
-  // their own Suspense boundaries (see DetailView), so neither query blocks the
-  // main listing content.
-  const reviews = reviewsFor(SEED_REVIEWS, listing.owner);
 
   // Is the viewer the host of this listing? Real listings store the owner's
   // auth uuid (see toListing), so a direct id match is enough to hide the
@@ -46,7 +39,7 @@ export async function DetailContent({ id }: { id: string }) {
           apartments: t("apartments.heading"),
         })}
       />
-      <DetailView listing={listing} reviews={reviews} isOwner={isOwner} />
+      <DetailView listing={listing} isOwner={isOwner} />
     </>
   );
 }

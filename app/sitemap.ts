@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
 import { localePath, SITE_URL } from "@/lib/seo";
-import { getActiveListings } from "@/lib/services/listings";
-import { OWNERS } from "@/lib/data/listings";
+import { getActiveListings, getActiveOwnerIds } from "@/lib/services/listings";
 
 /* /sitemap.xml — every indexable route in both locales. Each entry lists the
    default-locale URL plus hreflang alternates (getPathname applies the
@@ -25,16 +24,18 @@ function entry(href: string): MetadataRoute.Sitemap[number] {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const listings = await getActiveListings();
+  const [listings, ownerIds] = await Promise.all([
+    getActiveListings(),
+    getActiveOwnerIds(),
+  ]);
 
-  // Live Supabase listings; owner profiles for the still-seeded demo hosts
-  // and for the hosts of live listings.
+  // Every active listing, plus a profile page per host that has one. Hosts
+  // with no active listing have nothing worth indexing.
   const hrefs = new Set<string>([
     "/",
     "/apartments",
     ...listings.map((l) => `/apartments/${l.id}`),
-    ...Object.keys(OWNERS).map((id) => `/owner/${id}`),
-    ...listings.map((l) => `/owner/${l.owner}`),
+    ...ownerIds.map((id) => `/owner/${id}`),
   ]);
 
   return [...hrefs].map(entry);

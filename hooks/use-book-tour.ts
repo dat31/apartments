@@ -3,7 +3,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/auth";
-import { OWNER_ID_BY_KEY } from "@/lib/services/listings-map";
 import { tourKeys } from "@/hooks/use-my-tours";
 import { ensureTourChannel } from "@/lib/actions/tour-chat";
 import { type Listing } from "@/schemas/listing";
@@ -39,14 +38,12 @@ export function useBookTour() {
       if (!userId) throw new Error("Not signed in");
 
       const supabase = createClient();
-      const ownerId =
-        OWNER_ID_BY_KEY[input.listing.owner] ?? input.listing.owner;
 
       const { data, error } = await supabase
         .from("tours")
         .insert({
           listing_id: input.listing.id,
-          owner_id: ownerId,
+          owner_id: input.listing.owner,
           renter_id: userId,
           renter_name: input.renterName,
           renter_email: input.renterEmail,

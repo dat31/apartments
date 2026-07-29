@@ -710,7 +710,8 @@
       "presetWeekday": "Ngày thường 10–4",
       "presetAll": "Mọi ngày, mọi giờ",
       "presetClear": "Xóa hết"
-    }
+    },
+    "hostFallback": "Chủ nhà"
   },
   "owner": {
     "back": "Quay lại",
@@ -753,12 +754,16 @@
       "title": "Đánh giá {name}",
       "intro": "Chia sẻ trải nghiệm thuê nhà từ {name}. Đánh giá của bạn giúp ích cho những người thuê khác.",
       "rating": "Đánh giá của bạn",
-      "name": "Tên của bạn",
-      "namePlaceholder": "vd. Alex Moreno",
       "review": "Bài đánh giá của bạn",
       "reviewPlaceholder": "Điều gì khiến bạn ấn tượng — chỗ ở, cách giao tiếp, hay những chi tiết nhỏ?",
-      "submit": "Đăng đánh giá"
-    }
+      "submit": "Đăng đánh giá",
+      "postingAs": "Đăng với tên {name}",
+      "submitting": "Đang đăng…"
+    },
+    "reviewFailed": "Không thể đăng đánh giá. Vui lòng thử lại.",
+    "reviewOwnProfile": "Bạn không thể tự đánh giá hồ sơ của mình.",
+    "reviewAuthorFallback": "Người thuê",
+    "reviewsEmptySelf": "Chưa có ai đánh giá bạn. Đánh giá sẽ hiện ở đây khi người thuê chia sẻ trải nghiệm."
   },
   "saved": {
     "title": "Nhà đã lưu",

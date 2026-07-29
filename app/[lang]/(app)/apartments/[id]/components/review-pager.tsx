@@ -12,23 +12,35 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import { ReviewCard } from "@/components/review-card";
-import { type Review } from "@/schemas/review";
-import { reviewsForPage } from "../lib/reviews";
+import { SkeletonReviewCard } from "@/components/skeleton-review-card";
+import { useReviewPage } from "@/hooks/use-review-page";
+import { REVIEWS_PER_PAGE } from "../lib/reviews";
 
 /* Reviews pager. Page 1 is the server-rendered `firstPage` (in the static
-   HTML); every other page is sliced and rendered here on the client, so no
-   navigation or server round-trip is needed to browse reviews. */
+   HTML); every other page is fetched from the browser by row range, so no
+   navigation or server round-trip is needed to browse reviews — and the page
+   ships four cards instead of an owner's whole review history. */
 export function ReviewPager({
-  reviews,
+  ownerId,
+  total,
   pageCount,
   firstPage,
 }: {
-  reviews: Review[];
+  ownerId: string;
+  total: number;
   pageCount: number;
   firstPage: React.ReactNode;
 }) {
   const t = useTranslations("detail.reviews");
   const [page, setPage] = React.useState(1);
+  const { data, isPending, isError } = useReviewPage(ownerId, page, true);
+
+  // Rows this page will hold — a full page everywhere but the last. Used to
+  // size the placeholder grid so the layout doesn't jump while it loads.
+  const rows = Math.min(
+    REVIEWS_PER_PAGE,
+    Math.max(0, total - (page - 1) * REVIEWS_PER_PAGE)
+  );
 
   return (
     <>
@@ -36,9 +48,11 @@ export function ReviewPager({
         firstPage
       ) : (
         <div className="grid sm:grid-cols-2 gap-4 stagger">
-          {reviewsForPage(reviews, page).map((r) => (
-            <ReviewCard key={r.id} r={r} />
-          ))}
+          {isPending || isError || !data
+            ? Array.from({ length: rows }).map((_, i) => (
+                <SkeletonReviewCard key={i} />
+              ))
+            : data.map((r) => <ReviewCard key={r.id} r={r} />)}
         </div>
       )}
 

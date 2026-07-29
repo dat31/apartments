@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { GoogleMark, AppleMark } from "@/components/icons";
-import { getOwner } from "@/lib/data/listings";
+import { useOwnerName } from "@/hooks/use-owner-name";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { type TourRequest } from "@/schemas/tour";
 import { parseYmd } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
@@ -43,6 +43,9 @@ export function AddToCalendar({
 }) {
   const t = useTranslations("tour");
   const locale = useLocale() as Locale;
+  // tour.ownerKey is the host's profile uuid; resolve it to a display name for
+  // the event description.
+  const ownerName = useOwnerName(tour.ownerKey);
   const format = useFormatter();
 
   const { start, end } = tourEventTimes(tour);
@@ -61,7 +64,6 @@ export function AddToCalendar({
     const listingUrl =
       origin + getPathname({ locale, href: `/apartments/${listing.id}` });
     const toursUrl = origin + getPathname({ locale, href: "/tour" });
-    const ownerName = getOwner(tour.ownerKey)?.name ?? "";
 
     const details = [
       t("calendar.detailIntro"),

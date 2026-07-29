@@ -474,6 +474,14 @@ export type Database = {
         Args: { min_age?: string }
         Returns: string[]
       }
+      owner_review_stats: {
+        Args: { owner: string }
+        Returns: {
+          avg: number
+          dist: Json
+          total: number
+        }[]
+      }
       replace_owner_availability: {
         Args: { slots: Json }
         Returns: undefined

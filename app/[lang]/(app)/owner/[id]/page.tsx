@@ -1,14 +1,27 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
-import { OwnerProfile } from "./components/owner-profile";
-import { getListingsByOwner } from "@/lib/services/listings";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { ChevronLeft } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { OwnerInfo, OwnerInfoSkeleton } from "./components/owner-info";
+import { OwnerReviews, OwnerReviewsSkeleton } from "./components/owner-reviews";
+import { OwnerHomes, OwnerHomesSkeleton } from "./components/owner-homes";
 import { getOwnerProfile } from "@/lib/services/owners";
-import { reviewsFor, SEED_REVIEWS, OWNERS } from "@/lib/data/listings";
+import { getActiveOwnerIds } from "@/lib/services/listings";
 import { pageAlternates } from "@/lib/seo";
 
-export function generateStaticParams() {
-  return Object.keys(OWNERS).map((id) => ({ id }));
+/* Prerender a profile for every host with an active listing. Mirrors the
+   listing detail page: if Supabase is unreachable at build time, prerender
+   nothing rather than failing the build — profiles then render on demand
+   (dynamicParams defaults to true) and cache on first request. */
+export async function generateStaticParams() {
+  try {
+    const ownerIds = await getActiveOwnerIds();
+    return ownerIds.map((id) => ({ id }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -25,17 +38,43 @@ export async function generateMetadata({
   };
 }
 
+/* Owner profile. The page itself awaits only the entity it's about — the
+   owner, for the 404 — and hands the id to three self-fetching regions that
+   query in parallel below their own Suspense boundaries: the hero, the
+   reviews, and the owner's homes. getOwnerProfile is "use cache"d, so the
+   regions that need the owner's name share this read rather than re-querying.
+   A slow listings read no longer holds up the hero, and vice versa. */
 export default async function OwnerPage({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+}: PageProps<"/[lang]/owner/[id]">) {
+  const { lang, id } = await params;
+  setRequestLocale(lang);
+
   const owner = await getOwnerProfile(id);
   if (!owner) notFound();
 
-  const homes = await getListingsByOwner(id);
-  const reviews = reviewsFor(SEED_REVIEWS, id);
+  const t = await getTranslations("owner");
 
-  return <OwnerProfile owner={owner} homes={homes} reviews={reviews} />;
+  return (
+    <div className="container mx-auto px-5 sm:px-8 py-6 anim-up">
+      <Link
+        href="/apartments"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-5 focus-ring"
+      >
+        <ChevronLeft size={18} /> {t("back")}
+      </Link>
+
+      <Suspense fallback={<OwnerInfoSkeleton />}>
+        <OwnerInfo id={id} />
+      </Suspense>
+
+      <Suspense fallback={<OwnerReviewsSkeleton />}>
+        <OwnerReviews id={id} />
+      </Suspense>
+
+      <Suspense fallback={<OwnerHomesSkeleton />}>
+        <OwnerHomes id={id} />
+      </Suspense>
+    </div>
+  );
 }

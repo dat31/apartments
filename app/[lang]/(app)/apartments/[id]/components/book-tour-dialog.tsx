@@ -51,7 +51,6 @@ import {
 } from "@/schemas/tour";
 import { openSlotsFor, parseYmd, todayYmd } from "../constants/tours";
 import { useAvailability } from "@/hooks/use-availability";
-import { OWNER_ID_BY_KEY } from "@/lib/services/listings-map";
 import { DatePicker } from "@/components/ui/date-picker";
 import { MonthCalendar } from "./month-calendar";
 import { TimeSlots } from "./time-slots";
@@ -111,10 +110,8 @@ export function BookTourDialog({
   // the dialog at all, but this guards the race where its data was stale).
   const { tour: existingTour } = useActiveTour(listing.id);
 
-  // listing.owner is the owner key ("you"/"maya"/…) for seed owners, otherwise
-  // the raw uuid; map it back to the uuid to read that owner's availability.
-  const ownerId = OWNER_ID_BY_KEY[listing.owner] ?? listing.owner;
-  const { template } = useAvailability(ownerId);
+  // listing.owner is the host's profile uuid.
+  const { template } = useAvailability(listing.owner);
   // A cross-renter occupied set would need visibility the renter's RLS scope
   // doesn't grant, so we show the owner's weekly template and let the DB be the
   // source of truth (the one-active-per-listing index) when the tour inserts.
