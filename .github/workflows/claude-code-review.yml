@@ -1,0 +1,52 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+    paths-ignore:
+      # A lockfile-only PR has nothing for a reviewer to reason about.
+      - "pnpm-lock.yaml"
+
+# A new push supersedes the review still running against the old commits.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Draft PRs are skipped here rather than inside the review, so an unfinished
+    # branch never spends tokens. Marking it ready fires `ready_for_review`.
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: write
+      # The action exchanges this for its OIDC credentials.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The review reads the diff through `gh pr diff`, so it needs the file
+          # tree for context but none of the history.
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+          # Anthropic's own review pipeline: parallel agents hunt for bugs and
+          # CLAUDE.md violations, then a second pass validates each candidate
+          # against the code before it is allowed to become a comment.
+          plugin_marketplaces: "https://github.com/anthropics/claude-code.git"
+          plugins: "code-review@claude-code-plugins"
+
+          # `--comment` is what makes the findings land on the PR as inline
+          # comments. Without it the review runs and reports only to the job log.
+          prompt: "/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }} --comment"
+
+          # The pipeline fans out to a dozen-odd subagents, so the default of 10
+          # turns cuts it off partway through.
+          claude_args: |
+            --max-turns 40
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh search:*)"
