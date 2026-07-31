@@ -9,8 +9,11 @@ import { makeListing } from "@/tests/factories";
    UI but costs a rich result. */
 
 const crumbs = { home: "Trang chủ", apartments: "Nhà ở" };
+// Availability is compared against an explicit reference time, so freeze it —
+// otherwise the availabilityStarts cases drift with the calendar.
+const NOW = new Date("2026-06-15T09:00:00").getTime();
 const build = (listing = makeListing(), lang: "vi" | "en" = "vi") =>
-  listingJsonLd(listing, lang, crumbs);
+  listingJsonLd(listing, lang, crumbs, NOW);
 
 type Node = Record<string, never> & Record<string, unknown>;
 const listingNode = (nodes: object[]) => nodes[0] as Node;
@@ -77,7 +80,7 @@ describe("listingJsonLd", () => {
   });
 
   it("emits availabilityStarts for a concrete future date", () => {
-    const future = new Date(Date.now() + 90 * 86_400_000).toISOString().slice(0, 10);
+    const future = new Date(NOW + 90 * 86_400_000).toISOString().slice(0, 10);
     const offers = listingNode(build(makeListing({ available: future }))).offers as Node;
     expect(offers.availabilityStarts).toBe(future);
   });

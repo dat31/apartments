@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { Check, User } from "lucide-react";
+import { Check } from "lucide-react";
+import { OwnerAvatarGlyph, OwnerName } from "./viewer-is-owner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PALETTE } from "@/lib/data/listings";
 import { getOwnerProfile } from "@/lib/services/owners";
@@ -17,20 +18,19 @@ import { getOwnerProfile } from "@/lib/services/owners";
 export async function OwnerCard({
   ownerKey,
   fallbackPalette,
-  isOwner,
   className,
 }: {
   ownerKey: string;
   fallbackPalette: number;
-  isOwner: boolean;
   className?: string;
 }) {
   const t = await getTranslations("detail");
   const owner = await getOwnerProfile(ownerKey);
-  // "You" covers the signed-in host viewing their own listing, plus the seed
-  // "you" demo owner used by the sample data.
-  const isYou = isOwner || ownerKey === "you";
-  const ownerLabel = isYou ? t("you") : owner?.name ?? ownerKey;
+  // "You" covers the seed "you" demo owner used by the sample data, plus the
+  // signed-in host viewing their own listing — the latter is resolved after
+  // hydration (see ./viewer-is-owner) so this card stays prerenderable.
+  const name = owner?.name ?? ownerKey;
+  const isSeedOwner = ownerKey === "you";
 
   return (
     <Link
@@ -47,21 +47,21 @@ export async function OwnerCard({
             PALETTE[(owner ? owner.palette : fallbackPalette) % PALETTE.length][0],
         }}
       >
-        {isYou ? (
-          <User size={20} className="text-background/95" />
-        ) : (
-          ownerLabel
-            .split(/\s+/)
-            .slice(0, 2)
-            .map((w) => w[0])
-            .join("")
-            .toUpperCase()
-        )}
+        <OwnerAvatarGlyph
+          ownerId={ownerKey}
+          isSeedOwner={isSeedOwner}
+          name={name}
+        />
       </span>
       <div className="min-w-0">
         <p className="text-sm text-muted-foreground">{t("listedBy")}</p>
         <p className="font-medium capitalize group-hover:text-primary transition-colors flex items-center gap-1.5">
-          {ownerLabel}{" "}
+          <OwnerName
+            ownerId={ownerKey}
+            isSeedOwner={isSeedOwner}
+            youLabel={t("you")}
+            name={name}
+          />{" "}
           {owner?.verified && <Check size={14} className="text-primary" />}
         </p>
         <p className="text-xs text-muted-foreground mt-0.5 group-hover:text-primary transition-colors">

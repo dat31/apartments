@@ -14,7 +14,11 @@ const schemaType = (type: Listing["type"]) =>
 export function listingJsonLd(
   listing: Listing,
   lang: Locale,
-  crumbs: { home: string; apartments: string }
+  crumbs: { home: string; apartments: string },
+  /** Reference time (epoch ms) for the availability comparison. Comes from a
+      "use cache" boundary rather than the live clock, so rendering this stays
+      prerenderable — see getListingDetail. */
+  now: number
 ): object[] {
   const url = SITE_URL + localePath(lang, `/apartments/${listing.id}`);
 
@@ -22,7 +26,7 @@ export function listingJsonLd(
   // sentinel isn't one, so emit availabilityStarts only for a concrete future
   // date (listing.available already is a valid ISO date in that case) and
   // always mark the offer InStock.
-  const avail = availInfo(listing);
+  const avail = availInfo(listing, new Date(now));
   const availabilityStarts =
     avail.kind === "date" ? listing.available : undefined;
 
