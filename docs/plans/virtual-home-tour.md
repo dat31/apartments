@@ -6,9 +6,32 @@
 > §3 onward, because every design decision below is a consequence of an
 > existing invariant.
 >
-> **Status: NOT STARTED.** No code has been written; this doc is the only
-> artifact. No `three` dependency exists in the repo yet (`grep` for
-> `three|panorama|webxr|equirect` returns nothing but false positives).
+> **Status: MVP BUILT (2026-07-31), on mocked data.** Phase 1 plus the
+> viewer-side half of phase 2 are implemented on this branch:
+>
+> - `schemas/virtual-tour`, `lib/virtual-tour/{math,scene-graph,demo-tours}.ts`
+>   (unit-tested), `lib/services/virtual-tours.ts` (`"use cache"` reads).
+> - The route `/apartments/[id]/virtual-tour` — shell + streamed content,
+>   client stage, lazily-loaded three.js viewer (`lib/engine.ts`), DOM hotspot
+>   overlay, room rail, POI panel, server-rendered property panel reusing the
+>   detail page's CTAs, skeletons, no-WebGL fallback.
+> - Entry points (gallery pill, booking-card button, browse-card badge), the
+>   `virtualTour` i18n namespace in both locales, PostHog events, and
+>   `e2e/virtual-tour.spec.ts`.
+>
+> **Deliberately not built yet**, and what §4/§5/§9/§13 still own:
+>
+> - *No migration.* §4's tables don't exist. A tour is derived from its
+>   listing by `lib/virtual-tour/demo-tours.ts`, which also decides (by hash)
+>   that two listings in three have one. `lib/services/virtual-tours.ts`
+>   already has the signatures the real reads will have, so only the bodies
+>   change; `listing.hasVirtualTour` replaces `hasDemoTour(id)` at the three
+>   call sites.
+> - *No `listing-panoramas` bucket.* The five demo rooms are CC0 panoramas in
+>   `public/panoramas/` (see `CREDITS.txt`), downscaled to the 4096×2048 cap
+>   with 512×256 previews.
+> - Phase 3 (owner authoring) and phase 4 (WebXR) are untouched. Within
+>   phase 2, the floor-plan minimap and the `has360` filter chip are not built.
 >
 > Scope of the ask: *"an interactive virtual home tour platform that combines
 > photorealistic 360° panoramas with Three.js-powered interactions. Users can

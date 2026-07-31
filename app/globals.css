@@ -184,6 +184,12 @@
   border-radius: 50% !important;
   animation: routePulse 2.2s ease-out infinite;
 }
+/* Virtual-tour hotspot markers: round for the same reason map pins are —
+   they sit on a photograph, not in the layout, and a square badge painted
+   over a doorway reads as part of the room rather than as a control. */
+.hotspot-dot {
+  border-radius: 50% !important;
+}
 @keyframes routePulse {
   0% {
     transform: scale(1);

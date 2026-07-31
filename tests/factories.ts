@@ -2,6 +2,7 @@ import { District, type Listing, type ListingCosts } from "@/schemas/listing";
 import type { Owner } from "@/schemas/owner";
 import type { Review } from "@/schemas/review";
 import type { TourRequest } from "@/schemas/tour";
+import type { LinkHotspot, Scene, VirtualTour } from "@/schemas/virtual-tour";
 
 /* Fixture builders for the unit suite. Every factory returns a complete,
    schema-valid object so a spec only has to state the fields it cares about —
@@ -139,6 +140,61 @@ export function makeTour(overrides: Partial<TourRequest> = {}): TourRequest {
     renterEmail: "renter@example.com",
     status: "pending",
     createdAt: 0,
+    ...overrides,
+  };
+}
+
+/* ---- Virtual tour fixtures ----
+   `makeTour` above is the in-person viewing appointment; these are the 360°
+   tour (see docs/plans/virtual-home-tour.md §2 on the name collision). Scene
+   ids are readable words rather than uuids, because every assertion about a
+   tour graph is about which room links to which. */
+
+export function makeScene(overrides: Partial<Scene> = {}): Scene {
+  return {
+    id: "living",
+    name: "Living room",
+    room: "living",
+    panorama: "/panoramas/living-room.jpg",
+    preview: "/panoramas/living-room-preview.jpg",
+    yaw: 0,
+    pitch: 0,
+    sortOrder: 0,
+    hotspots: [],
+    ...overrides,
+  };
+}
+
+/** A link hotspot from the scene it is attached to, to `target`. */
+export function makeLink(target: string, overrides: Partial<LinkHotspot> = {}): LinkHotspot {
+  return {
+    id: `to-${target}`,
+    kind: "link",
+    yaw: 0,
+    pitch: 0,
+    label: target,
+    target,
+    ...overrides,
+  };
+}
+
+/** A two-room tour with a door each way — the smallest tour that validates. */
+export function makeVirtualTour(overrides: Partial<VirtualTour> = {}): VirtualTour {
+  return {
+    id: "tour-1",
+    listingId: testId(),
+    status: "published",
+    entryScene: "living",
+    scenes: [
+      makeScene({ hotspots: [makeLink("bedroom")] }),
+      makeScene({
+        id: "bedroom",
+        name: "Bedroom",
+        room: "bed",
+        sortOrder: 1,
+        hotspots: [makeLink("living")],
+      }),
+    ],
     ...overrides,
   };
 }

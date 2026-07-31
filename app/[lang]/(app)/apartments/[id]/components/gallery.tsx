@@ -1,7 +1,8 @@
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Grid2x2, Image as ImageIcon } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { Grid2x2, Image as ImageIcon, Rotate3d } from "lucide-react";
 import { GalleryLightbox } from "./gallery-lightbox";
 
 /* Photo gallery: editorial mosaic on desktop, single hero on mobile, both
@@ -14,12 +15,19 @@ export function Gallery({
   images,
   colors,
   label,
+  tourHref,
 }: {
   images?: string[];
   colors: string[];
   label: string;
+  /** Set when the listing has a published 360° tour: adds the entry pill over
+      the cover shot. Safe inside <GalleryLightbox>, whose click delegation
+      only fires for elements carrying `data-shot` — the pill carries none, so
+      it navigates instead of opening the photo carousel. */
+  tourHref?: string;
 }) {
   const t = useTranslations("detail.gallery");
+  const tv = useTranslations("virtualTour");
   const shots = images?.length ? images : colors;
   const hasPhotos = Boolean(images?.length);
   const n = shots.length;
@@ -82,6 +90,15 @@ export function Gallery({
     </button>
   );
 
+  /* The 360° entry, overlaid on the cover shot at both breakpoints. */
+  const tourPill = tourHref ? (
+    <Button asChild size="sm" className="gap-2">
+      <Link href={tourHref} data-testid="virtual-tour-entry">
+        <Rotate3d size={16} /> {tv("entryCta")}
+      </Link>
+    </Button>
+  ) : null;
+
   return (
     <GalleryLightbox shots={shots} hasPhotos={hasPhotos} label={label}>
       {/* Desktop: 16:9 mosaic — cover + stacked companions, each a true 16:9 tile */}
@@ -104,6 +121,7 @@ export function Gallery({
             </div>
           </div>
         )}
+        {tourPill && <div className="absolute bottom-3 left-3">{tourPill}</div>}
         {n > 1 && (
           <div className="absolute bottom-3 right-3">
             <Button data-shot={0} variant="secondary" size="sm" className="gap-2">
@@ -113,18 +131,22 @@ export function Gallery({
         )}
       </div>
 
-      {/* Mobile: single hero + counter */}
-      <button
-        data-shot={0}
-        className="sm:hidden relative block w-full aspect-[16/9] overflow-hidden bg-secondary focus-ring"
-      >
-        {fill(0, coverSizes, true)}
-        {n > 1 && (
-          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 bg-foreground/70 text-background text-xs font-medium px-2.5 py-1.5">
-            <ImageIcon size={14} /> 1 / {n}
-          </span>
-        )}
-      </button>
+      {/* Mobile: single hero + counter. The pill is a sibling of the hero
+          rather than a child — a link inside a button is invalid markup. */}
+      <div className="sm:hidden relative">
+        <button
+          data-shot={0}
+          className="relative block w-full aspect-[16/9] overflow-hidden bg-secondary focus-ring"
+        >
+          {fill(0, coverSizes, true)}
+          {n > 1 && (
+            <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 bg-foreground/70 text-background text-xs font-medium px-2.5 py-1.5">
+              <ImageIcon size={14} /> 1 / {n}
+            </span>
+          )}
+        </button>
+        {tourPill && <div className="absolute bottom-3 left-3">{tourPill}</div>}
+      </div>
     </GalleryLightbox>
   );
 }

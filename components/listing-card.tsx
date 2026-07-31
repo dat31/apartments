@@ -2,8 +2,9 @@ import { useTranslations, useFormatter } from "next-intl";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bath, BedDouble, Check, MapPin, Maximize } from "lucide-react";
+import { Bath, BedDouble, Check, MapPin, Maximize, Rotate3d } from "lucide-react";
 import { PALETTE, availInfo } from "@/lib/data/listings";
+import { hasDemoTour } from "@/lib/virtual-tour/demo-tours";
 import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { SaveButton } from "@/components/save-button";
@@ -42,6 +43,7 @@ export function ListingCard({
   priority?: boolean;
 }) {
   const t = useTranslations("apartments");
+  const tv = useTranslations("virtualTour");
   const format = useFormatter();
   const money = useMoney();
   const colors = PALETTE[listing.palette];
@@ -128,10 +130,22 @@ export function ListingCard({
           </span>
         )}
         <SaveButton id={listing.id} />
-        <span className="absolute bottom-3 left-3">
+        <span className="absolute bottom-3 left-3 flex items-center gap-1.5">
           <Badge variant="secondary" className="bg-background text-foreground">
             {t(`types.${listing.type}`)}
           </Badge>
+          {/* "This home has a 360° tour" — the card is a link to the detail
+              page, where the tour's own entry lives, so this is a marker
+              rather than a second link competing with the stretched one. */}
+          {hasDemoTour(listing.id) && (
+            <Badge
+              className="gap-1"
+              aria-label={tv("badgeLabel")}
+              data-testid="listing-card-360"
+            >
+              <Rotate3d size={13} /> {tv("badge")}
+            </Badge>
+          )}
         </span>
       </div>
       <div className="p-4 flex flex-col flex-1">
