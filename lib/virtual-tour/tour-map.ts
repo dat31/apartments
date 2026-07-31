@@ -44,6 +44,7 @@ export function toScene(row: SceneRow): Scene {
     preview: row.preview_url ?? row.panorama_url,
     yaw: row.yaw,
     pitch: row.pitch,
+    hfov: row.hfov ?? undefined,
     sortOrder: row.sort_order,
     hotspots: toHotspots(row.hotspots),
   };

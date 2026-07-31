@@ -175,7 +175,13 @@ export function createEngine(host: HTMLElement, options: EngineOptions) {
       front.material.opacity = instant ? 1 : 0;
       back.material.opacity = 1;
       fade = instant ? null : { from: 0, started: performance.now() };
-      if (!instant) {
+      // The room opens on the framing its owner chose, zoom included. A scene
+      // with no hfov keeps whatever the visitor was already using — changing
+      // it under them mid-tour would read as a jolt, not a choice.
+      if (scene.hfov) fovTarget = clampFov(scene.hfov);
+      if (instant) {
+        camera.fov = fovTarget;
+      } else {
         // A short dip in field of view reads as stepping forward through the
         // door. Reduced motion gets the cut without the dolly.
         camera.fov = clampFov(fovTarget - DOLLY_FOV);
@@ -403,14 +409,14 @@ export function createEngine(host: HTMLElement, options: EngineOptions) {
       velocity.pitch = 0;
     },
     zoomBy,
-    /** Back to how the room opened: the direction the host framed it from,
-        at the default field of view. The way out of "I zoomed into a corner
-        and now I don't know where I am". */
-    resetView(yaw: number, pitch: number) {
+    /** Back to how the room opened: the direction and zoom the host framed it
+        from. The way out of "I zoomed into a corner and now I don't know
+        where I am". */
+    resetView(yaw: number, pitch: number, fov?: number) {
       camera.yaw = wrapYaw(yaw);
       camera.pitch = clampPitch(pitch);
-      camera.fov = DEFAULT_FOV;
-      fovTarget = DEFAULT_FOV;
+      camera.fov = clampFov(fov ?? DEFAULT_FOV);
+      fovTarget = camera.fov;
       velocity.yaw = 0;
       velocity.pitch = 0;
     },

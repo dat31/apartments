@@ -209,7 +209,7 @@ export function PanoramaViewer({
         </button>
         <button
           type="button"
-          onClick={() => engineRef.current?.resetView(scene.yaw, scene.pitch)}
+          onClick={() => engineRef.current?.resetView(scene.yaw, scene.pitch, scene.hfov)}
           aria-label={t("recenter")}
           className="tour-glass tour-glass-btn focus-ring pano-ctl"
         >
