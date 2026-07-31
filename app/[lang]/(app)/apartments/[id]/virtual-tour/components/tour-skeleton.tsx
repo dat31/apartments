@@ -1,41 +1,45 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-/* Stage-shaped placeholder for the three.js chunk. Same footprint as the
-   viewer so nothing jumps when the canvas lands. */
+/* Placeholder for the three.js chunk: the dark room the canvas will fill,
+   painted edge to edge inside the stage so nothing moves when it lands. */
 export function TourStageSkeleton() {
-  return (
-    <div className="relative h-[60svh] w-full bg-secondary lg:h-full" aria-busy="true">
-      <div className="absolute inset-x-0 bottom-0 flex gap-2 p-3 sm:p-4">
-        {[0, 1, 2, 3].map((i) => (
-          <Skeleton key={i} className="skeleton h-14 w-24 shrink-0 sm:h-16 sm:w-28" />
-        ))}
-      </div>
-    </div>
-  );
+  return <div className="tour-shell absolute inset-0" aria-busy="true" />;
 }
 
 /* Page-shaped placeholder while the listing and its tour stream in. Mirrors
-   TourStage's layout: header row, stage, property column. */
+   TourStage: a dark full-height room with glass chrome floating on it. */
 export function TourSkeleton({ label }: { label: string }) {
   return (
-    <div className="flex flex-col lg:h-[calc(100svh-5rem)]" aria-busy="true" aria-label={label}>
-      <div className="border-b">
-        <div className="container mx-auto flex items-center gap-4 px-5 py-3 sm:px-8">
-          <div className="min-w-0 flex-1">
-            <Skeleton className="skeleton h-4 w-28" />
-            <Skeleton className="skeleton mt-2 h-5 w-64 max-w-full" />
-          </div>
-          <Skeleton className="skeleton h-4 w-16" />
+    <div
+      className="dark tour-shell relative h-[calc(100svh-5rem)] min-h-140 overflow-hidden"
+      aria-busy="true"
+      aria-label={label}
+    >
+      <div className="absolute inset-x-0 top-0 flex items-start gap-2 p-3 sm:p-4">
+        <div className="tour-glass min-w-0 flex-1 px-3.5 py-2.5 sm:max-w-96">
+          <Skeleton className="skeleton h-3.5 w-28" />
+          <Skeleton className="skeleton mt-2 h-4 w-56 max-w-full" />
+          <Skeleton className="skeleton mt-2 h-3 w-32" />
+        </div>
+        <div className="tour-glass hidden h-11 w-52 sm:block" />
+      </div>
+
+      <div className="absolute right-4 top-28 hidden h-96 w-88 lg:block">
+        <div className="tour-glass h-full p-5">
+          <Skeleton className="skeleton h-7 w-40" />
+          <Skeleton className="skeleton mt-3 h-4 w-32" />
+          <Skeleton className="skeleton mt-6 h-12 w-full" />
+          <Skeleton className="skeleton mt-2.5 h-12 w-full" />
         </div>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <TourStageSkeleton />
-        <aside className="w-full shrink-0 border-t p-5 sm:p-6 lg:w-[340px] lg:border-l lg:border-t-0">
-          <Skeleton className="skeleton h-8 w-40" />
-          <Skeleton className="skeleton mt-3 h-4 w-32" />
-          <Skeleton className="skeleton mt-5 h-11 w-full" />
-          <Skeleton className="skeleton mt-2.5 h-11 w-full" />
-        </aside>
+
+      <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-3 sm:p-4">
+        <div className="flex gap-2">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="tour-glass h-11 w-36 shrink-0" />
+          ))}
+        </div>
+        <div className="tour-glass h-14 lg:hidden" />
       </div>
     </div>
   );

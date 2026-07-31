@@ -6,12 +6,15 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { Scene } from "@/schemas/virtual-tour";
 
-/* The room rail: every scene in the tour as a thumbnail, so a renter is
-   never dependent on finding the right door. It is also the way back out of
-   a one-way link, which is why validateTourGraph tolerates those.
+/* The room rail: every scene in the tour as a chip, so a renter is never
+   dependent on finding the right door. It is also the way back out of a
+   one-way link, which is why validateTourGraph tolerates those.
 
-   Overlaid on the stage — bottom strip on every breakpoint, scrollable when
-   a tour has more rooms than fit. */
+   Chips rather than the big thumbnails a photo gallery would use: this rail
+   sits over the room a renter is looking at, and a strip of competing
+   photographs reads as "here are more pictures" instead of "here is the rest
+   of the flat". The thumbnail is small enough to identify a room you have
+   already stood in, the name does the rest. */
 export function RoomRail({
   scenes,
   activeId,
@@ -36,9 +39,9 @@ export function RoomRail({
       ref={railRef}
       role="tablist"
       aria-label={t("rooms")}
-      className="absolute inset-x-0 bottom-0 flex gap-2 overflow-x-auto bg-gradient-to-t from-foreground/45 to-transparent p-3 sm:p-4"
+      className="tour-rail flex items-center gap-2 overflow-x-auto"
     >
-      {scenes.map((scene) => {
+      {scenes.map((scene, index) => {
         const active = scene.id === activeId;
         return (
           <button
@@ -49,19 +52,20 @@ export function RoomRail({
             aria-selected={active}
             onClick={() => onSelect(scene.id)}
             className={cn(
-              "focus-ring group relative h-14 w-24 shrink-0 overflow-hidden bg-secondary sm:h-16 sm:w-28",
-              active ? "ring-2 ring-primary" : "opacity-85 hover:opacity-100"
+              "tour-glass tour-glass-btn focus-ring flex h-11 shrink-0 items-center gap-2.5 py-1.5 pl-1.5 pr-3.5 text-[13.5px] font-medium",
+              active && "tour-chip-active"
             )}
           >
             <Image
               src={scene.preview}
               alt=""
-              fill
-              sizes="112px"
-              className="object-cover"
+              width={32}
+              height={32}
+              className="size-8 shrink-0 object-cover"
             />
-            <span className="absolute inset-x-0 bottom-0 truncate bg-foreground/70 px-1.5 py-1 text-[11px] font-medium text-background">
-              {scene.name}
+            <span className="whitespace-nowrap">{scene.name}</span>
+            <span className={cn("text-[11px] tabular-nums", active ? "opacity-55" : "text-white/60")}>
+              {index + 1}
             </span>
           </button>
         );

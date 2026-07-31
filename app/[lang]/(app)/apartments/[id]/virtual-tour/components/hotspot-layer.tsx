@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { useTranslations } from "next-intl";
-import { DoorOpen, Info } from "lucide-react";
+import { ArrowRight, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { projectToScreen, type Camera } from "@/lib/virtual-tour/math";
 import type { InfoHotspot, Scene } from "@/schemas/virtual-tour";
 
@@ -20,17 +21,24 @@ export type FrameHandler = (
    which is why phase 4 of the plan adds a *second*, sprite-based renderer for
    XR only — fed by this same hotspot data.
 
+   The two kinds are deliberately unalike, because they promise different
+   things: a door is a bright ring you walk through, a point of interest is a
+   quieter outlined dot that opens a note. Both keep a ≥44px target and a
+   readable label whatever the wall behind them is doing.
+
    Positioning is imperative on purpose. React decides which markers exist;
    the engine's frame loop calls `frameRef.current` and this writes transforms
    straight to the nodes, so looking around costs no re-render. */
 export function HotspotLayer({
   scene,
   frameRef,
+  activePoiId,
   onNavigate,
   onOpenPoi,
 }: {
   scene: Scene;
   frameRef: React.RefObject<FrameHandler | null>;
+  activePoiId: string | null;
   onNavigate: (sceneId: string) => void;
   onOpenPoi: (hotspot: InfoHotspot) => void;
 }) {
@@ -62,33 +70,56 @@ export function HotspotLayer({
       className="pointer-events-none absolute inset-0"
       aria-label={t("hotspotsLabel", { room: scene.name })}
     >
-      {scene.hotspots.map((hotspot) => (
-        <button
-          key={hotspot.id}
-          type="button"
-          data-hotspot={hotspot.id}
-          data-hotspot-kind={hotspot.kind}
-          ref={(el) => {
-            if (el) nodes.current.set(hotspot.id, el);
-            else nodes.current.delete(hotspot.id);
-          }}
-          onClick={() =>
-            hotspot.kind === "link" ? onNavigate(hotspot.target) : onOpenPoi(hotspot)
-          }
-          /* Markers start off screen rather than at 0,0 — the first frame
-             hasn't run yet when they mount, and a pile of buttons in the
-             corner would flash. */
-          style={{ visibility: "hidden" }}
-          className="focus-ring pointer-events-auto absolute left-0 top-0 flex max-w-[45%] items-center gap-2 bg-background/85 py-1.5 pl-1.5 pr-3 text-left text-xs font-medium backdrop-blur-sm transition-colors hover:bg-background"
-        >
-          <span className="hotspot-dot flex size-7 shrink-0 items-center justify-center bg-primary text-primary-foreground">
-            {hotspot.kind === "link" ? <DoorOpen size={15} /> : <Info size={15} />}
-          </span>
-          <span className="truncate">
-            {hotspot.kind === "link" ? t("goTo", { room: hotspot.label }) : hotspot.label}
-          </span>
-        </button>
-      ))}
+      {scene.hotspots.map((hotspot) => {
+        const isDoor = hotspot.kind === "link";
+        return (
+          <button
+            key={hotspot.id}
+            type="button"
+            data-hotspot={hotspot.id}
+            data-hotspot-kind={hotspot.kind}
+            aria-expanded={isDoor ? undefined : activePoiId === hotspot.id}
+            ref={(el) => {
+              if (el) nodes.current.set(hotspot.id, el);
+              else nodes.current.delete(hotspot.id);
+            }}
+            onClick={() =>
+              hotspot.kind === "link" ? onNavigate(hotspot.target) : onOpenPoi(hotspot)
+            }
+            aria-label={isDoor ? t("goTo", { room: hotspot.label }) : undefined}
+            /* Markers start off screen rather than at 0,0 — the first frame
+               hasn't run yet when they mount, and a pile of buttons in the
+               corner would flash. */
+            style={{ visibility: "hidden" }}
+            className={cn(
+              "focus-ring pointer-events-auto absolute left-0 top-0 flex text-white",
+              isDoor
+                ? "tour-door flex-col items-center gap-1.5"
+                : "tour-poi items-center gap-2"
+            )}
+          >
+            {isDoor ? (
+              <>
+                <span className="tour-door-ring" aria-hidden="true">
+                  <ArrowRight size={22} />
+                </span>
+                <span className="tour-marker-label whitespace-nowrap text-[13px] font-semibold">
+                  {hotspot.label}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="tour-poi-dot" aria-hidden="true">
+                  <Plus size={16} />
+                </span>
+                <span className="tour-marker-label max-w-52 text-left text-[12.5px] font-medium text-pretty">
+                  {hotspot.label}
+                </span>
+              </>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }

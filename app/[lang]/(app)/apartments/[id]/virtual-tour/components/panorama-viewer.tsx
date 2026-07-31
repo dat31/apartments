@@ -4,7 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Loader2, Minus, MousePointer2, Plus } from "lucide-react";
+import { Crosshair, Grip, Loader2, Minus, Plus } from "lucide-react";
 import { HotspotLayer, type FrameHandler } from "./hotspot-layer";
 import { createEngine, type Engine } from "../lib/engine";
 import { preloadOrder, sceneById } from "@/lib/virtual-tour/scene-graph";
@@ -17,15 +17,22 @@ import type { InfoHotspot, Scene } from "@/schemas/virtual-tour";
 
    The overlay is real DOM (see hotspot-layer), so the engine reports the
    camera every frame through a plain function reference rather than React
-   state: 60 renders a second would be 60 reconciliations a second. */
+   state: 60 renders a second would be 60 reconciliations a second.
+
+   It fills its container edge to edge and paints its own chrome — the
+   vignette that keeps the tour's glass controls legible over a bright
+   window, the arriving state, the look-around prompt, and the zoom column
+   for anyone without a wheel or a second finger. */
 export function PanoramaViewer({
   scene,
   scenes,
+  activePoiId,
   onNavigate,
   onOpenPoi,
 }: {
   scene: Scene;
   scenes: Scene[];
+  activePoiId: string | null;
   onNavigate: (sceneId: string) => void;
   onOpenPoi: (hotspot: InfoHotspot) => void;
 }) {
@@ -106,7 +113,7 @@ export function PanoramaViewer({
 
   if (status === "no-webgl") {
     return (
-      <div className="relative h-[60svh] w-full bg-secondary lg:h-full">
+      <div className="absolute inset-0">
         <Image
           src={scene.preview}
           alt={scene.name}
@@ -115,7 +122,7 @@ export function PanoramaViewer({
           className="object-cover"
           priority
         />
-        <p className="absolute inset-x-0 bottom-0 bg-foreground/70 p-4 text-center text-sm text-background">
+        <p className="tour-glass absolute inset-x-4 top-28 mx-auto max-w-100 p-4 text-center text-sm">
           {t("noWebgl")}
         </p>
       </div>
@@ -123,7 +130,7 @@ export function PanoramaViewer({
   }
 
   return (
-    <div className="relative h-[60svh] w-full overflow-hidden bg-secondary lg:h-full">
+    <div className="absolute inset-0 overflow-hidden">
       {/* The canvas is appended here by the engine. `cursor-grab` flips to
           `grabbing` off the data attribute the engine sets while dragging. */}
       <div
@@ -135,48 +142,78 @@ export function PanoramaViewer({
       <HotspotLayer
         scene={scene}
         frameRef={frameRef}
+        activePoiId={activePoiId}
         onNavigate={(id) => {
           const target = sceneById(scenes, id);
+          // Using a marker is knowing how the tour works: the prompt below
+          // has done its job, whether or not the camera was ever dragged.
+          setHint(false);
           if (target) onNavigate(id);
         }}
-        onOpenPoi={onOpenPoi}
+        onOpenPoi={(hotspot) => {
+          setHint(false);
+          onOpenPoi(hotspot);
+        }}
       />
+
+      <span className="pano-vignette" aria-hidden="true" />
 
       {status === "loading" && (
         <div
-          className="pointer-events-none absolute inset-0 flex items-center justify-center bg-background/40"
+          className="pointer-events-none absolute inset-0 flex items-center justify-center"
           aria-live="polite"
         >
-          <span className="flex items-center gap-2 bg-background px-3 py-2 text-sm">
-            <Loader2 size={16} className="animate-spin" /> {t("loadingScene")}
+          <span className="tour-glass pano-chip">
+            <Loader2 size={14} className="animate-spin" /> {t("loadingScene")}
           </span>
         </div>
       )}
 
+      {/* The look-around prompt, retired by the first drag, key or pinch —
+          a renter who already knows should never be told twice. */}
       {hint && status === "ready" && (
-        <p className="pointer-events-none absolute inset-x-0 top-4 mx-auto flex w-fit items-center gap-2 bg-foreground/70 px-3 py-2 text-xs text-background">
-          <MousePointer2 size={14} /> {t("dragHint")}
-        </p>
+        <div className="tour-glass pano-hint" aria-hidden="true">
+          <span className="inline-flex items-center gap-2 text-[15px] font-semibold">
+            <Grip size={17} /> {t("dragHint")}
+          </span>
+          <span className="text-[12.5px] text-white/80 text-pretty">
+            {t("dragHintBody")}
+          </span>
+        </div>
       )}
 
-      {/* Zoom without a wheel or a second finger — and a focusable target for
-          keyboard users who want a closer look at a room. */}
-      <div className="absolute bottom-4 right-4 flex flex-col gap-px">
+      {/* Zoom and recentre without a wheel or a second finger — and a
+          focusable target for keyboard users who want a closer look.
+
+          Hugging an edge, and folding into the bottom corner from lg up
+          where the essentials column already owns the right one. Anything
+          parked over the middle of the room would sit on top of a door: the
+          markers are laid out by where the opening really is, so the chrome
+          is what has to stay out of the way. */}
+      <div className="absolute right-3 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-1.5 sm:right-4 lg:bottom-24 lg:top-auto lg:translate-y-0 lg:flex-row">
         <button
           type="button"
           onClick={() => engineRef.current?.zoomBy(-10)}
           aria-label={t("zoomIn")}
-          className="focus-ring bg-background/90 p-2 hover:bg-background"
+          className="tour-glass tour-glass-btn focus-ring pano-ctl"
         >
-          <Plus size={16} />
+          <Plus size={18} />
         </button>
         <button
           type="button"
           onClick={() => engineRef.current?.zoomBy(10)}
           aria-label={t("zoomOut")}
-          className="focus-ring bg-background/90 p-2 hover:bg-background"
+          className="tour-glass tour-glass-btn focus-ring pano-ctl"
         >
-          <Minus size={16} />
+          <Minus size={18} />
+        </button>
+        <button
+          type="button"
+          onClick={() => engineRef.current?.resetView(scene.yaw, scene.pitch)}
+          aria-label={t("recenter")}
+          className="tour-glass tour-glass-btn focus-ring pano-ctl"
+        >
+          <Crosshair size={17} />
         </button>
       </div>
     </div>

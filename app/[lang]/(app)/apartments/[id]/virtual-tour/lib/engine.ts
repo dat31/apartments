@@ -403,6 +403,17 @@ export function createEngine(host: HTMLElement, options: EngineOptions) {
       velocity.pitch = 0;
     },
     zoomBy,
+    /** Back to how the room opened: the direction the host framed it from,
+        at the default field of view. The way out of "I zoomed into a corner
+        and now I don't know where I am". */
+    resetView(yaw: number, pitch: number) {
+      camera.yaw = wrapYaw(yaw);
+      camera.pitch = clampPitch(pitch);
+      camera.fov = DEFAULT_FOV;
+      fovTarget = DEFAULT_FOV;
+      velocity.yaw = 0;
+      velocity.pitch = 0;
+    },
     onFirstInteraction(handler: () => void) {
       onInteract = handler;
       if (interacted) handler();

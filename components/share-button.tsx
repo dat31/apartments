@@ -18,12 +18,16 @@ export function ShareButton({
   text,
   url,
   variant = "secondary",
+  iconOnly = false,
   className,
 }: {
   title: string;
   text?: string;
   url?: string;
   variant?: "secondary" | "ghost";
+  /** Drop the label and keep the square target — for chrome laid over an
+      image, where the icon has to carry it (the 360° tour). */
+  iconOnly?: boolean;
   className?: string;
 }) {
   const t = useTranslations("detail");
@@ -55,11 +59,12 @@ export function ShareButton({
   return (
     <Button
       variant={variant}
-      size="sm"
+      size={iconOnly ? "icon" : "sm"}
       className={cn("gap-1.5", className)}
       onClick={handleShare}
+      aria-label={iconOnly ? t("share") : undefined}
     >
-      <Share2 size={18} /> {t("share")}
+      <Share2 size={18} /> {!iconOnly && t("share")}
     </Button>
   );
 }

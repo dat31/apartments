@@ -5,9 +5,12 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
+import { ChevronUp, Rotate3d, X } from "lucide-react";
 import { PanoramaViewerLazy } from "./panorama-viewer-lazy";
 import { PoiPanel } from "./poi-panel";
 import { RoomRail } from "./room-rail";
+import { ShareButton } from "@/components/share-button";
+import { cn } from "@/lib/utils";
 import { sceneById, stepScene } from "@/lib/virtual-tour/scene-graph";
 import type { InfoHotspot, VirtualTour } from "@/schemas/virtual-tour";
 
@@ -16,18 +19,31 @@ import type { InfoHotspot, VirtualTour } from "@/schemas/virtual-tour";
    itself — the renderer lives behind <PanoramaViewerLazy>, so this island
    (and the page's first paint) never waits on that chunk.
 
+   The room fills the screen and every control floats on top of it as dark
+   glass: a renter is deciding whether this home is worth an hour across Da
+   Nang, and the photograph is what answers that. The shell scopes itself to
+   `.dark` so the booking components it borrows from the detail page — which
+   are theme-token styled — sit on that glass in their dark palette instead
+   of punching light rectangles through it.
+
    Room state lives in `?scene=`, written with router.replace: browser Back
    should leave the tour, not walk back through six rooms (plan §8.1). The
    camera's yaw/pitch deliberately stays out of the URL — it changes every
    frame. */
 export function TourStage({
   tour,
+  listingTitle,
   panel,
   header,
+  summary,
+  cta,
 }: {
   tour: VirtualTour;
+  listingTitle: string;
   panel: React.ReactNode;
   header: React.ReactNode;
+  summary: React.ReactNode;
+  cta: React.ReactNode;
 }) {
   const t = useTranslations("virtualTour");
   const router = useRouter();
@@ -43,6 +59,9 @@ export function TourStage({
     tour.scenes[0];
 
   const [poi, setPoi] = React.useState<InfoHotspot | null>(null);
+  // Phone-sized screens keep the essentials folded into a one-line bar until
+  // asked for; from lg up there is room for the panel beside the stage.
+  const [essentialsOpen, setEssentialsOpen] = React.useState(false);
   const opened = React.useRef(false);
 
   React.useEffect(() => {
@@ -97,36 +116,97 @@ export function TourStage({
   }, [goTo, scene.id, tour.scenes]);
 
   return (
-    <div className="flex flex-col lg:h-[calc(100svh-5rem)]">
-      <div className="border-b bg-background/95">
-        <div className="container mx-auto flex items-center gap-4 px-5 py-3 sm:px-8">
+    <div className="dark tour-shell relative flex h-[calc(100svh-5rem)] min-h-140 flex-col overflow-hidden">
+      {/* The room itself, edge to edge. Everything below is layered on it. */}
+      <PanoramaViewerLazy
+        key={tour.id}
+        scene={scene}
+        scenes={tour.scenes}
+        activePoiId={poi?.id ?? null}
+        onNavigate={(id) => goTo(id, "hotspot")}
+        onOpenPoi={openPoi}
+      />
+
+      {/* While the host's note is being read, the room steps back. */}
+      {poi && <span className="pano-dim z-10" aria-hidden="true" />}
+
+      {/* Top chrome: the way out, where you are, and the way to send this
+          room to whoever is deciding with you. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start gap-2 p-3 sm:p-4">
+        <div className="tour-glass pointer-events-auto max-w-[min(60%,24rem)] px-3.5 py-2.5">
           {header}
-          <span className="ml-auto shrink-0 text-xs text-muted-foreground">
-            {t("roomOf", { index: tour.scenes.indexOf(scene) + 1, total: tour.scenes.length })}
+        </div>
+        <div className="tour-glass pointer-events-auto hidden h-11 min-w-0 items-center gap-2.5 px-3.5 sm:flex">
+          <Rotate3d size={16} className="shrink-0 text-white/80" />
+          <span className="truncate text-[13.5px] font-semibold">{scene.name}</span>
+          <span className="whitespace-nowrap text-[11.5px] tabular-nums text-white/65">
+            {t("roomOf", {
+              index: tour.scenes.indexOf(scene) + 1,
+              total: tour.scenes.length,
+            })}
           </span>
+        </div>
+        <div className="pointer-events-auto ml-auto shrink-0">
+          {/* Shares the room you are standing in: `?scene=` is already in the
+              URL, so the link lands a partner or a parent where you are. */}
+          <ShareButton
+            title={listingTitle}
+            iconOnly
+            variant="ghost"
+            className="tour-glass tour-glass-btn size-11"
+          />
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        {/* Stage. Fixed aspect on small screens so the page still scrolls to
-            the panel below; fills the column from lg up. */}
-        <div className="relative min-h-0 flex-1">
-          <PanoramaViewerLazy
-            key={tour.id}
-            scene={scene}
-            scenes={tour.scenes}
-            onNavigate={(id) => goTo(id, "hotspot")}
-            onOpenPoi={openPoi}
-          />
-          <RoomRail scenes={tour.scenes} activeId={scene.id} onSelect={(id) => goTo(id, "rail")} />
-          <PoiPanel hotspot={poi} onClose={() => setPoi(null)} />
+      {/* Essentials. One instance: the fixed column from lg up, and the sheet
+          the phone bar unfolds below that — never both, so the booking CTAs
+          are never mounted twice. */}
+      <div
+        id="tour-essentials"
+        className={cn(
+          "tour-glass absolute z-20 overflow-y-auto p-5",
+          "lg:inset-x-auto lg:right-4 lg:top-28 lg:bottom-auto lg:block lg:max-h-[calc(100%-16rem)] lg:w-88",
+          essentialsOpen ? "inset-x-3 top-28 bottom-32 sm:inset-x-4" : "hidden"
+        )}
+      >
+        <div className="mb-4 flex items-center justify-between gap-3 lg:hidden">
+          <span className="text-[13px] font-semibold">{t("essentials")}</span>
+          <button
+            type="button"
+            onClick={() => setEssentialsOpen(false)}
+            aria-label={t("poiClose")}
+            className="tour-glass-btn focus-ring inline-flex size-9 items-center justify-center"
+          >
+            <X size={17} />
+          </button>
         </div>
+        {panel}
+      </div>
 
-        {/* Property info: a column beside the stage on desktop, the section
-            under it on mobile. Server-rendered upstream — this is a slot. */}
-        <aside className="w-full shrink-0 overflow-y-auto border-t p-5 sm:p-6 lg:w-[340px] lg:border-l lg:border-t-0">
-          {panel}
-        </aside>
+      <PoiPanel hotspot={poi} onClose={() => setPoi(null)} />
+
+      {/* Bottom chrome: the rooms, then the money. */}
+      <div
+        className="absolute inset-x-0 bottom-0 z-20 flex flex-col gap-2 p-3 sm:p-4"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
+        <RoomRail scenes={tour.scenes} activeId={scene.id} onSelect={(id) => goTo(id, "rail")} />
+
+        {!essentialsOpen && (
+          <div className="flex items-stretch gap-2 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setEssentialsOpen(true)}
+              aria-expanded={essentialsOpen}
+              aria-controls="tour-essentials"
+              className="tour-glass tour-glass-btn focus-ring flex h-14 min-w-0 flex-1 items-center gap-2.5 px-4 text-left"
+            >
+              {summary}
+              <ChevronUp size={16} className="ml-auto shrink-0 text-white/70" />
+            </button>
+            {cta}
+          </div>
+        )}
       </div>
     </div>
   );
