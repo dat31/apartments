@@ -3,8 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { DetailView } from "./detail-view";
 import { JsonLd } from "@/components/json-ld";
 import { listingJsonLd } from "../lib/json-ld";
-import { createClient } from "@/lib/supabase/server";
-import { getListingById } from "@/lib/services/listings";
+import { getListingDetail } from "@/lib/services/listings";
 import type { Locale } from "@/i18n/routing";
 
 /* The listing-dependent half of the detail page. Lives below a Suspense
@@ -13,18 +12,15 @@ import type { Locale } from "@/i18n/routing";
    is effectively immediate. */
 export async function DetailContent({ id }: { id: string }) {
   // Listings come from Supabase; an unknown id (or a non-active listing RLS
-  // hides) resolves to null and 404s.
-  const listing = await getListingById(id);
+  // hides) resolves to null and 404s. `now` is the cache boundary's reference
+  // time for the JSON-LD availability — see getListingDetail for why the clock
+  // can't be read out here.
+  const { listing, now } = await getListingDetail(id);
   if (!listing) notFound();
 
-  // Is the viewer the host of this listing? Real listings store the owner's
-  // auth uuid (see toListing), so a direct id match is enough to hide the
-  // "book a tour" CTA and label the listing as their own.
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const isOwner = !!user && user.id === listing.owner;
+  // Whether the viewer is this listing's host is decided client-side (see
+  // ./viewer-is-owner): reading the session here would opt the route out of
+  // prerendering for what is only cosmetic chrome.
 
   // schema.org markup streams with the content; Google indexes the streamed
   // HTML, so living below the Suspense boundary is fine.
@@ -34,12 +30,14 @@ export async function DetailContent({ id }: { id: string }) {
   return (
     <>
       <JsonLd
-        data={listingJsonLd(listing, lang, {
-          home: t("common.home"),
-          apartments: t("apartments.heading"),
-        })}
+        data={listingJsonLd(
+          listing,
+          lang,
+          { home: t("common.home"), apartments: t("apartments.heading") },
+          now
+        )}
       />
-      <DetailView listing={listing} isOwner={isOwner} />
+      <DetailView listing={listing} />
     </>
   );
 }

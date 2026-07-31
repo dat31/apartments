@@ -12,6 +12,7 @@ import { BookTourButton } from "./book-tour-button";
 import { MessageOwnerButton } from "@/components/messaging/message-owner-button";
 import { RecordRecentlyViewed } from "./record-recently-viewed";
 import { AvailabilityLabel } from "./availability-label";
+import { NotOwner } from "./viewer-is-owner";
 import { CostsSection } from "./costs-section";
 import { MoveInEstimate } from "./move-in-estimate";
 import { Bath, BedDouble, MapPin, Maximize } from "lucide-react";
@@ -21,13 +22,7 @@ import { useMoney } from "@/hooks/use-money";
 import { coordsOf } from "@/lib/geo";
 import { districtLabel, type Listing } from "@/schemas/listing";
 
-export function DetailView({
-  listing,
-  isOwner = false,
-}: {
-  listing: Listing;
-  isOwner?: boolean;
-}) {
+export function DetailView({ listing }: { listing: Listing }) {
   const t = useTranslations("detail");
   const ta = useTranslations("apartments");
   const money = useMoney();
@@ -144,15 +139,14 @@ export function DetailView({
               <OwnerCard
                 ownerKey={listing.owner}
                 fallbackPalette={listing.palette}
-                isOwner={isOwner}
               />
             </Suspense>
-            {!isOwner && (
+            <NotOwner ownerId={listing.owner}>
               <MessageOwnerButton
                 listingId={listing.id}
                 className="mt-4 h-11 w-full gap-2"
               />
-            )}
+            </NotOwner>
           </div>
 
           {/* Reviews — first page server-rendered, further pages fetched by
@@ -177,15 +171,18 @@ export function DetailView({
             </p>
             <MoveInEstimate listing={listing} variant="compact" className="mt-4" />
             <div className="mt-5 flex flex-col gap-2.5">
-              {!isOwner && <BookTourButton listing={listing} mode="full" />}
+              <NotOwner ownerId={listing.owner}>
+                <BookTourButton listing={listing} mode="full" />
+              </NotOwner>
               <SaveHomeButton id={listing.id} mode="full" />
-              {!isOwner && <MessageOwnerButton listingId={listing.id} />}
+              <NotOwner ownerId={listing.owner}>
+                <MessageOwnerButton listingId={listing.id} />
+              </NotOwner>
             </div>
             <Suspense fallback={<OwnerCardSkeleton className="mt-6 pt-6" />}>
               <OwnerCard
                 ownerKey={listing.owner}
                 fallbackPalette={listing.palette}
-                isOwner={isOwner}
                 className="mt-6 pt-6"
               />
             </Suspense>
@@ -223,7 +220,9 @@ export function DetailView({
             </p>
           </div>
           <SaveHomeButton id={listing.id} mode="icon" />
-          {!isOwner && <BookTourButton listing={listing} mode="compact" />}
+          <NotOwner ownerId={listing.owner}>
+            <BookTourButton listing={listing} mode="compact" />
+          </NotOwner>
         </div>
       </div>
     </div>

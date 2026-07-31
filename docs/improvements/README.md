@@ -37,9 +37,11 @@ informed without re-checking pages**, and **what happens after the tour**.
 11. [Commute anchor](11-commute-anchor.md) — one pin, distance on every card
 12. [Renter ↔ owner messaging](12-renter-owner-messaging.md) — per-tour message thread
 13. ~~[Cost transparency](13-cost-transparency.md)~~ — **done** (PR #61): nullable cost columns + `listing.costs` domain, "Costs & terms" detail section with move-in estimate hero, compact estimate in the booking card, deposit hint on cards, owner form section with live preview + transparent-pricing note
+14. [Bilingual listing content](14-bilingual-listing-content.md) — **approach undecided**: `title`/`description` are single columns, so owner-authored copy ignores the locale. Four candidate shapes written up, none chosen (added 2026-07-29)
 
 ## Suggested sequence
 
 Map view (#1) → tour notifications (#2) → the small wins (#5, #6) → then
 reassess. #12 (messaging) is the largest build and should come after the
-loop-closing items.
+loop-closing items. #14 needs a design decision before it can be sequenced at
+all — read it and pick an approach first.

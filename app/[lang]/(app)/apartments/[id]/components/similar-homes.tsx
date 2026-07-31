@@ -19,7 +19,7 @@ import { getSimilarListings } from "@/lib/services/listings";
    resolve and this heavier below-the-fold query streams in underneath rather
    than blocking the whole page. */
 export async function SimilarHomes({ listing }: { listing: Listing }) {
-  const [t, { picks, districtScoped }] = await Promise.all([
+  const [t, { picks, districtScoped, now }] = await Promise.all([
     getTranslations("detail.similar"),
     getSimilarListings(listing),
   ]);
@@ -40,7 +40,7 @@ export async function SimilarHomes({ listing }: { listing: Listing }) {
       </div>
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
         {picks.map((l) => (
-          <ListingCard key={l.id} listing={l} />
+          <ListingCard key={l.id} listing={l} now={now} />
         ))}
       </div>
     </section>

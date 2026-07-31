@@ -153,7 +153,13 @@ export async function getActiveOwnerIds(): Promise<string[]> {
   return [...new Set(listings.map((l) => l.owner))];
 }
 
-export type SimilarResult = { picks: Listing[]; districtScoped: boolean };
+export type SimilarResult = {
+  picks: Listing[];
+  districtScoped: boolean;
+  /** Reference time for the picks' availability labels — the row renders the
+      server-side ListingCard, and the clock may only be read in here. */
+  now: number;
+};
 
 /** Homes similar to `listing` for the detail page's "Similar homes" row.
     A dedicated, per-listing query — not the whole getActiveListings set: it
@@ -198,7 +204,11 @@ export async function getSimilarListings(
     rows = [...rows, ...(inCity ?? []).filter((r) => !seen.has(r.id))];
   }
 
-  return { picks: rankSimilar(rows.map(toListing), listing, n), districtScoped };
+  return {
+    picks: rankSimilar(rows.map(toListing), listing, n),
+    districtScoped,
+    now: Date.now(),
+  };
 }
 
 /* Rank candidate listings by likeness to `current` and take the best `n`. The
@@ -245,4 +255,20 @@ export async function getListingById(id: string): Promise<Listing | null> {
 
   if (error) throw new Error(`Failed to load listing: ${error.message}`);
   return data ? toListing(data) : null;
+}
+
+/** A single listing plus the cache's reference time, for the detail page's
+    server-rendered availability (the JSON-LD offer). Reading the clock is only
+    allowed inside a cache boundary — same rule as the showcase fetchers above —
+    and doing it here is what keeps the detail route prerenderable. Shares
+    getListingById's cache entry, so this adds no extra query. */
+export async function getListingDetail(id: string): Promise<{
+  listing: Listing | null;
+  now: number;
+}> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("listings", `listing:${id}`);
+
+  return { listing: await getListingById(id), now: Date.now() };
 }
