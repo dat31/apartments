@@ -763,6 +763,13 @@ Each of these cost time to find; none is obvious from the code.
 5. **The seed's `hashtext` rule is not the old FNV-1a hash.** Same ratio (two
    in three), different subset — which homes carry the 360° badge shifted when
    the read path switched.
+6. **A new page under `(app)` needs `generateStaticParams`, or the build
+   fails.** Not for crawlability — under `cacheComponents` a route with
+   unknown params is fully dynamic, which makes the shared layout's
+   `<SiteHeader>` read the locale outside any cache boundary, and Next rejects
+   that as a blocking route. It fails the *build*, not just dev. The tour
+   editor shipped without it and broke `pnpm build` until 2026-07-31; the
+   listing edit route had carried the warning in a comment all along.
 
 ### 16.6 Verification status
 
