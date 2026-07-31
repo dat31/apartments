@@ -19,7 +19,6 @@ import { Bath, BedDouble, MapPin, Maximize, Rotate3d } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { AMENITY_ICONS } from "@/components/icons";
-import { hasDemoTour } from "@/lib/virtual-tour/demo-tours";
 import { PALETTE, AMENITIES } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { coordsOf } from "@/lib/geo";
@@ -30,11 +29,9 @@ export function DetailView({ listing }: { listing: Listing }) {
   const ta = useTranslations("apartments");
   const tv = useTranslations("virtualTour");
   const money = useMoney();
-  /* Whether a home has a 360° tour is derived from the listing itself while
-     the tours live in code (lib/virtual-tour/demo-tours); once the tables
-     land this becomes listing.hasVirtualTour, a column the row already
-     carries — either way it costs no extra read here. */
-  const tourHref = hasDemoTour(listing.id)
+  /* A column the row already carries (maintained by a trigger on
+     listing_virtual_tours), so asking costs no extra read here. */
+  const tourHref = listing.hasVirtualTour
     ? `/apartments/${listing.id}/virtual-tour`
     : undefined;
   const colors = PALETTE[listing.palette];

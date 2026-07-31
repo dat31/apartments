@@ -106,6 +106,10 @@ export const ListingSchema = z.object({
   lng: z.number().optional(),
   // Costs & terms. Absent when the owner has listed none of them.
   costs: ListingCostsSchema.optional(),
+  // Does this home have a published 360° tour? Server-owned: maintained by a
+  // trigger on listing_virtual_tours, never written by the listing form.
+  // Optional because seed objects and fixtures predate the column.
+  hasVirtualTour: z.boolean().optional(),
 });
 export type Listing = z.infer<typeof ListingSchema>;
 

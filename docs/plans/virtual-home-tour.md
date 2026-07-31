@@ -6,32 +6,9 @@
 > §3 onward, because every design decision below is a consequence of an
 > existing invariant.
 >
-> **Status: MVP BUILT (2026-07-31), on mocked data.** Phase 1 plus the
-> viewer-side half of phase 2 are implemented on this branch:
->
-> - `schemas/virtual-tour`, `lib/virtual-tour/{math,scene-graph,demo-tours}.ts`
->   (unit-tested), `lib/services/virtual-tours.ts` (`"use cache"` reads).
-> - The route `/apartments/[id]/virtual-tour` — shell + streamed content,
->   client stage, lazily-loaded three.js viewer (`lib/engine.ts`), DOM hotspot
->   overlay, room rail, POI panel, server-rendered property panel reusing the
->   detail page's CTAs, skeletons, no-WebGL fallback.
-> - Entry points (gallery pill, booking-card button, browse-card badge), the
->   `virtualTour` i18n namespace in both locales, PostHog events, and
->   `e2e/virtual-tour.spec.ts`.
->
-> **Deliberately not built yet**, and what §4/§5/§9/§13 still own:
->
-> - *No migration.* §4's tables don't exist. A tour is derived from its
->   listing by `lib/virtual-tour/demo-tours.ts`, which also decides (by hash)
->   that two listings in three have one. `lib/services/virtual-tours.ts`
->   already has the signatures the real reads will have, so only the bodies
->   change; `listing.hasVirtualTour` replaces `hasDemoTour(id)` at the three
->   call sites.
-> - *No `listing-panoramas` bucket.* The five demo rooms are CC0 panoramas in
->   `public/panoramas/` (see `CREDITS.txt`), downscaled to the 4096×2048 cap
->   with 512×256 previews.
-> - Phase 3 (owner authoring) and phase 4 (WebXR) are untouched. Within
->   phase 2, the floor-plan minimap and the `has360` filter chip are not built.
+> **Status: phases 0–2 shipped on real tables (2026-07-31).** A renter can
+> walk a home in 360° and the content comes out of Postgres. See §16 for the
+> full built / not-built ledger — read that before picking anything up.
 >
 > Scope of the ask: *"an interactive virtual home tour platform that combines
 > photorealistic 360° panoramas with Three.js-powered interactions. Users can
@@ -201,6 +178,9 @@ hotspots by clicking inside a live preview, publish.
 ---
 
 ## 4. Data model
+
+> **Shipped and applied 2026-07-31**, with three deliberate deviations from
+> what follows. Read §16.1 for what the database actually contains.
 
 ### 4.1 Tables (new migration)
 
@@ -601,6 +581,12 @@ Phases 1 and 2 together are the shippable product; 3 unblocks real content;
 4 satisfies the "VR devices" line of the brief and is genuinely optional
 until a headset is in the loop.
 
+**Where this landed:** 0, 1 and 2 are done (2026-07-31) barring the floor-plan
+minimap and the `has360` chip; 3 and 4 are untouched. The phases did not ship
+as one PR each — 1 and 2 were built together against the derived demo module,
+and 0 landed last, which is why `lib/virtual-tour/demo-tours.ts` existed at
+all. §16 is the ledger.
+
 ---
 
 ## 14. Risks
@@ -642,3 +628,143 @@ until a headset is in the loop.
 5. **Route vs overlay** — §8.1 argues for a dedicated route. Say so now if
    the tour should instead open as a fullscreen overlay over the detail page
    (cheaper entry, worse sharing/VR).
+
+---
+
+## 16. Built / not built (as of 2026-07-31)
+
+The ledger this doc should be read against. §§4–13 describe the plan *as
+designed*; this section is what actually exists, where it deviates, and what
+is still open.
+
+### 16.1 Data — shipped and applied
+
+`supabase/migrations/20260731120000_virtual_tours.sql` and
+`…120100_seed_virtual_tours.sql`, applied to project `apartments`
+(tkislpxzptslgaxfrvgt) on 2026-07-31 and recorded in the Supabase ledger as
+`virtual_tours` / `seed_virtual_tours`. Note this project's ledger versions
+have never matched the repo filenames — migrations were applied by hand, so
+the timestamps are assigned at apply time.
+
+| Shipped | Detail |
+| --- | --- |
+| `listing_virtual_tours`, `virtual_tour_scenes` | §4.1, with the deviations below |
+| `virtual_tour_status`, `room_kind` enums | `tour_status` is the *in-person* appointment and was left alone |
+| `listings.has_virtual_tour` + trigger | §4.2; `sync_listing_has_virtual_tour()`, `execute` revoked so it never surfaces as a REST RPC |
+| RLS on both tables | anon sees a tour only when the listing is `active` **and** the tour is `published`; owners see their own drafts; only the owner writes |
+| `listing-panoramas` bucket | created for phase 3; **empty** |
+| Seed | 13 of the 22 active listings, 60 scene rows (5 rooms; 4 for studios) |
+
+Three deviations from §4 as written, all deliberate:
+
+1. **`entry_scene_id` is a real nullable FK** (`on delete set null`), added
+   after both tables exist. Null — or stale — means "the lowest `sort_order`
+   scene", resolved in the mapper. A deleted entry room degrades to the first
+   room instead of breaking the tour.
+2. **`hotspots` carries `check (jsonb_typeof(hotspots) = 'array')`.** Zod is
+   still the real validator; this refuses the one shape error every consumer
+   would break on.
+3. **Explicit `grant select/insert/update/delete`** alongside the policies.
+   Redundant if Supabase's default privileges are intact, but a missing table
+   grant returns *zero rows*, which is indistinguishable from "no tour".
+
+Verified after applying: zero flag drift (`has_virtual_tour` agrees with
+"has a published tour" for every row), zero dangling doors across all 60
+scenes, anon reads return the 13 tours, and `get_advisors(security)` reports
+no new findings.
+
+### 16.2 Read path — shipped
+
+- `lib/virtual-tour/tour-map.ts` (+ `__tests__/tour-map.test.ts`) — pure row →
+  domain mapping, deliberately forgiving: a bad hotspot is dropped without its
+  siblings, a scene with unparseable JSON keeps the room and loses the
+  markers, a stale entry scene falls back to the first room. It does **not**
+  repair the graph — `validateTourGraph` is the write-time gate (phase 3).
+- `lib/services/virtual-tours.ts` — one round trip for tour + scenes,
+  `"use cache"` + `cacheTag("listings")` + `cacheTag("virtual-tours")`.
+- `Listing.hasVirtualTour` maps `listings.has_virtual_tour`; `toListingWrite`
+  does **not** write it (trigger-owned, like `views` and `palette`).
+- `lib/virtual-tour/demo-tours.ts` and its test are **deleted**. The seed
+  content was generated from it before removal, so the seeded angles are the
+  ones the app always shipped.
+
+### 16.3 Viewer + UI — shipped
+
+The viewer (dedicated route, three.js engine behind a lazy boundary, DOM
+hotspot overlay, `?scene=`, idle preloading + LRU-3, no-WebGL fallback) is
+§§6–8 as designed.
+
+The **interface was redesigned on 2026-07-31** against the Claude Design
+project (`docs/design/virtual-tour-brief.md` is the brief it was designed
+from). What changed from the first implementation:
+
+- The room fills the viewport and every control floats on it as dark
+  translucent glass. The shell scopes itself to `.dark` so the booking
+  components it borrows from the detail page land on that glass in their dark
+  palette instead of punching light rectangles through it.
+- Top chrome: back link + listing identity, a room pill (`360° · name ·
+  Phòng i/n`), and a share control (`ShareButton` gained an `iconOnly` mode)
+  that shares the room you are standing in, since `?scene=` is already in the
+  URL.
+- Essentials are **one instance**: the fixed column from `lg` up, and the
+  sheet the phone bar unfolds below that — so the booking CTAs are never
+  mounted twice. The collapsed phone bar is `tour-summary.tsx`.
+- Room rail as glass chips (thumbnail + name + index) rather than a strip of
+  large thumbnails, which read as "more pictures" over a photograph.
+- Doors and points of interest look unalike because they promise different
+  things: a bright white ring you walk through vs. an outlined dot that opens
+  a note (active state when its panel is open).
+- Stage chrome: vignette, dim while a POI is open, glass "arriving" chip, a
+  two-line look-around prompt retired by the first drag *or* the first marker
+  use, and a zoom column that gained recentre (`engine.resetView`).
+- New `virtualTour` keys in both locales: `dragHintBody`, `hostNote`,
+  `recenter`, `essentials`, `bedsLabel`, `bathsLabel`, `sizeLabel`.
+- The tour's CSS lives in one block at the end of `app/globals.css`.
+
+### 16.4 Not built
+
+| Gap | What it needs |
+| --- | --- |
+| **Owner authoring (phase 3)** — the big one | §9 in full: the dashboard route, `uploadPanorama()` + client-side downscale/preview generation, edit-mode hotspot placement, a publish gate on `validateTourGraph()`, and a `revalidateVirtualTour(listingId)` action to expire the `virtual-tours` tag. **No write path exists today** — the owner RLS policies are in place but nothing calls them, so they are untested in practice. |
+| **Real panoramas** | The bucket is empty; every seeded home shows the same five CC0 demo rooms from `public/panoramas/`. Honest demo data, but not a claim about any unit. Open item §15.1 is still open. |
+| **`has360=1` filter chip** | Column and badge exist; the `schemas/filters` + `lib/query.ts` wiring does not. |
+| **Floor-plan minimap** | `plan_x` / `plan_y` columns exist and are unused. Needs a floor-plan image per listing (§15.4). |
+| **WebXR (phase 4)** | Untouched. Needs the second, sprite-based hotspot renderer (§6.3). |
+| **`hfov` column** | Written by nobody, read by nobody; the viewer uses its own `DEFAULT_FOV`. |
+| **`listing_virtual_tours.updated_at`** | No trigger maintains it. Set it explicitly in phase 3's writes, or add one. |
+| **Storage egress** | Unmeasured (§14.7). Only matters once real panoramas land. |
+
+### 16.5 Gotchas worth keeping
+
+Each of these cost time to find; none is obvious from the code.
+
+1. **Two FKs between the tour tables** (`scenes.tour_id` and
+   `tours.entry_scene_id`) make an embedded PostgREST read ambiguous. It must
+   name the one it means: `virtual_tour_scenes!virtual_tour_scenes_tour_id_fkey(*)`.
+2. **A server-rendered slot with a nested client component warns about keys.**
+   Passing hand-built JSX from a Server Component to a client one loses the
+   children's compile-time static marking when the tree contains a client
+   island, so React validates it as a dynamic list. Fix: make the slot its own
+   component (`tour-summary.tsx`). It only reproduced on the `/en` prefix.
+3. **Chrome over photography must stay out of the marker field.** Markers are
+   positioned where the real opening is, so a control parked mid-stage sits on
+   top of a door — `e2e/virtual-tour.spec.ts` caught exactly that when the zoom
+   column moved to the middle-right. It hugs an edge and folds into the bottom
+   corner from `lg` up.
+4. **The tour CSS is unlayered**, so it beats Tailwind utilities on the same
+   element. `.tour-glass { color: #fff }` overrides `text-white/70` *on that
+   element*; put text colours on children.
+5. **The seed's `hashtext` rule is not the old FNV-1a hash.** Same ratio (two
+   in three), different subset — which homes carry the 360° badge shifted when
+   the read path switched.
+
+### 16.6 Verification status
+
+Green as of 2026-07-31: `pnpm typecheck`, `pnpm lint`, `pnpm test` (463 unit
+tests, coverage thresholds held), `pnpm test:e2e` (34 passed, 5 auth specs
+skipped without credentials). Browser-checked in both locales and at phone and
+desktop widths: badge on browse, tour walks its rooms from the database, a
+no-tour listing 404s, no console or hydration warnings.
+
+Not covered by tests: the share control, the phone essentials sheet, recentre,
+and the no-WebGL fallback. All four are manual-only today.

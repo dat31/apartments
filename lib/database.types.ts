@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      listing_virtual_tours: {
+        Row: {
+          created_at: string
+          entry_scene_id: string | null
+          id: string
+          listing_id: string
+          status: Database["public"]["Enums"]["virtual_tour_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          entry_scene_id?: string | null
+          id?: string
+          listing_id: string
+          status?: Database["public"]["Enums"]["virtual_tour_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          entry_scene_id?: string | null
+          id?: string
+          listing_id?: string
+          status?: Database["public"]["Enums"]["virtual_tour_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_virtual_tours_entry_scene_fkey"
+            columns: ["entry_scene_id"]
+            isOneToOne: false
+            referencedRelation: "virtual_tour_scenes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_virtual_tours_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listings: {
         Row: {
           amenities: Database["public"]["Enums"]["amenity"][]
@@ -27,6 +69,7 @@ export type Database = {
           deposit_amount: number | null
           description: string
           district: Database["public"]["Enums"]["district"]
+          has_virtual_tour: boolean
           id: string
           images: string[]
           lat: number | null
@@ -63,6 +106,7 @@ export type Database = {
           deposit_amount?: number | null
           description?: string
           district: Database["public"]["Enums"]["district"]
+          has_virtual_tour?: boolean
           id?: string
           images?: string[]
           lat?: number | null
@@ -99,6 +143,7 @@ export type Database = {
           deposit_amount?: number | null
           description?: string
           district?: Database["public"]["Enums"]["district"]
+          has_virtual_tour?: boolean
           id?: string
           images?: string[]
           lat?: number | null
@@ -465,6 +510,65 @@ export type Database = {
           },
         ]
       }
+      virtual_tour_scenes: {
+        Row: {
+          created_at: string
+          hfov: number | null
+          hotspots: Json
+          id: string
+          name: string
+          panorama_url: string
+          pitch: number
+          plan_x: number | null
+          plan_y: number | null
+          preview_url: string | null
+          room: Database["public"]["Enums"]["room_kind"]
+          sort_order: number
+          tour_id: string
+          yaw: number
+        }
+        Insert: {
+          created_at?: string
+          hfov?: number | null
+          hotspots?: Json
+          id?: string
+          name: string
+          panorama_url: string
+          pitch?: number
+          plan_x?: number | null
+          plan_y?: number | null
+          preview_url?: string | null
+          room?: Database["public"]["Enums"]["room_kind"]
+          sort_order?: number
+          tour_id: string
+          yaw?: number
+        }
+        Update: {
+          created_at?: string
+          hfov?: number | null
+          hotspots?: Json
+          id?: string
+          name?: string
+          panorama_url?: string
+          pitch?: number
+          plan_x?: number | null
+          plan_y?: number | null
+          preview_url?: string | null
+          room?: Database["public"]["Enums"]["room_kind"]
+          sort_order?: number
+          tour_id?: string
+          yaw?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "virtual_tour_scenes_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "listing_virtual_tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -499,9 +603,11 @@ export type Database = {
         | "son-tra"
       listing_status: "active" | "draft"
       listing_type: "studio" | "apartment" | "loft" | "townhouse" | "house"
+      room_kind: "living" | "bed" | "bath" | "kitchen" | "balcony" | "other"
       tour_status: "pending" | "confirmed" | "declined" | "reschedule"
       user_role: "renter" | "owner"
       utility_billing: "included" | "metered" | "fixed"
+      virtual_tour_status: "draft" | "published"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -641,9 +747,11 @@ export const Constants = {
       ],
       listing_status: ["active", "draft"],
       listing_type: ["studio", "apartment", "loft", "townhouse", "house"],
+      room_kind: ["living", "bed", "bath", "kitchen", "balcony", "other"],
       tour_status: ["pending", "confirmed", "declined", "reschedule"],
       user_role: ["renter", "owner"],
       utility_billing: ["included", "metered", "fixed"],
+      virtual_tour_status: ["draft", "published"],
     },
   },
 } as const

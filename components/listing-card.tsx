@@ -4,7 +4,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bath, BedDouble, Check, MapPin, Maximize, Rotate3d } from "lucide-react";
 import { PALETTE, availInfo } from "@/lib/data/listings";
-import { hasDemoTour } from "@/lib/virtual-tour/demo-tours";
 import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { SaveButton } from "@/components/save-button";
@@ -137,7 +136,7 @@ export function ListingCard({
           {/* "This home has a 360° tour" — the card is a link to the detail
               page, where the tour's own entry lives, so this is a marker
               rather than a second link competing with the stretched one. */}
-          {hasDemoTour(listing.id) && (
+          {listing.hasVirtualTour && (
             <Badge
               className="gap-1"
               aria-label={tv("badgeLabel")}
