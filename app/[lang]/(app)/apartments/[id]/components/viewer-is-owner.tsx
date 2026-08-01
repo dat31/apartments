@@ -31,6 +31,21 @@ export function NotOwner({
   return user?.id === ownerId ? null : <>{children}</>;
 }
 
+/** Renders `children` only for the listing's own host — the mirror of
+    NotOwner, for controls that make sense on your own home and nowhere else
+    (editing its 360° tour). Same caveat: presentation only, never a security
+    boundary. The writes behind it are refused by RLS regardless. */
+export function OnlyOwner({
+  ownerId,
+  children,
+}: {
+  ownerId: string;
+  children: React.ReactNode;
+}) {
+  const { data: user } = useUser();
+  return user?.id === ownerId ? <>{children}</> : null;
+}
+
 /** The host's display name on the "listed by" card: "You" when the viewer owns
     the listing, the owner's real name otherwise. `isSeedOwner` covers the seed
     data's demo "you" owner, which is a static fact and needs no session. */

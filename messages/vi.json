@@ -40,6 +40,9 @@
     "edit": {
       "title": "Chỉnh sửa tin đăng"
     },
+    "tourEditor": {
+      "title": "Chỉnh sửa tham quan 360°"
+    },
     "dashboard": {
       "title": "Bảng điều khiển chủ nhà"
     },
@@ -669,6 +672,7 @@
       "publish": "Đăng",
       "preview": "Xem trước",
       "edit": "Chỉnh sửa",
+      "editTour": "Chỉnh sửa tham quan 360°",
       "delete": "Xóa"
     },
     "tours": {
@@ -882,6 +886,58 @@
       "ariaMap": "Bản đồ lộ trình các lịch xem trong ngày"
     }
   },
+  "virtualTourEditor": {
+    "title": "Tham quan 360°",
+    "intro": "Thêm ảnh 360° cho từng phòng, đặt tên và chọn phòng mở đầu. Khách xem có thể chuyển phòng từ danh sách phòng, nên bản tham quan dùng được ngay từ phòng đầu tiên bạn thêm.",
+    "backToListing": "Quay lại tin đăng",
+    "statusDraft": "Bản nháp",
+    "statusPublished": "Đang hiển thị",
+    "addRoom": "Thêm phòng khác",
+    "addFirstRoom": "Thêm phòng đầu tiên",
+    "uploading": "Đang tải lên…",
+    "uploadHint": "Ảnh 360°, chiều rộng gấp đôi chiều cao. Tối đa 20 MB mỗi ảnh — ảnh lớn hơn sẽ được thu nhỏ giúp bạn.",
+    "captureHelp": "Ảnh 360° là ảnh chụp trọn cả căn phòng trong một khung hình. Máy ảnh 360 (Insta360, Ricoh Theta) chụp được, và các ứng dụng miễn phí trên điện thoại như Google Street View hay Panorama 360 cũng vậy — khi xuất ảnh hãy chọn “equirectangular” hoặc “photosphere”.",
+    "uploadFailed": "Không tải lên được {file}. Vui lòng thử lại.",
+    "rejected": {
+      "not-image": "{file} không phải là ảnh.",
+      "not-equirectangular": "{file} trông giống ảnh chụp thường. Ảnh 360° phải có chiều rộng gấp đôi chiều cao — hãy xuất ảnh ở dạng “equirectangular” hoặc “photosphere”.",
+      "too-small": "{file} quá nhỏ để nhìn quanh. Ảnh 360° cần rộng ít nhất 2048 pixel.",
+      "too-large-file": "{file} lớn hơn 20 MB. Hãy xuất ảnh nhỏ hơn rồi thử lại."
+    },
+    "roomName": "Tên phòng",
+    "roomKind": "Loại phòng",
+    "roomKinds": {
+      "living": "Phòng khách",
+      "bed": "Phòng ngủ",
+      "bath": "Phòng tắm",
+      "kitchen": "Bếp",
+      "balcony": "Ban công",
+      "other": "Khác"
+    },
+    "entryBadge": "Mở đầu",
+    "setOpeningView": "Chọn góc nhìn mở đầu",
+    "makeEntry": "Mở đầu tại phòng này",
+    "removeRoom": "Xoá",
+    "framingTitle": "Góc nhìn mở đầu — {room}",
+    "framingBody": "Kéo để xoay và cuộn để phóng to, đến khi khung hình đúng như bạn muốn khách nhìn thấy đầu tiên.",
+    "framingUnavailable": "Thiết bị này không xem được ảnh 360° nên không đặt được góc nhìn mở đầu.",
+    "saveView": "Lưu góc nhìn này",
+    "cancel": "Huỷ",
+    "issues": {
+      "no-scenes": "Hãy thêm ít nhất một phòng trước khi đăng.",
+      "entry-missing": "Phòng mở đầu không còn nữa. Hãy chọn phòng mở đầu khác.",
+      "duplicate-scene": "Có một phòng bị lặp lại.",
+      "dangling-link": "Có cửa dẫn tới phòng không còn tồn tại.",
+      "self-link": "Có cửa dẫn ngược về chính phòng đó.",
+      "unreachable-scene": "Chưa có cửa nào dẫn tới phòng này — khách vẫn tới được từ danh sách phòng."
+    },
+    "publish": "Đăng bản tham quan",
+    "unpublish": "Gỡ xuống",
+    "published": "Bản tham quan 360° đã hiển thị",
+    "unpublished": "Bản tham quan 360° đã được gỡ xuống",
+    "previewTour": "Xem thử",
+    "saveFailed": "Không lưu được thay đổi. Vui lòng thử lại."
+  },
   "virtualTour": {
     "entryCta": "Tham quan 360°",
     "entryCtaLong": "Xem tham quan 360°",
@@ -893,6 +949,7 @@
     "loadingScene": "Đang tải phòng…",
     "backToListing": "Quay lại tin đăng",
     "rooms": "Các phòng",
+    "editTour": "Chỉnh sửa bản tham quan",
     "roomOf": "Phòng {index}/{total}",
     "goTo": "Sang {room}",
     "hotspotsLabel": "Điểm đáng chú ý trong {room}",

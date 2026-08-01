@@ -40,6 +40,9 @@
     "edit": {
       "title": "Edit listing"
     },
+    "tourEditor": {
+      "title": "Edit the 360° tour"
+    },
     "dashboard": {
       "title": "Owner dashboard"
     },
@@ -669,6 +672,7 @@
       "publish": "Publish",
       "preview": "Preview",
       "edit": "Edit",
+      "editTour": "Edit the 360° tour",
       "delete": "Delete"
     },
     "tours": {
@@ -882,6 +886,58 @@
       "ariaMap": "Map of this day's tour route"
     }
   },
+  "virtualTourEditor": {
+    "title": "360° tour",
+    "intro": "Add a 360° photo for each room, name it, and choose which room the tour opens in. Renters walk between rooms from the room list, so a tour works from the first room you add.",
+    "backToListing": "Back to listing",
+    "statusDraft": "Draft",
+    "statusPublished": "Live",
+    "addRoom": "Add another room",
+    "addFirstRoom": "Add the first room",
+    "uploading": "Uploading…",
+    "uploadHint": "360° photos, twice as wide as they are tall. Up to 20 MB each — larger ones are shrunk for you.",
+    "captureHelp": "A 360° photo is one that captures the whole room at once. A 360 camera (Insta360, Ricoh Theta) makes them, and so do free phone apps like Google Street View or Panorama 360 — look for “equirectangular” or “photosphere” when you export.",
+    "uploadFailed": "Couldn't upload {file}. Please try again.",
+    "rejected": {
+      "not-image": "{file} isn't an image.",
+      "not-equirectangular": "{file} looks like an ordinary photo. A 360° room has to be twice as wide as it is tall — export it as “equirectangular” or “photosphere”.",
+      "too-small": "{file} is too small to look around in. A 360° photo needs to be at least 2048 pixels wide.",
+      "too-large-file": "{file} is over 20 MB. Export it at a smaller size and try again."
+    },
+    "roomName": "Room name",
+    "roomKind": "Kind of room",
+    "roomKinds": {
+      "living": "Living room",
+      "bed": "Bedroom",
+      "bath": "Bathroom",
+      "kitchen": "Kitchen",
+      "balcony": "Balcony",
+      "other": "Other"
+    },
+    "entryBadge": "Opens here",
+    "setOpeningView": "Set the opening view",
+    "makeEntry": "Open the tour here",
+    "removeRoom": "Remove",
+    "framingTitle": "Opening view — {room}",
+    "framingBody": "Drag to turn and scroll to zoom, until the room is framed the way you want a renter to arrive.",
+    "framingUnavailable": "This device can't show the 360° view, so the opening view can't be set here.",
+    "saveView": "Save this view",
+    "cancel": "Cancel",
+    "issues": {
+      "no-scenes": "Add at least one room before publishing.",
+      "entry-missing": "The room the tour opened in is gone. Choose which room it opens in.",
+      "duplicate-scene": "A room appears twice.",
+      "dangling-link": "A door leads to a room that no longer exists.",
+      "self-link": "A door leads back into its own room.",
+      "unreachable-scene": "No door leads to this room yet — renters can still reach it from the room list."
+    },
+    "publish": "Publish the tour",
+    "unpublish": "Take it down",
+    "published": "Your 360° tour is live",
+    "unpublished": "Your 360° tour is no longer shown",
+    "previewTour": "Preview",
+    "saveFailed": "Couldn't save that change. Please try again."
+  },
   "virtualTour": {
     "entryCta": "360° tour",
     "entryCtaLong": "Take the 360° tour",
@@ -893,6 +949,7 @@
     "loadingScene": "Loading room…",
     "backToListing": "Back to listing",
     "rooms": "Rooms",
+    "editTour": "Edit this tour",
     "roomOf": "Room {index} of {total}",
     "goTo": "Go to {room}",
     "hotspotsLabel": "Points of interest in {room}",

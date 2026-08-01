@@ -481,8 +481,14 @@ Room-level info is the scene name plus its info hotspots.
 
 ## 9. Owner authoring (phase 3)
 
-Route: `/owner/dashboard/listings/[id]/virtual-tour` (fits the existing
-dashboard shell + `dashboard-nav.tsx`).
+> **The rooms half shipped** — at `/apartments/[id]/virtual-tour/edit`, not the
+> dashboard route below: it sits beside the tour it edits and next to
+> `/apartments/[id]/edit`, and can import `../lib/engine` so three.js stays
+> code-split. §16.7 is what was built; the hotspot half of this section is
+> still ahead.
+
+Route: ~~`/owner/dashboard/listings/[id]/virtual-tour`~~ →
+`/apartments/[id]/virtual-tour/edit`.
 
 - **Scenes**: upload panoramas (drag-to-reorder, mirroring
   `photo-uploader.tsx` + `photo-card.tsx`), name each room, pick a room kind,
@@ -725,8 +731,8 @@ from). What changed from the first implementation:
 
 | Gap | What it needs |
 | --- | --- |
-| **Owner authoring (phase 3)** — the big one | §9 in full: the dashboard route, `uploadPanorama()` + client-side downscale/preview generation, edit-mode hotspot placement, a publish gate on `validateTourGraph()`, and a `revalidateVirtualTour(listingId)` action to expire the `virtual-tours` tag. **No write path exists today** — the owner RLS policies are in place but nothing calls them, so they are untested in practice. |
-| **Real panoramas** | The bucket is empty; every seeded home shows the same five CC0 demo rooms from `public/panoramas/`. Honest demo data, but not a claim about any unit. Open item §15.1 is still open. |
+| **Hotspot authoring (phase 3, PR B)** | The rooms half shipped — see §16.7. What is left: placing doors and points of interest by clicking the panorama (`screenToYawPitch` is the whole conversion), dragging a marker to move it, clearing links that point at a deleted room, and promoting `dangling-link` / `self-link` to blocking. |
+| **Real panoramas** | Owners *can* upload now (§16.7), but nothing has been uploaded: the bucket is empty and every seeded home still shows the same five CC0 demo rooms from `public/panoramas/`. Honest demo data, not a claim about any unit. |
 | **`has360=1` filter chip** | Column and badge exist; the `schemas/filters` + `lib/query.ts` wiring does not. |
 | **Floor-plan minimap** | `plan_x` / `plan_y` columns exist and are unused. Needs a floor-plan image per listing (§15.4). |
 | **WebXR (phase 4)** | Untouched. Needs the second, sprite-based hotspot renderer (§6.3). |
@@ -757,6 +763,13 @@ Each of these cost time to find; none is obvious from the code.
 5. **The seed's `hashtext` rule is not the old FNV-1a hash.** Same ratio (two
    in three), different subset — which homes carry the 360° badge shifted when
    the read path switched.
+6. **A new page under `(app)` needs `generateStaticParams`, or the build
+   fails.** Not for crawlability — under `cacheComponents` a route with
+   unknown params is fully dynamic, which makes the shared layout's
+   `<SiteHeader>` read the locale outside any cache boundary, and Next rejects
+   that as a blocking route. It fails the *build*, not just dev. The tour
+   editor shipped without it and broke `pnpm build` until 2026-07-31; the
+   listing edit route had carried the warning in a comment all along.
 
 ### 16.6 Verification status
 
@@ -768,3 +781,39 @@ no-tour listing 404s, no console or hydration warnings.
 
 Not covered by tests: the share control, the phone essentials sheet, recentre,
 and the no-WebGL fallback. All four are manual-only today.
+
+### 16.7 Owner authoring — rooms (phase 3, PR A)
+
+A host can create a tour, upload rooms, name and order them, choose the
+opening view, and publish. Hotspots are the next PR; a tour with no doors is
+still walkable because the room rail reaches every room.
+
+- **`/apartments/[id]/virtual-tour/edit`** — auth-gated (its own `PROTECTED`
+  entry in `lib/supabase/middleware.ts`; the existing `/edit` pattern stops at
+  the id's own segment and does not match this path), `privateMetadata`,
+  client-hydrated. Reached from `owner/dashboard/components/listing-row.tsx`
+  and from the tour itself via a new `OnlyOwner` island.
+- **Upload** — `lib/virtual-tour/panorama-spec.ts` holds the rules (2:1 within
+  tolerance, the 4096×2048 cap, 512×256 preview, rejection reasons) and is
+  unit-tested; `uploadPanorama()` in `lib/supabase/storage.ts` is the DOM half
+  (decode once, draw both sizes, upload both, roll the full panorama back if
+  its preview fails). It falls back to a detached `<canvas>` where
+  `OffscreenCanvas` is missing — Safari only shipped it in 16.4.
+- **Writes** — `hooks/use-virtual-tour.ts`, the shape of `use-listings.tsx`.
+  Reads the owner's tour at any status through the browser client (the renter
+  service reads *published* with the anon key and is no use here). Every write
+  sets `updated_at`, since no trigger does. Removing a room deletes its bucket
+  objects, best effort. `lib/actions/virtual-tours.ts` expires both cache tags.
+- **`hfov` is no longer dead.** "Set the opening view" drives the real engine
+  and stores the zoom as well as the direction; `engine.show()` and
+  `resetView` read it back, so the owner's framing is what a renter arrives
+  on.
+- **The publish gate splits severity** — see the reachability trap in §16.5.
+
+Verified: the RLS policies were probed via the Supabase MCP inside a
+rolled-back transaction (anon insert refused, a stranger's UPDATE touches zero
+rows, a stranger's scene INSERT refused, the owner's UPDATE succeeds), and the
+route redirects signed-out visitors. **Not verified: the editor has never been
+run by a signed-in user** — no real panorama has been through the pipeline,
+and `e2e/authed/virtual-tour-editor.spec.ts` is not written. That is the gap
+before this is trustworthy.

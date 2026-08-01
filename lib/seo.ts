@@ -46,6 +46,7 @@ export async function privateMetadata(
     | "messages"
     | "create"
     | "edit"
+    | "tourEditor"
     | "dashboard"
 ): Promise<Metadata> {
   const t = await getTranslations({ locale: lang, namespace: "meta" });

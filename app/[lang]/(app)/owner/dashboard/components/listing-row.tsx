@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PALETTE } from "@/lib/data/listings";
 import { districtLabel, type Listing } from "@/schemas/listing";
-import { BedDouble, Eye, MapPin, Pencil, Trash2 } from "lucide-react";
+import { BedDouble, Eye, MapPin, Pencil, Rotate3d, Trash2 } from "lucide-react";
 import { useMoney } from "@/hooks/use-money";
 import posthog from "posthog-js";
 
@@ -115,6 +115,19 @@ export function ListingRow({
           >
             <Link href={`/apartments/${listing.id}/edit`}>
               <Pencil size={17} />
+            </Link>
+          </Button>
+          {/* The 360° tour is authored per listing, so its way in belongs
+              beside the listing's own edit action rather than in the nav. */}
+          <Button
+            asChild
+            variant="secondary"
+            size="icon"
+            className="h-9 w-9"
+            aria-label={t("listings.editTour")}
+          >
+            <Link href={`/apartments/${listing.id}/virtual-tour/edit`}>
+              <Rotate3d size={17} />
             </Link>
           </Button>
           <Button

@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { TourStage } from "./tour-stage";
 import { PropertyPanel } from "./property-panel";
 import { TourSummary } from "./tour-summary";
 import { BookTourButton } from "../../components/book-tour-button";
-import { NotOwner } from "../../components/viewer-is-owner";
+import { NotOwner, OnlyOwner } from "../../components/viewer-is-owner";
 import { getListingById } from "@/lib/services/listings";
 import { getVirtualTour } from "@/lib/services/virtual-tours";
 import { orderedScenes } from "@/lib/virtual-tour/scene-graph";
@@ -53,6 +53,15 @@ export async function TourContent({ id }: { id: string }) {
           <p className="truncate text-[11.5px] text-white/65">
             {districtLabel(listing.district)}, {listing.city}
           </p>
+          {/* The host's way into the editor, from the thing they are editing. */}
+          <OnlyOwner ownerId={listing.owner}>
+            <Link
+              href={`/apartments/${listing.id}/virtual-tour/edit`}
+              className="focus-ring mt-1 inline-flex items-center gap-1.5 text-[12px] font-medium text-white/75 hover:text-white"
+            >
+              <Pencil size={13} /> {t("editTour")}
+            </Link>
+          </OnlyOwner>
         </div>
       }
       summary={<TourSummary listing={listing} />}

@@ -77,6 +77,9 @@ export const SceneSchema = z.object({
   /** Where the camera looks when the scene opens. */
   yaw: z.number().default(0),
   pitch: z.number().default(0),
+  /** Field of view the room opens at, degrees. Absent means "leave the
+      visitor's current zoom alone" — the owner didn't frame one. */
+  hfov: z.number().optional(),
   sortOrder: z.number().int().default(0),
   hotspots: z.array(HotspotSchema).default([]),
 });
