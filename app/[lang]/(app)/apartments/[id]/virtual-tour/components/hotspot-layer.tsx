@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { doorLabel } from "@/lib/virtual-tour/hotspots";
 import { projectToScreen, type Camera } from "@/lib/virtual-tour/math";
 import type { InfoHotspot, Scene } from "@/schemas/virtual-tour";
 
@@ -31,12 +32,18 @@ export type FrameHandler = (
    straight to the nodes, so looking around costs no re-render. */
 export function HotspotLayer({
   scene,
+  scenes,
   frameRef,
   activePoiId,
   onNavigate,
   onOpenPoi,
 }: {
   scene: Scene;
+  /** The whole tour, so a door can be labelled with what its target room is
+      called *now*. Renaming a room has to travel to the doors leading there;
+      the label stored on the hotspot is only the fallback for a room that no
+      longer exists. */
+  scenes: Scene[];
   frameRef: React.RefObject<FrameHandler | null>;
   activePoiId: string | null;
   onNavigate: (sceneId: string) => void;
@@ -72,6 +79,7 @@ export function HotspotLayer({
     >
       {scene.hotspots.map((hotspot) => {
         const isDoor = hotspot.kind === "link";
+        const label = hotspot.kind === "link" ? doorLabel(scenes, hotspot) : hotspot.label;
         return (
           <button
             key={hotspot.id}
@@ -86,7 +94,7 @@ export function HotspotLayer({
             onClick={() =>
               hotspot.kind === "link" ? onNavigate(hotspot.target) : onOpenPoi(hotspot)
             }
-            aria-label={isDoor ? t("goTo", { room: hotspot.label }) : undefined}
+            aria-label={isDoor ? t("goTo", { room: label }) : undefined}
             /* Markers start off screen rather than at 0,0 — the first frame
                hasn't run yet when they mount, and a pile of buttons in the
                corner would flash. */
@@ -104,7 +112,7 @@ export function HotspotLayer({
                   <ArrowRight size={22} />
                 </span>
                 <span className="tour-marker-label whitespace-nowrap text-[13px] font-semibold">
-                  {hotspot.label}
+                  {label}
                 </span>
               </>
             ) : (
@@ -113,7 +121,7 @@ export function HotspotLayer({
                   <Plus size={16} />
                 </span>
                 <span className="tour-marker-label max-w-52 text-left text-[12.5px] font-medium text-pretty">
-                  {hotspot.label}
+                  {label}
                 </span>
               </>
             )}

@@ -66,6 +66,36 @@ export function stepScene(
   return ordered[next < 0 ? next + ordered.length : next];
 }
 
+/** Every scene with its links to `removedId` stripped out.
+
+    Deleting a room breaks the doors that led to it, and those doors live in
+    *other* rooms — somewhere the owner isn't looking. Without this, the
+    bathroom is deleted and the bedroom silently becomes unpublishable, with
+    the reason only surfacing at publish time.
+
+    Returns the same array instance when nothing pointed at the removed
+    scene, so the caller can skip the write entirely. */
+export function pruneLinksTo(scenes: Scene[], removedId: string): Scene[] {
+  const affected = scenes.some(
+    (scene) =>
+      scene.id !== removedId &&
+      scene.hotspots.some((h) => isLink(h) && h.target === removedId)
+  );
+  if (!affected) return scenes;
+
+  return scenes.map((scene) =>
+    scene.id === removedId ||
+    !scene.hotspots.some((h) => isLink(h) && h.target === removedId)
+      ? scene
+      : {
+          ...scene,
+          hotspots: scene.hotspots.filter(
+            (h) => !(isLink(h) && h.target === removedId)
+          ),
+        }
+  );
+}
+
 export type TourIssue =
   | { code: "no-scenes" }
   | { code: "entry-missing"; sceneId: string }

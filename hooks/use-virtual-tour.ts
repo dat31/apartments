@@ -6,7 +6,9 @@ import { createClient } from "@/lib/supabase/client";
 import { revalidateVirtualTour } from "@/lib/actions/virtual-tours";
 import { deletePanorama } from "@/lib/supabase/storage";
 import { toVirtualTour } from "@/lib/virtual-tour/tour-map";
-import type { Scene, VirtualTour } from "@/schemas/virtual-tour";
+import { pruneLinksTo } from "@/lib/virtual-tour/scene-graph";
+import { HotspotSchema } from "@/schemas/virtual-tour";
+import type { Hotspot, Scene, VirtualTour } from "@/schemas/virtual-tour";
 import type { Tables } from "@/lib/database.types";
 
 /* The owner's own tour, read and written through the browser Supabase client
@@ -128,26 +130,63 @@ export function useVirtualTour(listingId: string) {
       patch,
     }: {
       sceneId: string;
-      patch: Partial<Pick<SceneRow, "name" | "room" | "yaw" | "pitch" | "hfov">>;
+      patch: Partial<Pick<SceneRow, "name" | "room" | "yaw" | "pitch" | "hfov">> & {
+        hotspots?: Hotspot[];
+      };
     }) => {
       const supabase = createClient();
+      /* The column check only proves the value is a JSON array. Parsing here
+         is what stops a half-built marker — a door with no target, a note
+         with no body — reaching a renter's tour. */
+      const { hotspots, ...rest } = patch;
+      const row = {
+        ...rest,
+        ...(hotspots
+          ? { hotspots: HotspotSchema.array().parse(hotspots) as SceneRow["hotspots"] }
+          : {}),
+      };
+
       const { error } = await supabase
         .from("virtual_tour_scenes")
-        .update(patch)
+        .update(row)
         .eq("id", sceneId);
       if (error) throw error;
     },
     onSuccess: settle,
   });
 
+  /** Delete a room, and repair the rooms it breaks.
+
+      A door in a *sibling* room pointing at the room going away is a blocking
+      publish issue the owner never placed and cannot see from here — so the
+      links are pruned in the same operation rather than discovered later. */
   const removeScene = useMutation({
     mutationFn: async (scene: Scene) => {
       const supabase = createClient();
+      const before = queryClient.getQueryData<VirtualTour | null>(key)?.scenes ?? [];
+
       const { error } = await supabase
         .from("virtual_tour_scenes")
         .delete()
         .eq("id", scene.id);
       if (error) throw error;
+
+      const pruned = pruneLinksTo(before, scene.id);
+      if (pruned !== before) {
+        // Only the rooms that actually changed: pruneLinksTo keeps the
+        // identity of the ones it didn't touch.
+        const writes = pruned
+          .filter((next, i) => next !== before[i] && next.id !== scene.id)
+          .map((next) =>
+            supabase
+              .from("virtual_tour_scenes")
+              .update({ hotspots: next.hotspots })
+              .eq("id", next.id)
+          );
+        const failed = (await Promise.all(writes)).find((r) => r.error);
+        if (failed?.error) throw failed.error;
+      }
+
       // The row is gone; the objects behind it are ours to clean up. Best
       // effort — a leaked object costs storage, a throw costs the edit.
       await deletePanorama(scene.panorama, scene.preview);

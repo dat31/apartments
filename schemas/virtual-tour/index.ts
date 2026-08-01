@@ -85,6 +85,19 @@ export const SceneSchema = z.object({
 });
 export type Scene = z.infer<typeof SceneSchema>;
 
+/* The point-of-interest form in the owner's editor. A note has to say what it
+   is *and* what a renter should know — an untitled or empty note is a marker
+   that costs a renter a tap and tells them nothing, which is why
+   InfoHotspotSchema requires both. Built from a translator scoped to
+   `validation` so the messages are localized, the same shape as
+   createReviewFormSchema. */
+export const createNoteFormSchema = (t: (key: string) => string) =>
+  z.object({
+    label: z.string().trim().min(1, t("virtualTour.noteTitle")).max(80),
+    body: z.string().trim().min(1, t("virtualTour.noteBody")).max(400),
+  });
+export type NoteFormValues = z.infer<ReturnType<typeof createNoteFormSchema>>;
+
 export const VirtualTourSchema = z.object({
   id: z.string().min(1),
   listingId: z.string().min(1),

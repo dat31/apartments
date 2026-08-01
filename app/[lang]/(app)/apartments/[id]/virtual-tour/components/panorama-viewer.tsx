@@ -141,6 +141,7 @@ export function PanoramaViewer({
 
       <HotspotLayer
         scene={scene}
+        scenes={scenes}
         frameRef={frameRef}
         activePoiId={activePoiId}
         onNavigate={(id) => {
