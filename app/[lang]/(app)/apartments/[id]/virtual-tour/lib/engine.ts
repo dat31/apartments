@@ -324,7 +324,14 @@ export function createEngine(host: HTMLElement, options: EngineOptions) {
 
   function render() {
     const { width, height } = size();
-    if (renderer.domElement.width !== Math.floor(width * renderer.getPixelRatio())) {
+    // Both dimensions: the host can change height alone — an editor panel
+    // beside it growing, or a phone's browser chrome collapsing — and a
+    // canvas that only watches its width leaves a dead band under the room.
+    const ratio = renderer.getPixelRatio();
+    if (
+      renderer.domElement.width !== Math.floor(width * ratio) ||
+      renderer.domElement.height !== Math.floor(height * ratio)
+    ) {
       renderer.setSize(width, height, false);
     }
 

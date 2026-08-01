@@ -731,7 +731,7 @@ from). What changed from the first implementation:
 
 | Gap | What it needs |
 | --- | --- |
-| **Hotspot authoring (phase 3, PR B)** | The rooms half shipped — see §16.7. What is left: placing doors and points of interest by clicking the panorama (`screenToYawPitch` is the whole conversion), dragging a marker to move it, clearing links that point at a deleted room, and promoting `dangling-link` / `self-link` to blocking. |
+| ~~**Hotspot authoring (phase 3, PR B)**~~ | Shipped — see §16.8. (`dangling-link` / `self-link` needed no promotion: `publish.ts` already blocked on them.) |
 | **Real panoramas** | Owners *can* upload now (§16.7), but nothing has been uploaded: the bucket is empty and every seeded home still shows the same five CC0 demo rooms from `public/panoramas/`. Honest demo data, not a claim about any unit. |
 | **`has360=1` filter chip** | Column and badge exist; the `schemas/filters` + `lib/query.ts` wiring does not. |
 | **Floor-plan minimap** | `plan_x` / `plan_y` columns exist and are unused. Needs a floor-plan image per listing (§15.4). |
@@ -817,3 +817,60 @@ route redirects signed-out visitors. **Not verified: the editor has never been
 run by a signed-in user** — no real panorama has been through the pipeline,
 and `e2e/authed/virtual-tour-editor.spec.ts` is not written. That is the gap
 before this is trustworthy.
+
+### 16.8 Owner authoring — hotspots (phase 3, PR B)
+
+A host can now place doors and points of interest on the photograph, move
+them, edit them and delete them — and every one of those is reachable without
+a pointer. `docs/plans/virtual-tour-hotspot-authoring.md` is the plan;
+`docs/design/tour-editing-brief.md` is the brief the design answered.
+
+- **The editor became one surface.** PR A's list of room cards is replaced by
+  a rail (name, order, flags, what connects to what) beside a stage (the
+  engine, mounted once) beside an inspector (this room, its arrival view, its
+  markers). Naming and ordering are list work; framing and placing are things
+  you do from inside the room, and this is the same page. `room-card.tsx` and
+  `framing-dialog.tsx` are gone — the framing dialog's job is the stage's
+  "Use this view".
+- **One placement gesture on every device: aim and confirm.** The crosshair is
+  the centre of the view, so placing needs no screen-point conversion at all —
+  the camera's own direction *is* the answer. Tap-to-place is offered as well
+  (a press under 6 px, converted with `screenToYawPitch`), and the stage is a
+  focusable group where the arrows look and Enter places. Tap-to-place alone
+  was rejected for touch: the target sits under the finger doing the dragging.
+- **Dragging a marker** converts the pointer through `screenToYawPitch` on
+  every move and writes on release. The camera cannot move during it because
+  the overlay is above the canvas and takes the pointer capture — no engine
+  lock was needed. A marker that ever *drifts* under the pointer is a stale
+  camera snapshot, not the maths (`math.test.ts` pins the inverse).
+- **The keyboard path is not a fallback.** Every marker has a row in the
+  inspector with a nudge pad (2.5° a press), "move it", repoint and delete;
+  selecting a row turns the camera to face it, which is also how two markers
+  stacked on the same spot stay tellable apart.
+- **Deleting a room repairs the others.** `pruneLinksTo` (pure, unit-tested)
+  strips sibling links to the room going away, and `removeScene` writes back
+  only the scenes that changed. Without it the host deletes a bathroom and
+  discovers at publish time that the bedroom is broken.
+- **A room's name travels with the doors to it.** `doorLabel(scenes, hotspot)`
+  resolves the target scene at render time in both the renter's overlay and
+  the editor; the stored `label` is only the fallback for a target that is
+  gone. No second write path on rename.
+- **A door is placed in one room, not two.** After placing one, the way back
+  is *offered* — it takes the host into the other room already aiming — never
+  created silently at the mirrored spot, which is rarely where the doorway is.
+- **Editing a live tour is immediate**, and the page says so. Staging changes
+  behind a published snapshot is a schema decision (a second copy of the
+  rows), not a UI one, and is deliberately not in this PR.
+- **New pure module** `lib/virtual-tour/hotspots.ts` (+ tests): direction
+  normalization, nudge/move, upsert/remove, `doorLabel`, `describeYaw` (eight
+  compass sectors as translation keys, so a marker list can say where a marker
+  is), `countMarkers`, `inboundDoors`.
+- **Engine fix**: the resize check compared width only, so a host whose
+  inspector grew taller beside the stage got a dead band under the room. It
+  now watches both dimensions.
+- Copy: ~70 new `virtualTourEditor` keys in both locales, plus
+  `validation.virtualTour.*` for the note form. Vietnamese first.
+
+Still open: `e2e/authed/virtual-tour-editor.spec.ts`, and the fact that no
+real panorama has been through the upload pipeline (§16.7) — doors placed in
+rooms nobody has created yet.

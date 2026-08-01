@@ -607,3 +607,58 @@ textarea::placeholder {
     animation: none !important;
   }
 }
+
+/* ---- authoring a tour ----
+   The editor borrows the renter's markers so a host places what a renter
+   will actually see; these are the only differences — a marker that can be
+   picked up, one that is selected, and one whose room is gone. */
+.tour-marker-edit.is-selected .tour-door-ring,
+.tour-marker-edit.is-selected .tour-poi-dot {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+.tour-marker-edit.is-broken .tour-door-ring {
+  background: var(--destructive);
+  color: #fff;
+}
+
+/* The crosshair placement is aimed with. Dead centre because that is where
+   the camera is pointing: what you aim at is what gets placed. */
+.tour-aim {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.tour-aim-mark {
+  width: 56px;
+  height: 56px;
+  /* !important for the same reason the markers use it: the flat design system
+     resets radii, and a square crosshair reads as a crop box. */
+  border-radius: 50% !important;
+  outline: 2px solid oklch(1 0 0 / 0.95);
+  outline-offset: -2px;
+  box-shadow: 0 0 0 1px oklch(0.15 0.01 152 / 0.5);
+  position: relative;
+}
+.tour-aim-mark::before,
+.tour-aim-mark::after {
+  content: "";
+  position: absolute;
+  background: oklch(1 0 0 / 0.9);
+}
+.tour-aim-mark::before {
+  left: 50%;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  transform: translateX(-50%);
+}
+.tour-aim-mark::after {
+  top: 50%;
+  left: 6px;
+  right: 6px;
+  height: 1px;
+  transform: translateY(-50%);
+}

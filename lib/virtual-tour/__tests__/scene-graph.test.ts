@@ -4,6 +4,7 @@ import {
   isLink,
   orderedScenes,
   preloadOrder,
+  pruneLinksTo,
   sceneById,
   stepScene,
   validateTourGraph,
@@ -212,5 +213,52 @@ describe("validateTourGraph", () => {
     const tour = makeVirtualTour({ entryScene: "attic" });
     const codes = validateTourGraph(tour).map((i) => i.code);
     expect(codes).toEqual(["entry-missing", "unreachable-scene", "unreachable-scene"]);
+  });
+});
+
+describe("pruneLinksTo", () => {
+  const info = {
+    id: "note-1",
+    kind: "info" as const,
+    yaw: 0,
+    pitch: 0,
+    label: "Balcony",
+    body: "Morning sun.",
+  };
+
+  it("returns the same array when nothing pointed at the removed room", () => {
+    const scenes = fourRooms().scenes;
+    expect(pruneLinksTo(scenes, "attic")).toBe(scenes);
+  });
+
+  it("strips exactly the doors that led to the removed room", () => {
+    const scenes = fourRooms().scenes;
+    const pruned = pruneLinksTo(scenes, "kitchen");
+    expect(pruned).not.toBe(scenes);
+    expect(sceneById(pruned, "living")?.hotspots.map((h) => h.id)).toEqual([
+      "to-bedroom",
+    ]);
+  });
+
+  it("leaves notes and doors to other rooms untouched", () => {
+    const scenes = [
+      makeScene({
+        id: "living",
+        hotspots: [makeLink("kitchen"), info, makeLink("bedroom")],
+      }),
+      makeScene({ id: "bedroom", sortOrder: 1, hotspots: [] }),
+    ];
+    const pruned = pruneLinksTo(scenes, "kitchen");
+    expect(pruned[0].hotspots.map((h) => h.id)).toEqual(["note-1", "to-bedroom"]);
+    // Rooms with nothing to prune keep their identity, so a caller can write
+    // back only what changed.
+    expect(pruned[1]).toBe(scenes[1]);
+  });
+
+  it("strips a room's link to itself when that room is the one going", () => {
+    const scenes = [makeScene({ id: "living", hotspots: [makeLink("living")] })];
+    // The removed scene's own hotspots are about to be deleted with the row,
+    // so it is left alone rather than needlessly rewritten.
+    expect(pruneLinksTo(scenes, "living")).toBe(scenes);
   });
 });
