@@ -6,6 +6,81 @@ Before any Next.js work, find and read the relevant doc in `node_modules/next/di
  
 <!-- END:nextjs-agent-rules -->
 
+# Data access
+
+**Every Supabase call lives in `lib/services/**`.** Nothing else imports a
+Supabase client — a `no-restricted-imports` rule in `eslint.config.mjs` fails
+the lint if it does. Components and hooks reach the database through thin
+Server Actions in `lib/actions/**`.
+
+The reason: a query and the checks that guard it have to be written in the same
+place. RLS is the last line, not the only one — and the policies for the core
+tables exist only in the deployed database (`supabase/README.md`), so a rebuilt
+environment has nothing else.
+
+## The layers
+
+| Layer | Rule |
+|---|---|
+| `lib/services/<f>.ts` | `import "server-only"` on line 1. The only `.from()` / `.rpc()`. Returns domain types, never rows. |
+| `lib/services/<f>-map.ts` | Pure row ↔ domain. No `server-only`, no cache, no React — the browser reuses it. |
+| `lib/actions/<f>.ts` | `"use server"`. Validate with zod → call the service → `updateTag` → return `{ ok }`. Nothing else. |
+| `hooks/use-<f>.ts` | `"use client"`. react-query keeps the cache and the optimistic blocks; `queryFn` / `mutationFn` call the action and `unwrap()` it. |
+
+## Which client
+
+| Client | For | Cacheable |
+|---|---|---|
+| `createPublicClient()` (`lib/supabase/public`) | anon-readable public data | yes — inside `"use cache"` |
+| `createClient()` (`lib/supabase/server`) | anything per-user | **no** — cookie-bound, and cookies may not enter a cache boundary |
+
+One feature file may hold both, in two commented sections. Getting it wrong
+fails the build rather than leaking — `cookies()` inside `"use cache"` is an
+error, and so is uncached data outside `<Suspense>`.
+
+## Writing a service function
+
+- Start per-user work with `requireUser()` (`lib/services/session.ts`). **Never
+  take a user id as an argument** — the session decides whose data this is.
+- State ownership in the query (`.eq("owner_id", user.id)`), then check that a
+  row actually matched. A row that didn't is `not-found`, not a silent success
+  the UI reports as done.
+- Refuse with `throw new ServiceError(code)`. `toResult` in
+  `lib/actions/result.ts` turns it into the `{ ok: false, error }` union the
+  toasts already switch on. An unexpected error is logged server-side and
+  flattened to `"failed"` — no Postgres message reaches the client.
+- Cache tags are owned by the service that reads them (`reviewsTag`,
+  `ownerTag`, `availabilityTag`) and imported by the action that busts them, so
+  the two can't drift.
+
+## Writing an action
+
+- Take **intents, not column patches**. `acceptTour(id)`, not
+  `update(id, { status: "confirmed" })` — a client that can name columns can
+  set any of them.
+- Re-validate every argument. A Server Action is a public HTTP endpoint; the
+  page-level guard that rendered the button does not extend to it. The wire
+  schema is static and lives in `schemas/<f>/` beside the form schemas — it
+  guards a boundary, not a form, so it isn't built from a translator.
+- Return only what the UI needs; return values are serialized to the client.
+- `updateTag` only after a write succeeds — never as something a client can ask
+  for on its own.
+
+## Exceptions
+
+These stay on a direct Supabase client, and the lint rule exempts them:
+
+- `hooks/auth/**` and `components/providers.tsx` — the `@supabase/ssr` cookie
+  bridge and `onAuthStateChange` have no server equivalent, and breaking it
+  breaks every protected route.
+- Storage **uploads** (`lib/supabase/storage.ts`) — Server Actions cap bodies at
+  1 MB, so proxying a multi-MB panorama is strictly worse than a direct upload
+  under Storage RLS. Deletes go through a service.
+- `lib/supabase/middleware.ts` (owns session refresh) and
+  `app/auth/confirm/route.ts` (`verifyOtp` writes the session cookie).
+
+Adding an exception means editing `eslint.config.mjs`. That is the point.
+
 # Tests
 
 Two suites, separated by file extension so neither runner picks up the other's
@@ -34,9 +109,13 @@ schema change breaks in one place.
 ## What gets a unit test
 
 Pure logic only: `lib/`, `schemas/`, and the app-local `lib/` directories.
-Not the Supabase/Stream services, the DB↔domain mapping layer, or React
-components — tests that mostly assert a mock are worse than no test. Use the
-e2e suite for those paths instead.
+Not the Supabase/Stream services, the Server Actions that wrap them, the
+DB↔domain mapping layer, or React components — tests that mostly assert a mock
+are worse than no test. Use the e2e suite for those paths instead.
+
+This is why `vitest.config.ts` excludes `lib/services/**` and `lib/actions/**`
+from coverage, and why a change to the data-access layer needs `pnpm test:e2e`
+to have been exercised — the unit suite will not catch it.
 
 Anything that reads a clock must be tested against a frozen one
 (`vi.setSystemTime`), or it will pass today and fail next month.
