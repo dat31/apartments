@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/drawer";
 import Image from "next/image";
 import { ListingCard } from "@/components/listing-card";
-import { SkeletonGrid } from "@/components/skeleton-listing-card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSaved } from "@/hooks/use-saved";
 import {
   SAVED_PAGE_SIZE,
@@ -32,6 +32,7 @@ import { FiltersPanel } from "@/app/[lang]/(app)/apartments/components/filters-p
 import { SortMenu } from "@/app/[lang]/(app)/apartments/components/sort-menu";
 import { EmptyResults } from "@/app/[lang]/(app)/apartments/components/empty-results";
 import { SavedPagination } from "./saved-pagination";
+import { SavedListSkeleton } from "./saved-skeleton";
 import {
   activeFilterCount,
   parseFilters,
@@ -150,13 +151,14 @@ export function SavedList() {
       <Header
         count={savedTotal}
         showBrowse
+        loading={!ready}
         selectMode={selectMode}
         onEnterSelect={() => setSelectMode(true)}
         onExitSelect={exitSelect}
       />
 
       {!ready ? (
-        <SkeletonGrid count={3} />
+        <SavedListSkeleton />
       ) : (
         <div className="flex gap-8">
           <aside className="hidden lg:block w-72 shrink-0">
@@ -342,12 +344,14 @@ function CompareBar({
 function Header({
   count,
   showBrowse,
+  loading = false,
   selectMode = false,
   onEnterSelect,
   onExitSelect,
 }: {
   count: number;
   showBrowse?: boolean;
+  loading?: boolean;
   selectMode?: boolean;
   onEnterSelect?: () => void;
   onExitSelect?: () => void;
@@ -360,15 +364,31 @@ function Header({
         <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2.5">
           <Heart size={26} className="text-primary" /> {t("title")}
         </h1>
-        <p className="mt-1 text-muted-foreground">
-          {selectMode
-            ? t("compare.selectHint", { max: COMPARE_MAX })
-            : count === 0
-              ? t("emptyHint")
-              : t("countSub", { count })}
-        </p>
+        {/* The subtitle counts saved homes, so until the count lands it would
+            otherwise read as the empty-state hint and then flip. */}
+        {loading ? (
+          <Skeleton className="skeleton mt-2 h-5 w-44" />
+        ) : (
+          <p className="mt-1 text-muted-foreground">
+            {selectMode
+              ? t("compare.selectHint", { max: COMPARE_MAX })
+              : count === 0
+                ? t("emptyHint")
+                : t("countSub", { count })}
+          </p>
+        )}
       </div>
-      {showBrowse && count > 0 && (
+      {loading && (
+        <div className="flex items-center gap-3" aria-hidden="true">
+          <div className="hidden lg:flex items-center gap-2">
+            <Skeleton className="skeleton h-5 w-16" />
+            <Skeleton className="skeleton h-9 w-24" />
+          </div>
+          <Skeleton className="skeleton h-11 w-24" />
+          <Skeleton className="skeleton h-11 w-32" />
+        </div>
+      )}
+      {!loading && showBrowse && count > 0 && (
         <div className="flex items-center gap-3">
           <div className="hidden lg:flex items-center gap-2">
             <span className="text-sm text-muted-foreground hidden sm:inline">
