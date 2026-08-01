@@ -115,25 +115,30 @@ export type Listing = z.infer<typeof ListingSchema>;
 
 /* The editable core of a listing — everything except the server-owned
    fields (id, owner, views, palette, status). Shared by the create/edit
-   flows and the in-memory listings store. */
-export type ListingCore = Pick<
-  Listing,
-  | "title"
-  | "type"
-  | "price"
-  | "beds"
-  | "baths"
-  | "area"
-  | "district"
-  | "city"
-  | "desc"
-  | "amenities"
-  | "images"
-  | "available"
-  | "lat"
-  | "lng"
-  | "costs"
->;
+   flows, and re-validated by the save actions: this is the exact shape a
+   client is allowed to send, so a direct POST can't smuggle in `views` or a
+   foreign `owner`. */
+export const ListingCoreSchema = ListingSchema.pick({
+  title: true,
+  type: true,
+  price: true,
+  beds: true,
+  baths: true,
+  area: true,
+  district: true,
+  city: true,
+  desc: true,
+  amenities: true,
+  images: true,
+  available: true,
+  lat: true,
+  lng: true,
+  costs: true,
+});
+export type ListingCore = z.infer<typeof ListingCoreSchema>;
+
+/** Active or draft — the only status a client may ask for. */
+export const ListingStatusSchema = ListingSchema.shape.status;
 
 /* Listing form schema — shared by the create and edit pages.
    Numeric fields are kept as strings while editing (native inputs/selects

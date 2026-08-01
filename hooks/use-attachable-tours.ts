@@ -2,23 +2,17 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { fetchAttachableTours } from "@/lib/actions/tours";
+import { unwrap } from "@/lib/actions/result";
 import { useUser } from "@/hooks/auth";
-import { toTourRequest } from "@/lib/services/tours-map";
 import { tourSlot } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { type TourRequest } from "@/schemas/tour";
-import type { Tables } from "@/lib/database.types";
 
 /* ============================================================
    The tours a thread can attach — every tour on this listing shared by the
-   two people in the conversation.
-
-   Scoping is airtight without an extra ownership check: RLS already limits
-   `tours` to rows where the caller is the renter or the owner, so a
-   listing-scoped query can only return the caller's own tours. Filtering to
-   rows where the *other* member is also a party then leaves exactly the tours
-   the two of them share on this listing — an owner never sees another
-   renter's request, and a renter never sees a tour they aren't part of.
+   two people in the conversation. The scoping that makes this safe lives in
+   listAttachableTours (@/lib/services/tours); what's left here is the
+   ordering the picker wants.
    ============================================================ */
 
 const attachableTourKeys = {
@@ -38,20 +32,7 @@ export function useAttachableTours(
     enabled: !userPending && !!userId && !!listingId && !!otherUserId,
     queryFn: async (): Promise<TourRequest[]> => {
       if (!listingId || !otherUserId) return [];
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("tours")
-        .select("*")
-        .eq("listing_id", listingId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-
-      return (data as Tables<"tours">[])
-        // Keep only tours the other conversation member is also party to.
-        .filter(
-          (row) => row.renter_id === otherUserId || row.owner_id === otherUserId
-        )
-        .map(toTourRequest);
+      return unwrap(await fetchAttachableTours(listingId, otherUserId));
     },
   });
 

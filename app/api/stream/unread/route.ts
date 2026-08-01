@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/services/session";
 import { streamServer } from "@/lib/stream/server";
 
 /* Unread-message total for the signed-in caller, for the nav "Messages" badge.
@@ -26,10 +26,7 @@ function isUserNotFound(error: unknown): boolean {
 }
 
 export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
 
   if (!user) {
     return NextResponse.json(

@@ -2,29 +2,26 @@
 
 import { useCallback, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import {
+  acceptRescheduleAction,
+  declineTourAction,
+  fetchTours,
+} from "@/lib/actions/tours";
+import { unwrap } from "@/lib/actions/result";
 import { useUser } from "@/hooks/auth";
-import { toTourRequest } from "@/lib/services/tours-map";
-import { toListing } from "@/lib/services/listings-map";
-import { type Listing } from "@/schemas/listing";
+import { type TourWithListing } from "@/lib/services/tours";
 import { type TourRequest } from "@/schemas/tour";
-import type { Tables, TablesUpdate } from "@/lib/database.types";
 
-/* The renter's own tours, sourced from the Supabase `tours` table with the
-   related listing joined in for the card. Backed by react-query and keyed on
-   the user id so it swaps cache entries on sign-in / sign-out.
+/* The renter's own tours, with the related listing joined in for the card.
+   Backed by react-query and keyed on the user id so it swaps cache entries on
+   sign-in / sign-out.
 
-   RLS already limits `tours` to rows where the caller is the renter or the
-   owner; we additionally scope by renter_id so the renter page never shows a
-   tour the same account received as an owner. Writes (accept a proposed slot,
-   decline / cancel) are optimistic — the card updates instantly and rolls back
-   if the update fails. */
+   Writes (accept a proposed slot, decline / cancel) are optimistic — the card
+   updates instantly and rolls back if the action fails. Each one sends an
+   intent rather than a column patch; which columns that implies, and which
+   side of the tour may ask for it, is decided in @/lib/services/tours. */
 
-type TourWithListing = Tables<"tours"> & {
-  listing: Tables<"listings"> | null;
-};
-
-export type MyTour = { tour: TourRequest; listing: Listing | null };
+export type MyTour = TourWithListing;
 
 export const tourKeys = {
   all: ["tours"] as const,
@@ -43,17 +40,7 @@ export function useMyTours() {
     enabled: !userPending,
     queryFn: async (): Promise<MyTour[]> => {
       if (!userId) return [];
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("tours")
-        .select("*, listing:listings(*)")
-        .eq("renter_id", userId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data as TourWithListing[]).map((row) => ({
-        tour: toTourRequest(row),
-        listing: row.listing ? toListing(row.listing) : null,
-      }));
+      return unwrap(await fetchTours("renter"));
     },
   });
 
@@ -73,15 +60,17 @@ export function useMyTours() {
   const updateMutation = useMutation({
     mutationFn: async ({
       id,
-      values,
+      intent,
     }: {
       id: string;
-      values: TablesUpdate<"tours">;
+      intent: "accept-reschedule" | "decline";
       optimistic: Partial<TourRequest>;
     }) => {
-      const supabase = createClient();
-      const { error } = await supabase.from("tours").update(values).eq("id", id);
-      if (error) throw error;
+      unwrap(
+        await (intent === "accept-reschedule"
+          ? acceptRescheduleAction(id)
+          : declineTourAction(id))
+      );
     },
     onMutate: async ({ id, optimistic }) => {
       const key = tourKeys.mine(userId);
@@ -107,15 +96,12 @@ export function useMyTours() {
     (id: string) => {
       const m = items.find((x) => x.tour.id === id)?.tour;
       if (!m || m.status !== "reschedule" || !m.proposedDate || !m.proposedTime) return;
+      /* The cached proposal drives the optimistic patch only — the action
+         re-reads the row and applies the slot the owner actually offered, so a
+         stale cache can't confirm a time nobody proposed. */
       updateMutation.mutate({
         id,
-        values: {
-          status: "confirmed",
-          date: m.proposedDate,
-          time: m.proposedTime,
-          proposed_date: null,
-          proposed_time: null,
-        },
+        intent: "accept-reschedule",
         optimistic: {
           status: "confirmed",
           date: m.proposedDate,
@@ -134,7 +120,7 @@ export function useMyTours() {
     (id: string) => {
       updateMutation.mutate({
         id,
-        values: { status: "declined" },
+        intent: "decline",
         optimistic: { status: "declined" },
       });
     },

@@ -57,3 +57,9 @@ export const DEFAULT_FILTERS: Filters = {
 };
 
 export type SortKey = "featured" | "newest" | "low" | "high" | "area";
+
+/* How many saved listings make a page. Lives here, with the rest of the
+   query vocabulary, because both sides need it and neither may import the
+   other: the service builds the range from it, and the pager renders
+   "showing 1–6 of N" from it. */
+export const SAVED_PAGE_SIZE = 6;

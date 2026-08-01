@@ -1,8 +1,7 @@
 import "server-only";
 import { StreamChat } from "stream-chat";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Tables } from "@/lib/database.types";
-import { DEFAULT_PROFILE } from "@/schemas/profile";
+import type { Tables } from "@/lib/database.types";
+import type { ProfileSeed } from "@/lib/services/profiles";
 
 /* ============================================================
    Server-side Stream client. The API secret lives here and never
@@ -38,40 +37,11 @@ export function listingChip(
   };
 }
 
-export type StreamUserSeed = {
-  id: string;
-  name: string;
-  palette: number;
-  verified: boolean;
-};
-
-/* Mirror Supabase profiles onto Stream user records so chat avatars use the
-   same name + palette as every other ProfileAvatar in the app. `profiles` is
-   anon-readable (RLS profiles_select_public), so the caller's own client can
-   read the other party's row. */
-export async function streamUserSeeds(
-  supabase: SupabaseClient<Database>,
-  ids: string[]
-): Promise<StreamUserSeed[]> {
-  const unique = [...new Set(ids)];
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, name, palette")
-    .in("id", unique);
-
-  const rows = new Map((data ?? []).map((row) => [row.id, row]));
-  return unique.map((id) => {
-    const row = rows.get(id);
-    return {
-      id,
-      name: row?.name?.trim() || "",
-      palette: row?.palette ?? DEFAULT_PROFILE.palette,
-      // Same rule as lib/services/owners.ts: having a profiles row is what
-      // "verified" means in this app today.
-      verified: !!row,
-    };
-  });
-}
+/* A Stream user record is exactly a profile's display identity, so the seed
+   is the profiles DTO rather than a parallel shape. Read it with
+   getProfileSeeds() from @/lib/services/profiles — the Supabase query lives
+   there, not here. */
+export type StreamUserSeed = ProfileSeed;
 
 /** Upsert Stream user records. Never writes `role`: sending `role: "user"` on
     every call would silently demote anyone promoted in the Stream dashboard. */

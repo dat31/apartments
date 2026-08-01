@@ -11,7 +11,7 @@ import { useUser } from "@/hooks/auth";
 import { useProfile } from "@/hooks/use-profile";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useMyReview, myReviewKeys } from "@/hooks/use-my-review";
-import { submitReview } from "@/lib/actions/reviews";
+import { submitReviewAction } from "@/lib/actions/reviews";
 import { type ReviewFormValues } from "@/schemas/review";
 import { ReviewModal } from "./review-modal";
 
@@ -99,7 +99,7 @@ export function WriteReviewButton({
   const submit = async (data: ReviewFormValues): Promise<boolean> => {
     if (!user) return false;
 
-    const result = await submitReview({
+    const result = await submitReviewAction({
       ownerId: ownerKey,
       rating: data.rating,
       text: data.text,

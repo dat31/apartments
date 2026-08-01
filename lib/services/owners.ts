@@ -16,6 +16,12 @@ import type { Tables } from "@/lib/database.types";
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** Cache tag covering every cached read of one profiles row, so a rename
+    expires the owner page, its metadata and the name lookup together. Owned
+    here and imported by the write path (lib/actions/profiles.ts), the same way
+    reviewsTag couples the review write to the review reads. */
+export const ownerTag = (id: string) => `owner:${id}`;
+
 type ProfileRow = Pick<
   Tables<"profiles">,
   "id" | "name" | "bio" | "palette" | "created_at"
@@ -44,7 +50,7 @@ function profileToOwner(row: ProfileRow): Owner {
 export async function getOwnerProfile(id: string): Promise<Owner | null> {
   "use cache";
   cacheLife("hours");
-  cacheTag(`owner:${id}`);
+  cacheTag(ownerTag(id));
 
   if (!UUID_RE.test(id)) return null;
 
@@ -57,4 +63,26 @@ export async function getOwnerProfile(id: string): Promise<Owner | null> {
 
   if (error) throw new Error(`Failed to load owner: ${error.message}`);
   return data ? profileToOwner(data) : null;
+}
+
+/** Just the display name, for the client-only spots that hold an owner id and
+    nothing else (e.g. the renter's calendar export). Separate from
+    getOwnerProfile so those callers don't pull a whole Owner across the wire,
+    but on the same tag — one row, one invalidation. */
+export async function getProfileName(id: string): Promise<string> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(ownerTag(id));
+
+  if (!UUID_RE.test(id)) return "";
+
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("name")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw new Error(`Failed to load profile name: ${error.message}`);
+  return data?.name ?? "";
 }

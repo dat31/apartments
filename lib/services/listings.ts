@@ -1,7 +1,10 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
-import { type Listing } from "@/schemas/listing";
+import { type Listing, type ListingCore } from "@/schemas/listing";
+import { PALETTE } from "@/lib/data/listings";
+import type { Tables, TablesInsert } from "@/lib/database.types";
 import {
   getDistrictTiles,
   getNewest,
@@ -9,16 +12,27 @@ import {
   SHOWCASE_SIZE,
   type DistrictTile,
 } from "@/app/[lang]/lib/landing";
-import { toListing } from "./listings-map";
+import { toListing, toListingWrite } from "./listings-map";
+import { ServiceError } from "./errors";
+import { requireUser } from "./session";
 
 /* ============================================================
-   Listings service — the single read path between Supabase and
-   the app's domain `Listing` type. Components never talk to the
-   DB directly; they call these functions and receive domain
-   objects, so the rest of the app stays unaware of column names,
-   enum casing, and FK ids.
+   Listings service — the single path between Supabase and the
+   app's domain `Listing` type. Components never talk to the DB
+   directly; they call these functions and receive domain objects,
+   so the rest of the app stays unaware of column names, enum
+   casing, and FK ids.
 
-   The pure row → domain mapping lives in ./listings-map so it can
+   Two halves, and the split is the cookie:
+
+   • Public reads (most of this file) — anon-readable active
+     listings through the cookieless client, inside "use cache"
+     boundaries tagged "listings".
+   • Owner reads and writes (bottom) — the dashboard's own drafts
+     and every mutation, through the cookie-bound client. Never
+     cached, and never trusting an owner id from the caller.
+
+   The pure row ↔ domain mapping lives in ./listings-map so it can
    also run in the browser (see hooks/use-saved-listings).
    ============================================================ */
 
@@ -47,6 +61,25 @@ async function fetchActiveListings(): Promise<Listing[]> {
 
   if (error) throw new Error(`Failed to load listings: ${error.message}`);
   return (data ?? []).map(toListing);
+}
+
+/** Active listings for a set of ids, in the order asked for, skipping any that
+    aren't active (or no longer exist).
+
+    Derived from getActiveListings rather than querying by id: that entry is
+    already cached and shared with browse and the landing sections, so this
+    costs no extra round trip. Deliberately *not* its own "use cache" boundary —
+    the ids would become part of the cache key, and one entry per combination of
+    recently-viewed or compared homes is a lot of entries for no benefit. */
+export async function getActiveListingsByIds(
+  ids: string[]
+): Promise<Listing[]> {
+  if (ids.length === 0) return [];
+
+  const byId = new Map((await getActiveListings()).map((l) => [l.id, l]));
+  return ids
+    .map((id) => byId.get(id))
+    .filter((listing): listing is Listing => Boolean(listing));
 }
 
 /* --- Landing showcase fetchers -------------------------------------------
@@ -271,4 +304,149 @@ export async function getListingDetail(id: string): Promise<{
   cacheTag("listings", `listing:${id}`);
 
   return { listing: await getListingById(id), now: Date.now() };
+}
+
+/* ============================================================
+   The signed-in owner's listings — the dashboard's read path and
+   every write.
+
+   Cookie-bound, so none of it is cached. The owner is always the
+   session's user, never an argument: there is no signature below
+   that lets a caller name whose listings to touch.
+
+   RLS (owner_id = auth.uid() on insert/update/delete) is the last
+   line, but each write also states the ownership it expects in
+   its own filter and checks that a row actually matched — so an
+   id belonging to someone else reads as "not-found" here rather
+   than as a silent no-op the UI reports as success.
+   ============================================================ */
+
+/** Every listing the caller owns, newest first — drafts included. */
+export async function listMyListings(): Promise<Listing[]> {
+  const user = await requireUser();
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("listings")
+    .select("*")
+    .eq("owner_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new ServiceError("failed", error.message);
+  return (data ?? []).map(toListing);
+}
+
+/** Create a listing owned by the caller. */
+export async function createListing(
+  core: ListingCore,
+  status: Listing["status"]
+): Promise<Listing> {
+  const user = await requireUser();
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("listings")
+    /* ListingCore guarantees the insert-required fields; toListingWrite widens
+       them to optional (it's shared with the update path), so cast. owner_id
+       comes from the session — the client never gets a say. */
+    .insert({
+      ...toListingWrite(core, status),
+      owner_id: user.id,
+      palette: Math.floor(Math.random() * PALETTE.length),
+    } as TablesInsert<"listings">)
+    .select("*")
+    .single();
+
+  if (error) {
+    console.error("[listings] insert failed", error);
+    throw new ServiceError("failed", error.message);
+  }
+  return toListing(data);
+}
+
+/** Overwrite the editable columns of a listing the caller owns. */
+export async function updateListing(
+  id: string,
+  core: ListingCore,
+  status: Listing["status"]
+): Promise<string> {
+  return writeOwnedListing(id, toListingWrite(core, status));
+}
+
+/** Flip a listing the caller owns between active and draft. */
+export async function setListingStatus(
+  id: string,
+  status: Listing["status"]
+): Promise<string> {
+  return writeOwnedListing(id, { status });
+}
+
+/** Delete a listing the caller owns. */
+export async function deleteListing(id: string): Promise<string> {
+  const user = await requireUser();
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("listings")
+    .delete()
+    .eq("id", id)
+    .eq("owner_id", user.id)
+    .select("id");
+
+  if (error) {
+    console.error("[listings] delete failed", error);
+    throw new ServiceError("failed", error.message);
+  }
+  if (!data?.length) throw new ServiceError("not-found");
+  return id;
+}
+
+/** What provisioning a listing's message thread needs to know: the owner to
+    open it with, and the fields denormalised onto the channel for its header
+    chip. A domain `Listing` would carry far more than Stream should hold. */
+export type ListingChatContext = Pick<
+  Tables<"listings">,
+  "id" | "title" | "owner_id" | "price" | "images"
+>;
+
+/** The listing behind a chat thread, or null when it isn't visible. */
+export async function getListingForChat(
+  id: string
+): Promise<ListingChatContext | null> {
+  await requireUser();
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("listings")
+    .select("id, title, owner_id, price, images")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw new ServiceError("failed", error.message);
+  return data ?? null;
+}
+
+/* The shared body of the two update paths: filter on the caller's ownership,
+   then require that a row came back. Returns the id so the action knows what
+   to invalidate. */
+async function writeOwnedListing(
+  id: string,
+  patch: ReturnType<typeof toListingWrite> | { status: Listing["status"] }
+): Promise<string> {
+  const user = await requireUser();
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("listings")
+    .update(patch)
+    .eq("id", id)
+    .eq("owner_id", user.id)
+    .select("id");
+
+  if (error) {
+    console.error("[listings] update failed", error);
+    throw new ServiceError("failed", error.message);
+  }
+  if (!data?.length) throw new ServiceError("not-found");
+  return id;
 }

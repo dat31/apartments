@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import {
+  fetchMySavedIds,
+  mergeGuestSavedAction,
+  setSavedAction,
+} from "@/lib/actions/saved-listings";
+import { unwrap } from "@/lib/actions/result";
 import { useUser } from "@/hooks/auth";
 import { useHydrated } from "@/hooks/use-hydrated";
 import {
@@ -61,13 +66,7 @@ export function useSaved() {
     enabled: !userPending,
     queryFn: async (): Promise<string[]> => {
       if (!userId) return readGuest();
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("saved_listings")
-        .select("listing_id")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data.map((r) => r.listing_id);
+      return unwrap(await fetchMySavedIds());
     },
   });
 
@@ -93,21 +92,8 @@ export function useSaved() {
         );
         return;
       }
-      const supabase = createClient();
-      if (next) {
-        const { error } = await supabase
-          .from("saved_listings")
-          .insert({ profile_id: userId, listing_id: id });
-        // 23505 = already saved (unique_violation) — treat as success.
-        if (error && error.code !== "23505") throw error;
-      } else {
-        const { error } = await supabase
-          .from("saved_listings")
-          .delete()
-          .eq("profile_id", userId)
-          .eq("listing_id", id);
-        if (error) throw error;
-      }
+      // Idempotent in both directions — see setSaved in the service.
+      unwrap(await setSavedAction(id, next));
     },
     // Flip the Heart immediately, roll back if the write fails.
     onMutate: async ({ id, next }) => {
@@ -123,8 +109,10 @@ export function useSaved() {
 
       if (!next) {
         // Removal: patch the Saved page's cached data in place — drop the card
-        // from any cached page it appears on and decrement the totals — so the
-        // list updates without a refetch (no flash / layout shift).
+        // from any cached page it appears on and decrement the totals. The new
+        // shortlist re-keys those queries (the ids are part of the key), and
+        // keepPreviousData falls back to these entries while the new key loads,
+        // so the card disappears instantly — no flash, no layout shift.
         queryClient.setQueriesData<SavedListingsPage>(
           { queryKey: savedListingsKeys.pages },
           (old) =>
@@ -151,12 +139,23 @@ export function useSaved() {
       queryClient.invalidateQueries({ queryKey: savedListingsKeys.facetsAll });
     },
     onSuccess: () => {
-      // Reconcile in the background once the write lands. The cache is already
-      // patched (instant removal) and both saved-listings queries keep previous
-      // data, so this refetch just backfills the freed page slot and refreshes
-      // the district facets — no skeleton, no flash, no lost card.
-      queryClient.invalidateQueries({ queryKey: savedListingsKeys.pages });
-      queryClient.invalidateQueries({ queryKey: savedListingsKeys.facetsAll });
+      // The new shortlist already re-keys the saved-listings queries, so the
+      // visible one is fetching on its own. What still needs handling is the
+      // entries we patched above: they're now inactive (keyed by the *old*
+      // shortlist) and hold hand-edited data, so mark them — and every other
+      // cached combination — invalidated. Toggling back re-keys onto one of
+      // them, and it refetches instead of serving the patched copy. No refetch
+      // here (refetchType "none") so we don't cancel and restart the fetch the
+      // re-key just started.
+      const refetchType = "none" as const;
+      queryClient.invalidateQueries({
+        queryKey: savedListingsKeys.pages,
+        refetchType,
+      });
+      queryClient.invalidateQueries({
+        queryKey: savedListingsKeys.facetsAll,
+        refetchType,
+      });
     },
   });
 
@@ -181,18 +180,11 @@ export function useSaved() {
       return;
     }
 
-    const supabase = createClient();
-    supabase
-      .from("saved_listings")
-      .upsert(
-        guestIds.map((listing_id) => ({ profile_id: userId, listing_id })),
-        { onConflict: "profile_id,listing_id", ignoreDuplicates: true }
-      )
-      .then(({ error }) => {
-        if (error) return; // keep the guest list so nothing is silently lost
-        writeGuest([]);
-        queryClient.invalidateQueries({ queryKey: savedKeys.list(userId) });
-      });
+    void mergeGuestSavedAction(guestIds).then((result) => {
+      if (!result.ok) return; // keep the guest list so nothing is silently lost
+      writeGuest([]);
+      queryClient.invalidateQueries({ queryKey: savedKeys.list(userId) });
+    });
   }, [userId, queryClient]);
 
   return {

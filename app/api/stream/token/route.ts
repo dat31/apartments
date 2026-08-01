@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import {
-  streamServer,
-  streamUserSeeds,
-  upsertStreamUsers,
-} from "@/lib/stream/server";
+import { streamServer, upsertStreamUsers } from "@/lib/stream/server";
+import { getProfileSeeds } from "@/lib/services/profiles";
+import { getSessionUser } from "@/lib/services/session";
 import { STREAM_TOKEN_TTL_SECONDS } from "@/lib/stream/channel";
 import { getPostHogClient } from "@/lib/posthog-server";
 
@@ -17,10 +14,7 @@ import { getPostHogClient } from "@/lib/posthog-server";
 const NO_STORE = { "Cache-Control": "private, no-store" } as const;
 
 export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
 
   if (!user) {
     return NextResponse.json(
@@ -29,7 +23,7 @@ export async function GET() {
     );
   }
 
-  const [seed] = await streamUserSeeds(supabase, [user.id]);
+  const [seed] = await getProfileSeeds([user.id]);
   // Mirror use-profile's fallback chain: the profiles row, then the signup
   // metadata, then the email local part — never an empty display name.
   const name =

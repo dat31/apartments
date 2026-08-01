@@ -1,81 +1,41 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
-import { toListing } from "@/lib/services/listings-map";
-import { DISTRICTS, districtLabel, TYPES } from "@/schemas/listing";
 import {
-  availCutoffISO,
-  type Filters,
-  type SortKey,
-} from "@/schemas/filters";
-import type { Database } from "@/lib/database.types";
+  fetchSavedFacets,
+  fetchSavedListingsPage,
+} from "@/lib/actions/saved-listings";
+import { unwrap } from "@/lib/actions/result";
+import { type Filters, type SortKey } from "@/schemas/filters";
 
 /* Backend pagination for the Saved page.
 
    Instead of pulling every saved listing into the browser and slicing on the
-   client, we translate the URL filter/sort into a Supabase query and ask the
-   DB for just one page (`.range`) plus an exact `count`. The saved shortlist
-   ids come from useSaved (DB rows for members, localStorage for guests) and
-   scope the query via `.in("id", …)`.
+   client, the URL's filter/sort is handed to the actions in
+   @/lib/actions/saved-listings, which ask the DB for just one page plus an
+   exact count. The saved shortlist ids come from useSaved (DB rows for
+   members, localStorage for guests) and scope the query — which is why they
+   travel as an argument rather than being derived server-side.
 
-   A second, tiny query (useSavedFacets) reads only the `district` column for
-   the whole saved set — it feeds the filter panel's district chips and the
-   header's total, which a single page of results can't provide. */
+   A second, tiny query (useSavedFacets) reads only the districts of the whole
+   saved set — it feeds the filter panel's chips and the header's total, which
+   a single page of results can't provide. */
 
-export const SAVED_PAGE_SIZE = 6;
-
-type TypeSlug = Database["public"]["Enums"]["listing_type"];
-type DistrictSlug = Database["public"]["Enums"]["district"];
-type AmenitySlug = Database["public"]["Enums"]["amenity"];
-
-/* Domain type label -> DB enum slug (reverse of listings-map's TYPE_LABELS). */
-const TYPE_SLUG: Record<string, TypeSlug> = {
-  Studio: "studio",
-  Apartment: "apartment",
-  Loft: "loft",
-  Townhouse: "townhouse",
-  House: "house",
-};
-
-/* Drop characters that would break a PostgREST filter expression. */
-const sanitize = (s: string) => s.replace(/[(),\\%]/g, " ").trim();
-
-/* OR clause for the free-text box. Matches the raw title/city columns and
-   expands district/type *labels* (what the user sees) back to their slugs, so
-   typing "Hải Châu" or "Apartment" still hits — mirroring the old client-side
-   `filterListings` q behaviour as closely as SQL allows.
-
-   district is a Postgres enum, which has no ilike operator (`district.ilike`
-   errors with 42883 and fails the whole query), so district matching goes
-   only through the label->slug expansion below, never a raw ilike. */
-function textOr(q: string): string | null {
-  const term = sanitize(q);
-  if (!term) return null;
-  const like = `%${term}%`;
-  const lower = term.toLowerCase();
-  const conds = [
-    `title.ilike.${like}`,
-    `city.ilike.${like}`,
-  ];
-  const districtSlugs = DISTRICTS.filter((d) =>
-    districtLabel(d).toLowerCase().includes(lower)
-  );
-  if (districtSlugs.length)
-    conds.push(`district.in.(${districtSlugs.join(",")})`);
-  const typeSlugs = TYPES.filter((t) => t.toLowerCase().includes(lower)).map(
-    (t) => TYPE_SLUG[t]
-  );
-  if (typeSlugs.length) conds.push(`type.in.(${typeSlugs.join(",")})`);
-  return conds.join(",");
-}
+/* Re-exported so the pager and list keep their existing import site. */
+export { SAVED_PAGE_SIZE } from "@/schemas/filters";
 
 export {
   savedListingsKeys,
+  savedSignature,
   type SavedListingsPage,
   type SavedFacets,
 } from "./saved-listings-keys";
-import { savedListingsKeys, type SavedListingsPage, type SavedFacets } from "./saved-listings-keys";
+import {
+  savedListingsKeys,
+  savedSignature,
+  type SavedListingsPage,
+  type SavedFacets,
+} from "./saved-listings-keys";
 
 /** One filtered, sorted, paginated page of the user's saved listings, plus the
     total matching count so the pager knows how many pages there are. */
@@ -95,66 +55,28 @@ export function useSavedListingsPage({
   enabled?: boolean;
 }) {
   return useQuery({
-    queryKey: savedListingsKeys.page(scope, filters, sort, page),
+    queryKey: savedListingsKeys.page(
+      scope,
+      savedSignature(saved),
+      filters,
+      sort,
+      page
+    ),
     enabled,
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<SavedListingsPage> => {
       if (saved.length === 0) return { listings: [], total: 0 };
-      const supabase = createClient();
-
-      let query = supabase
-        .from("listings")
-        .select("*", { count: "exact" })
-        .eq("status", "active")
-        .in("id", saved);
-
-      const or = textOr(filters.q);
-      if (or) query = query.or(or);
-      if (filters.type !== "All" && TYPE_SLUG[filters.type])
-        query = query.eq("type", TYPE_SLUG[filters.type]);
-      if (filters.district !== "All")
-        query = query.eq("district", filters.district as DistrictSlug);
-      if (filters.minPrice) query = query.gte("price", Number(filters.minPrice));
-      if (filters.maxPrice) query = query.lte("price", Number(filters.maxPrice));
-      if (filters.beds !== "Any") {
-        if (filters.beds === "Studio") query = query.eq("beds", 0);
-        else if (filters.beds === "3+") query = query.gte("beds", 3);
-        else query = query.eq("beds", Number(filters.beds));
-      }
-      if (filters.minArea) query = query.gte("area", Number(filters.minArea));
-      // Mirrors filterListings' availability window: null available_from
-      // means "available now" and passes every horizon.
-      if (filters.avail !== "any")
-        query = query.or(
-          `available_from.is.null,available_from.lte.${availCutoffISO(filters.avail)}`
-        );
-      if (filters.amenities.length)
-        query = query.contains("amenities", filters.amenities as AmenitySlug[]);
-
-      if (sort === "low") query = query.order("price", { ascending: true });
-      else if (sort === "high")
-        query = query.order("price", { ascending: false });
-      else if (sort === "area")
-        query = query.order("area", { ascending: false, nullsFirst: false });
-      else if (sort === "newest")
-        query = query.order("created_at", { ascending: false });
-      else query = query.order("created_at", { ascending: true });
-
-      const from = (page - 1) * SAVED_PAGE_SIZE;
-      const { data, error, count } = await query.range(
-        from,
-        from + SAVED_PAGE_SIZE - 1
+      return unwrap(
+        await fetchSavedListingsPage({ saved, filters, sort, page })
       );
-      if (error) throw error;
-      return { listings: (data ?? []).map(toListing), total: count ?? 0 };
     },
   });
 }
 
 /** Districts present in the saved set (for the filter chips) and the total
     number of saved active listings (for the header / empty state). Keyed by
-    scope only — independent of filters/sort/page — so it's fetched once and
-    then patched in place by useSaved on toggle. */
+    scope + the saved-id signature only — independent of filters/sort/page — so
+    it's fetched once per shortlist and reused across every filter change. */
 export function useSavedFacets({
   scope,
   saved,
@@ -165,22 +87,12 @@ export function useSavedFacets({
   enabled?: boolean;
 }) {
   return useQuery({
-    queryKey: savedListingsKeys.facets(scope),
+    queryKey: savedListingsKeys.facets(scope, savedSignature(saved)),
     enabled,
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<SavedFacets> => {
       if (saved.length === 0) return { districts: [], total: 0 };
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("listings")
-        .select("district")
-        .eq("status", "active")
-        .in("id", saved);
-      if (error) throw error;
-      const districts = [...new Set(data.map((r) => r.district))].sort((a, b) =>
-        districtLabel(a).localeCompare(districtLabel(b))
-      );
-      return { districts, total: data.length };
+      return unwrap(await fetchSavedFacets(saved));
     },
   });
 }

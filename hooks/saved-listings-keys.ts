@@ -9,20 +9,35 @@ import type { Filters, SortKey } from "@/schemas/filters";
 export type SavedListingsPage = { listings: Listing[]; total: number };
 export type SavedFacets = { districts: string[]; total: number };
 
-/* Keys are scoped per user ("guest" for anon) + filters/sort/page — deliberately
-   NOT by the saved-id set. That way toggling a save doesn't re-key the query and
-   trigger a refetch; instead useSaved patches the cached data in place (drop the
-   card, decrement totals), so removing a saved home updates the list without a
-   flash or layout shift. The saved ids still scope the DB query via a closure. */
+/** Stable signature of the saved-id set. Sorted, so a shortlist that comes back
+    in a different order (it's ordered by created_at) doesn't re-key — only a
+    genuine add/remove does. */
+export const savedSignature = (saved: string[]) => [...saved].sort().join(",");
+
+/* Keys are scoped per user ("guest" for anon) + the saved-id signature +
+   filters/sort/page. The signature has to be in the key: the ids are a queryFn
+   *input* (they scope the DB query via `.in("id", …)`), so without it the cached
+   page can outlive the shortlist it was built from — the shortlist refetching in
+   the background, the guest->member merge, or another tab would all leave the
+   list rendering results for an id set the user no longer has, with nothing to
+   trigger a correction. Keying on it means the key and the closure always move
+   together.
+
+   Toggling a save therefore re-keys, but it doesn't flash: both queries use
+   keepPreviousData, and useSaved patches the outgoing entry in place (drop the
+   card, decrement totals) so the previous data it falls back to is already
+   correct while the new key loads. */
 export const savedListingsKeys = {
   /** Prefixes for cache-patching every cached page / facets entry at once. */
   pages: ["saved-listings", "page"] as const,
   facetsAll: ["saved-listings", "facets"] as const,
   page: (
     scope: string,
+    savedSig: string,
     filters: Filters,
     sort: SortKey,
     page: number
-  ) => ["saved-listings", "page", scope, filters, sort, page] as const,
-  facets: (scope: string) => ["saved-listings", "facets", scope] as const,
+  ) => ["saved-listings", "page", scope, savedSig, filters, sort, page] as const,
+  facets: (scope: string, savedSig: string) =>
+    ["saved-listings", "facets", scope, savedSig] as const,
 };

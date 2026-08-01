@@ -179,7 +179,7 @@ export function BookTourDialog({
     const values = booking.getValues();
     try {
       await bookTour.mutateAsync({
-        listing,
+        listingId: listing.id,
         date: values.date,
         time: values.time,
         moveIn: values.moveIn || undefined,
@@ -192,7 +192,7 @@ export function BookTourDialog({
       posthog.captureException(e instanceof Error ? e : new Error(String(e)));
       // Unique-index race: a live tour for this home already exists. Surface it
       // softly and close — the detail-page CTA refetches into the guard state.
-      if ((e as { code?: string })?.code === "23505") {
+      if ((e as { code?: string })?.code === "conflict") {
         toast(t("alreadyToast"));
         onClose();
         return;

@@ -2,16 +2,20 @@
 
 import { useCallback, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import {
+  fetchAvailability,
+  replaceMyWeekAction,
+  toggleMySlotAction,
+} from "@/lib/actions/availability";
+import { unwrap } from "@/lib/actions/result";
 import { useUser } from "@/hooks/auth";
-import { toWeekTemplate, toAvailabilityRows } from "@/lib/services/availability-map";
 import { type WeekTemplate } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 
-/* Owner tour-availability, backed by the Supabase `owner_availability` table
-   (one row per available weekday/time slot). Reads are public — a renter needs
-   to see a listing owner's slots to book — so `useAvailability(ownerId)` works
-   for any owner. Writes are the signed-in owner's own, exposed by
-   `useMyAvailability()` with optimistic toggles. */
+/* Owner tour-availability (one row per available weekday/time slot). Reads are
+   public — a renter needs to see a listing owner's slots to book — so
+   `useAvailability(ownerId)` works for any owner. Writes are the signed-in
+   owner's own, exposed by `useMyAvailability()` with optimistic toggles; the
+   actions decide whose week is being edited, not this hook. */
 
 export const availabilityKeys = {
   owner: (ownerId: string | undefined) =>
@@ -23,15 +27,8 @@ export function useAvailability(ownerId: string | undefined) {
   const query = useQuery({
     queryKey: availabilityKeys.owner(ownerId),
     enabled: !!ownerId,
-    queryFn: async (): Promise<WeekTemplate> => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("owner_availability")
-        .select("*")
-        .eq("owner_id", ownerId!);
-      if (error) throw error;
-      return toWeekTemplate(data);
-    },
+    queryFn: async (): Promise<WeekTemplate> =>
+      unwrap(await fetchAvailability(ownerId!)),
   });
 
   const template = query.data ?? {};
@@ -62,17 +59,7 @@ export function useMyAvailability() {
       time: string;
       active: boolean;
     }) => {
-      if (!ownerId) throw new Error("Not signed in");
-      const supabase = createClient();
-      const { error } = active
-        ? await supabase
-            .from("owner_availability")
-            .delete()
-            .match({ owner_id: ownerId, weekday, time })
-        : await supabase
-            .from("owner_availability")
-            .insert({ owner_id: ownerId, weekday, time });
-      if (error) throw error;
+      unwrap(await toggleMySlotAction({ weekday, time, active }));
     },
     onMutate: async ({ weekday, time, active }) => {
       await queryClient.cancelQueries({ queryKey: key });
@@ -93,19 +80,7 @@ export function useMyAvailability() {
   /* Replace the whole week (used by the presets). */
   const replaceMutation = useMutation({
     mutationFn: async (next: WeekTemplate) => {
-      if (!ownerId) throw new Error("Not signed in");
-      const supabase = createClient();
-      // Atomic delete-all + insert in one transaction (see the
-      // replace_owner_availability migration). A plain client-side
-      // delete-then-insert could wipe the owner's whole week if the insert
-      // failed after the delete committed.
-      const slots = toAvailabilityRows(ownerId, next).map(
-        ({ weekday, time }) => ({ weekday, time })
-      );
-      const { error } = await supabase.rpc("replace_owner_availability", {
-        slots,
-      });
-      if (error) throw error;
+      unwrap(await replaceMyWeekAction(next));
     },
     onMutate: async (next) => {
       await queryClient.cancelQueries({ queryKey: key });

@@ -1,23 +1,24 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { fetchMyReview } from "@/lib/actions/reviews";
+import { unwrap } from "@/lib/actions/result";
 import { useUser } from "@/hooks/auth";
+import { type MyReview } from "@/lib/services/reviews";
 
 /* The signed-in viewer's own review of one owner, if they've written one.
 
    A renter has at most one review per owner (`reviews_owner_author_uniq`), so
    this is the row the "Edit your review" button opens for editing and the
-   modal pre-fills from. Read straight from the browser client — `reviews` is
-   anon-readable (RLS `reviews_select_public`), and reading your own row needs
-   nothing more than that.
+   modal pre-fills from. The action resolves "whose review?" from the session,
+   so no author id crosses the wire.
 
-   It can't come from the server region: the owner page's reads run through the
-   cookieless public client inside a "use cache" boundary, so they know nothing
-   about who's looking. Same reason <WriteReviewButton> resolves "is this me?"
-   on the client. */
+   It can't come from the owner page's server region: those reads run through
+   the cookieless public client inside a "use cache" boundary, so they know
+   nothing about who's looking. Same reason <WriteReviewButton> resolves
+   "is this me?" on the client. */
 
-export type MyReview = { id: string; rating: number; text: string };
+export type { MyReview };
 
 /* Keyed per user so a sign-in / sign-out swaps to a separate cache entry
    rather than showing the previous account's review. */
@@ -34,16 +35,7 @@ export function useMyReview(ownerId: string | null) {
   return useQuery({
     queryKey: myReviewKeys.one(ownerId, userId),
     enabled: !!ownerId && !!userId,
-    queryFn: async (): Promise<MyReview | null> => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("reviews")
-        .select("id, rating, text")
-        .eq("owner_id", ownerId!)
-        .eq("author_id", userId!)
-        .maybeSingle();
-      if (error) throw error;
-      return data ?? null;
-    },
+    queryFn: async (): Promise<MyReview | null> =>
+      unwrap(await fetchMyReview(ownerId!)),
   });
 }
