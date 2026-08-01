@@ -1,13 +1,14 @@
 "use server";
 
 import { createHash } from "node:crypto";
-import { createClient } from "@/lib/supabase/server";
 import {
   listingChip,
   streamServer,
-  streamUserSeeds,
   upsertStreamUsers,
 } from "@/lib/stream/server";
+import { getProfileSeeds } from "@/lib/services/profiles";
+import { getListingForChat } from "@/lib/services/listings";
+import { getSessionUser } from "@/lib/services/session";
 import { CHANNEL_TYPE } from "@/lib/stream/channel";
 
 /* ============================================================
@@ -35,18 +36,11 @@ const listingChannelId = (listingId: string, renterId: string) =>
 export async function ensureListingChannel(
   listingId: string
 ): Promise<ListingChatResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthenticated" };
 
-  const { data: listing, error } = await supabase
-    .from("listings")
-    .select("id, title, owner_id, price, images")
-    .eq("id", listingId)
-    .maybeSingle();
-  if (error || !listing) return { ok: false, error: "not-found" };
+  const listing = await getListingForChat(listingId).catch(() => null);
+  if (!listing) return { ok: false, error: "not-found" };
 
   // An owner messaging themselves has no second party; the button is hidden
   // on their own listing, and this is the server-side backstop.
@@ -55,7 +49,7 @@ export async function ensureListingChannel(
   const channelId = listingChannelId(listing.id, user.id);
 
   try {
-    const seeds = await streamUserSeeds(supabase, [user.id, listing.owner_id]);
+    const seeds = await getProfileSeeds([user.id, listing.owner_id]);
     await upsertStreamUsers(seeds);
 
     const chip = listingChip(listing);

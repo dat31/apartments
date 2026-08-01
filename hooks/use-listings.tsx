@@ -2,24 +2,27 @@
 
 import { useCallback, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
-import { revalidateListings } from "@/lib/actions/listings";
+import {
+  createListingAction,
+  deleteListingAction,
+  fetchMyListings,
+  setListingStatusAction,
+  updateListingAction,
+} from "@/lib/actions/listings";
+import { unwrap } from "@/lib/actions/result";
 import { useUser } from "@/hooks/auth";
-import { toListing, toListingWrite } from "@/lib/services/listings-map";
-import { PALETTE } from "@/lib/data/listings";
 import { type Listing, type ListingCore } from "@/schemas/listing";
-import type { TablesInsert } from "@/lib/database.types";
 
-/* The signed-in owner's listings, backed by the Supabase `listings` table and
-   react-query. Replaces the old in-memory seed store — the dashboard, the
-   create/edit form, and the listing rows all read and write real rows scoped
-   to owner_id (RLS lets an owner see their own drafts alongside active homes,
-   and insert/update/delete only their own).
+/* The signed-in owner's listings — the dashboard, the create/edit form, and
+   the listing rows. Every query and mutation goes through the actions in
+   @/lib/actions/listings, which re-check the session and the caller's
+   ownership before touching a row; RLS is the backstop, not the only guard.
 
-   Writes invalidate the react-query cache so the dashboard reflects
-   immediately, and call the revalidateListings server action to expire the
-   "listings"-tagged server cache (getActiveListings & co.), so public
-   browse/detail pages pick up the change on their next request too. */
+   react-query still owns the client-side cache and the optimistic flips
+   below. What changed is only where the write happens: the actions expire the
+   "listings"-tagged server cache themselves once a write succeeds, so public
+   browse/detail pages pick up the change on their next request without this
+   hook having to ask. */
 
 export const listingKeys = {
   mine: (userId: string | undefined) => ["listings", "mine", userId ?? "guest"] as const,
@@ -36,14 +39,7 @@ export function useListings() {
     enabled: !userPending,
     queryFn: async (): Promise<Listing[]> => {
       if (!userId) return [];
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("listings")
-        .select("*")
-        .eq("owner_id", userId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data.map(toListing);
+      return unwrap(await fetchMyListings());
     },
   });
 
@@ -54,12 +50,12 @@ export function useListings() {
     [listings]
   );
 
-  const invalidate = useCallback(() => {
-    // Fire-and-forget: the owner's own view is served by react-query; the
-    // server cache only affects what other visitors see next.
-    void revalidateListings();
-    return queryClient.invalidateQueries({ queryKey: key });
-  }, [queryClient, key]);
+  // The owner's own view is served by react-query; the server cache is the
+  // action's responsibility, expired as part of the write itself.
+  const invalidate = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: key }),
+    [queryClient, key]
+  );
 
   const addMutation = useMutation({
     mutationFn: async ({
@@ -68,23 +64,7 @@ export function useListings() {
     }: {
       core: ListingCore;
       status: Listing["status"];
-    }): Promise<Listing> => {
-      if (!userId) throw new Error("Not signed in");
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("listings")
-        // ListingCore guarantees the insert-required fields; toListingWrite
-        // widens them to optional (it's shared with the update path), so cast.
-        .insert({
-          ...toListingWrite(core, status),
-          owner_id: userId,
-          palette: Math.floor(Math.random() * PALETTE.length),
-        } as TablesInsert<"listings">)
-        .select("*")
-        .single();
-      if (error) throw error;
-      return toListing(data);
-    },
+    }): Promise<Listing> => unwrap(await createListingAction(core, status)),
     onSuccess: invalidate,
   });
 
@@ -98,12 +78,7 @@ export function useListings() {
       core: ListingCore;
       status: Listing["status"];
     }) => {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("listings")
-        .update(toListingWrite(core, status))
-        .eq("id", id);
-      if (error) throw error;
+      unwrap(await updateListingAction(id, core, status));
     },
     onSuccess: invalidate,
   });
@@ -111,12 +86,7 @@ export function useListings() {
   /* Flip active ⇄ draft, optimistically. */
   const toggleMutation = useMutation({
     mutationFn: async ({ id, next }: { id: string; next: Listing["status"] }) => {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("listings")
-        .update({ status: next })
-        .eq("id", id);
-      if (error) throw error;
+      unwrap(await setListingStatusAction(id, next));
     },
     onMutate: async ({ id, next }) => {
       await queryClient.cancelQueries({ queryKey: key });
@@ -134,9 +104,7 @@ export function useListings() {
 
   const removeMutation = useMutation({
     mutationFn: async (id: string) => {
-      const supabase = createClient();
-      const { error } = await supabase.from("listings").delete().eq("id", id);
-      if (error) throw error;
+      unwrap(await deleteListingAction(id));
     },
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: key });

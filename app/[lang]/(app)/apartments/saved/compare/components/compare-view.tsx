@@ -12,8 +12,8 @@ import { AMENITY_ICONS } from "@/components/icons";
 import { AMENITIES } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { useSaved } from "@/hooks/use-saved";
-import { createClient } from "@/lib/supabase/client";
-import { toListing } from "@/lib/services/listings-map";
+import { fetchListingsByIds } from "@/lib/actions/listings";
+import { unwrap } from "@/lib/actions/result";
 import { coordsOf, formatDistance, kmBetween, type LatLng } from "@/lib/geo";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { cn } from "@/lib/utils";
@@ -47,16 +47,8 @@ function useCompareListings(ids: string[]) {
     queryKey: ["compare-listings", ids.join(",")],
     enabled: ids.length >= 2,
     placeholderData: keepPreviousData,
-    queryFn: async (): Promise<Listing[]> => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("listings")
-        .select("*")
-        .eq("status", "active")
-        .in("id", ids);
-      if (error) throw error;
-      return (data ?? []).map(toListing);
-    },
+    queryFn: async (): Promise<Listing[]> =>
+      unwrap(await fetchListingsByIds(ids)),
   });
 }
 

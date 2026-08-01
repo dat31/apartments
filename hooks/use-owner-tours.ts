@@ -2,30 +2,27 @@
 
 import { useCallback, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import {
+  acceptTourAction,
+  declineTourAction,
+  fetchTours,
+  proposeTourTimeAction,
+} from "@/lib/actions/tours";
+import { unwrap } from "@/lib/actions/result";
 import { useUser } from "@/hooks/auth";
-import { toTourRequest } from "@/lib/services/tours-map";
-import { toListing } from "@/lib/services/listings-map";
-import { type Listing } from "@/schemas/listing";
+import { type TourWithListing } from "@/lib/services/tours";
 import { type TourRequest } from "@/schemas/tour";
 import { tourKeys } from "@/hooks/use-my-tours";
-import type { Tables, TablesUpdate } from "@/lib/database.types";
 
-/* The tours an owner has received, sourced from the Supabase `tours` table
-   with the related listing joined in for the card. Mirrors use-my-tours but
-   scoped to owner_id so the dashboard only shows requests addressed to the
-   signed-in owner (RLS already limits `tours` to rows where the caller is the
-   renter or the owner; we additionally scope by owner_id so the dashboard
-   never shows a tour the same account made as a renter).
+/* The tours an owner has received, with the related listing joined in for the
+   card. Mirrors use-my-tours but asks for the "owner" scope, so the dashboard
+   never shows a tour the same account made as a renter.
 
    Writes (accept, decline, propose a new slot) are optimistic — the card
-   updates instantly and rolls back if the update fails. */
+   updates instantly and rolls back if the action fails. Accept and propose are
+   owner-only; the service enforces that, not this hook. */
 
-type TourWithListing = Tables<"tours"> & {
-  listing: Tables<"listings"> | null;
-};
-
-export type OwnerTour = { tour: TourRequest; listing: Listing | null };
+export type OwnerTour = TourWithListing;
 
 export const ownerTourKeys = {
   received: (userId: string | undefined) =>
@@ -42,17 +39,7 @@ export function useOwnerTours() {
     enabled: !userPending,
     queryFn: async (): Promise<OwnerTour[]> => {
       if (!userId) return [];
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("tours")
-        .select("*, listing:listings(*)")
-        .eq("owner_id", userId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data as TourWithListing[]).map((row) => ({
-        tour: toTourRequest(row),
-        listing: row.listing ? toListing(row.listing) : null,
-      }));
+      return unwrap(await fetchTours("owner"));
     },
   });
 
@@ -72,15 +59,22 @@ export function useOwnerTours() {
   const updateMutation = useMutation({
     mutationFn: async ({
       id,
-      values,
+      intent,
+      slot,
     }: {
       id: string;
-      values: TablesUpdate<"tours">;
+      intent: "accept" | "decline" | "propose";
+      /** Only for "propose" — the alternative the owner is offering. */
+      slot?: { date: string; time: string };
       optimistic: Partial<TourRequest>;
     }) => {
-      const supabase = createClient();
-      const { error } = await supabase.from("tours").update(values).eq("id", id);
-      if (error) throw error;
+      unwrap(
+        await (intent === "accept"
+          ? acceptTourAction(id)
+          : intent === "decline"
+            ? declineTourAction(id)
+            : proposeTourTimeAction(id, slot!.date, slot!.time))
+      );
     },
     onMutate: async ({ id, optimistic }) => {
       const key = ownerTourKeys.received(userId);
@@ -107,7 +101,7 @@ export function useOwnerTours() {
     (id: string) => {
       updateMutation.mutate({
         id,
-        values: { status: "confirmed" },
+        intent: "accept",
         optimistic: { status: "confirmed" },
       });
     },
@@ -121,7 +115,7 @@ export function useOwnerTours() {
     (id: string) => {
       updateMutation.mutate({
         id,
-        values: { status: "declined" },
+        intent: "decline",
         optimistic: { status: "declined" },
       });
     },
@@ -133,11 +127,8 @@ export function useOwnerTours() {
     (id: string, date: string, time: string) => {
       updateMutation.mutate({
         id,
-        values: {
-          status: "reschedule",
-          proposed_date: date,
-          proposed_time: time,
-        },
+        intent: "propose",
+        slot: { date, time },
         optimistic: {
           status: "reschedule",
           proposedDate: date,

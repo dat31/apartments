@@ -7,8 +7,8 @@ import Image from "next/image";
 import { MapPin } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-import { createClient } from "@/lib/supabase/client";
-import { toListing } from "@/lib/services/listings-map";
+import { fetchListingsByIds } from "@/lib/actions/listings";
+import { unwrap } from "@/lib/actions/result";
 import { PALETTE } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
@@ -61,25 +61,11 @@ export function RecentlyViewed({ excludeId }: { excludeId?: string }) {
   const query = useQuery({
     queryKey: ["recently-viewed", uuidIds],
     enabled: uuidIds.length > 0,
-    queryFn: async (): Promise<Listing[]> => {
-      // Active-only, so removed/inactive listings drop out too.
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("listings")
-        .select("*")
-        .eq("status", "active")
-        .in("id", uuidIds);
-      if (error) throw error;
-      const live = (data ?? []).map(toListing);
-
-      // Re-order to match the recency buffer (`.in` doesn't preserve order)
-      // and drop ids with no matching listing.
-      const byId = new Map<string, Listing>();
-      for (const l of live) byId.set(l.id, l);
-      return uuidIds
-        .map((id) => byId.get(id))
-        .filter((l): l is Listing => !!l);
-    },
+    /* Active-only, so removed/inactive listings drop out, and ordered by the
+       recency buffer rather than by whatever the database returned — which is
+       the whole point of this row. Both are the service's contract. */
+    queryFn: async (): Promise<Listing[]> =>
+      unwrap(await fetchListingsByIds(uuidIds)),
   });
 
   // clearRecentlyViewed notifies the store, which re-renders this to null.

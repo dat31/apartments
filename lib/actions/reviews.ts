@@ -1,88 +1,53 @@
 "use server";
 
 import { updateTag } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
-import { ReviewInputSchema, type ReviewInput } from "@/schemas/review";
-import { ownerUuidOf, reviewsTag } from "@/lib/services/reviews";
+import { ReviewInputSchema, type Review, type ReviewInput } from "@/schemas/review";
+import {
+  getMyReview,
+  getReviewsPage,
+  reviewsTag,
+  submitReview,
+  type MyReview,
+} from "@/lib/services/reviews";
+import { toResult, type ActionResult } from "./result";
 
 /* ============================================================
-   Leave-a-review write path.
+   Review entry points.
 
    Server Actions are public HTTP endpoints, so every rule the UI
-   enforces is re-checked here: the payload is re-validated, the
-   writer must be signed in, and nobody reviews themselves. RLS
-   (`reviews_insert_author` / `reviews_update_author`) is the last
-   line — it only accepts a row whose author_id is the caller.
-
-   One review per renter per owner: the write is an upsert on
-   (owner_id, author_id), which the `reviews_owner_author_uniq`
-   index both enforces and resolves. Posting again edits what you
-   already wrote instead of stacking a second row onto the
-   owner's count and average.
+   enforces is re-checked below the line: the payload is
+   re-validated here, and the service requires a session, refuses
+   a self-review, and writes only a row whose author is the
+   caller.
    ============================================================ */
 
-export type SubmitReviewResult =
-  | { ok: true }
-  | {
-      ok: false;
-      error:
-        | "unauthenticated"
-        | "invalid"
-        | "not-found"
-        | "own-profile"
-        | "duplicate"
-        | "failed";
-    };
+/** The caller's own review of an owner, if they have written one. */
+export async function fetchMyReview(
+  ownerId: string
+): Promise<ActionResult<MyReview | null>> {
+  return toResult(() => getMyReview(ownerId));
+}
 
-export async function submitReview(
+/** One page of an owner's reviews. Public — reads through the cached path. */
+export async function fetchReviewsPage(
+  ownerId: string,
+  page: number
+): Promise<ActionResult<Review[]>> {
+  return toResult(() => getReviewsPage(ownerId, page));
+}
+
+export type SubmitReviewResult = ActionResult;
+
+export async function submitReviewAction(
   input: ReviewInput
 ): Promise<SubmitReviewResult> {
   const parsed = ReviewInputSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
-  const { ownerId, rating, text } = parsed.data;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "unauthenticated" };
+  const result = await toResult(() => submitReview(parsed.data));
+  if (!result.ok) return result;
 
-  const uuid = ownerUuidOf(ownerId);
-  if (!uuid) return { ok: false, error: "not-found" };
-
-  // The button is hidden on your own profile; this is the backstop.
-  if (uuid === user.id) return { ok: false, error: "own-profile" };
-
-  // reviews.owner_id is FK-constrained to profiles, but a missing profile
-  // should read as "no such owner" rather than a generic write failure.
-  const { data: owner } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("id", uuid)
-    .maybeSingle();
-  if (!owner) return { ok: false, error: "not-found" };
-
-  /* No listing_id in the payload, even though ReviewInputSchema carries one:
-     on the conflict-update branch PostgREST only writes the columns it was
-     given, so sending an explicit null would wipe a stored reference. Same
-     reason created_at is absent — an edited review keeps its original date,
-     which is the month the card shows. */
-  const { error } = await supabase.from("reviews").upsert(
-    {
-      owner_id: uuid,
-      author_id: user.id,
-      rating,
-      text,
-    },
-    { onConflict: "owner_id,author_id" }
-  );
-  if (error) {
-    console.error("[reviews] upsert failed", error);
-    // Unreachable while this is an upsert, but 23505 has one honest meaning.
-    if (error.code === "23505") return { ok: false, error: "duplicate" };
-    return { ok: false, error: "failed" };
-  }
-
-  updateTag(reviewsTag(uuid));
-  return { ok: true };
+  // Count, average and cards share one tag, so they can never disagree.
+  updateTag(reviewsTag(result.data));
+  return { ok: true, data: undefined };
 }

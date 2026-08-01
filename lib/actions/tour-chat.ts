@@ -1,20 +1,19 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import {
   listingChip,
   streamServer,
-  streamUserSeeds,
   upsertStreamUsers,
 } from "@/lib/stream/server";
+import { getProfileSeeds } from "@/lib/services/profiles";
+import { getTourForChat } from "@/lib/services/tours";
+import { getSessionUser } from "@/lib/services/session";
 import {
   CHANNEL_TYPE,
   isThreadClosed,
   tourChannelId,
 } from "@/lib/stream/channel";
-import { toTourRequest } from "@/lib/services/tours-map";
 import { tourSlot } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
-import type { Tables } from "@/lib/database.types";
 
 /* ============================================================
    Tour thread provisioning.
@@ -32,52 +31,34 @@ export type TourChatResult =
   | { ok: true; channelId: string; closed: boolean }
   | { ok: false; error: "unauthenticated" | "not-found" | "unavailable" };
 
-type TourWithListing = Tables<"tours"> & {
-  listing: Pick<Tables<"listings">, "id" | "title" | "price" | "images"> | null;
-};
-
 export async function ensureTourChannel(tourId: string): Promise<TourChatResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthenticated" };
 
-  // RLS limits `tours` to the renter and the owner, so a foreign id simply
-  // returns nothing — no extra ownership check needed here.
-  const { data, error } = await supabase
-    .from("tours")
-    .select("*, listing:listings(id, title, price, images)")
-    .eq("id", tourId)
-    .maybeSingle();
-  if (error || !data) return { ok: false, error: "not-found" };
+  const context = await getTourForChat(tourId).catch(() => null);
+  if (!context) return { ok: false, error: "not-found" };
 
-  const row = data as TourWithListing;
-  // Legacy rows booked before accounts existed have no renter_id; without two
-  // real members there is nobody to open a thread between.
-  if (!row.renter_id) return { ok: false, error: "not-found" };
-
-  const tour = toTourRequest(row);
+  const { tour, renterId, ownerId, listingId, listing } = context;
   const slot = tourSlot(tour);
   const closed = isThreadClosed(tour);
-  const channelId = tourChannelId(row.id);
+  const channelId = tourChannelId(tour.id);
 
   try {
-    const seeds = await streamUserSeeds(supabase, [row.renter_id, row.owner_id]);
+    const seeds = await getProfileSeeds([renterId, ownerId]);
     await upsertStreamUsers(seeds);
 
     const channel = streamServer().channel(CHANNEL_TYPE, channelId, {
-      members: [row.renter_id, row.owner_id],
-      created_by_id: row.renter_id,
-      tour_id: row.id,
-      listing_id: row.listing_id,
-      ...listingChip(row.listing),
+      members: [renterId, ownerId],
+      created_by_id: renterId,
+      tour_id: tour.id,
+      listing_id: listingId,
+      ...listingChip(listing),
       tour_date: slot.date,
       tour_time: slot.time,
     });
     await channel.create();
 
-    await seedBookingNote(channel, channelId, row.note, row.renter_id);
+    await seedBookingNote(channel, channelId, tour.note, renterId);
 
     /* Channel data set at creation is not re-applied to an existing channel,
        so drift (a rescheduled slot, an expired grace period) is reconciled
@@ -88,7 +69,7 @@ export async function ensureTourChannel(tourId: string): Promise<TourChatResult>
       frozen: closed,
       tour_date: slot.date,
       tour_time: slot.time,
-      ...listingChip(row.listing),
+      ...listingChip(listing),
     };
     const drift = Object.fromEntries(
       Object.entries(desired).filter(

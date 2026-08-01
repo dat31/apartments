@@ -3,16 +3,21 @@
 import { useCallback, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocale } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
+import {
+  createSavedSearchAction,
+  deleteSavedSearchAction,
+  fetchMySavedSearches,
+  setSavedSearchAlertsAction,
+} from "@/lib/actions/saved-searches";
+import { unwrap } from "@/lib/actions/result";
 import { useUser } from "@/hooks/auth";
 import {
   SAVED_SEARCH_MAX,
   type SavedSearch,
 } from "@/schemas/saved-search";
-import type { Tables } from "@/lib/database.types";
 
-/* The signed-in renter's saved searches, backed by the Supabase
-   `saved_searches` table and react-query. No guest mode: alerts need an email
+/* The signed-in renter's saved searches, read and written through the actions
+   in @/lib/actions/saved-searches. No guest mode: alerts need an email
    address, so saving is honestly gated on sign-in (see the improvement doc).
    Alert/delete mutations are optimistic — the strip is the only consumer, and
    a failed write rolls the card back. */
@@ -21,16 +26,6 @@ export const savedSearchKeys = {
   list: (userId: string | undefined) =>
     ["saved-searches", userId ?? "guest"] as const,
 };
-
-function toSavedSearch(row: Tables<"saved_searches">): SavedSearch {
-  return {
-    id: row.id,
-    name: row.name,
-    queryString: row.query_string,
-    alerts: row.alerts,
-    createdAt: row.created_at,
-  };
-}
 
 export function useSavedSearches() {
   const queryClient = useQueryClient();
@@ -44,13 +39,7 @@ export function useSavedSearches() {
     enabled: !userPending,
     queryFn: async (): Promise<SavedSearch[]> => {
       if (!userId) return [];
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("saved_searches")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data.map(toSavedSearch);
+      return unwrap(await fetchMySavedSearches());
     },
   });
 
@@ -66,29 +55,22 @@ export function useSavedSearches() {
       queryString: string;
       alerts: boolean;
     }) => {
-      if (!userId) throw new Error("Not signed in");
-      const supabase = createClient();
-      const { error } = await supabase.from("saved_searches").insert({
-        profile_id: userId,
-        name,
-        query_string: queryString,
-        alerts,
-        // Alert emails are sent in the language the search was saved in.
-        locale,
-      });
-      if (error) throw error;
+      // Alert emails go out in the language the search was saved in.
+      unwrap(
+        await createSavedSearchAction({
+          name,
+          queryString,
+          alerts,
+          locale: locale as "vi" | "en",
+        })
+      );
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
   });
 
   const toggleMutation = useMutation({
     mutationFn: async ({ id, next }: { id: string; next: boolean }) => {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("saved_searches")
-        .update({ alerts: next })
-        .eq("id", id);
-      if (error) throw error;
+      unwrap(await setSavedSearchAlertsAction(id, next));
     },
     onMutate: async ({ id, next }) => {
       await queryClient.cancelQueries({ queryKey: key });
@@ -106,12 +88,7 @@ export function useSavedSearches() {
 
   const removeMutation = useMutation({
     mutationFn: async (id: string) => {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("saved_searches")
-        .delete()
-        .eq("id", id);
-      if (error) throw error;
+      unwrap(await deleteSavedSearchAction(id));
     },
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: key });

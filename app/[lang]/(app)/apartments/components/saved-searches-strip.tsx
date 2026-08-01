@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { Bell } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { toListing } from "@/lib/services/listings-map";
+import { fetchActiveListings } from "@/lib/actions/listings";
+import { unwrap } from "@/lib/actions/result";
 import { type Listing } from "@/schemas/listing";
 import { SAVED_SEARCH_MAX } from "@/schemas/saved-search";
 import { parseFilters } from "../lib/query";
@@ -38,15 +38,9 @@ export function SavedSearchesStrip() {
   const listingsQuery = useQuery({
     queryKey: ["active-listings"],
     enabled: searches.length > 0,
-    queryFn: async (): Promise<Listing[]> => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("listings")
-        .select("*")
-        .eq("status", "active");
-      if (error) throw error;
-      return (data ?? []).map(toListing);
-    },
+    // Shares getActiveListings' server cache entry with browse and the landing
+    // sections, so the strip's match counts cost no extra query.
+    queryFn: async (): Promise<Listing[]> => unwrap(await fetchActiveListings()),
   });
 
   if (searches.length === 0) return null;

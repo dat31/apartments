@@ -21,6 +21,18 @@ export const savedSearchSchema = z.object({
 });
 export type SavedSearch = z.infer<typeof savedSearchSchema>;
 
+/* What a client may send to save a search — the shape the action re-validates.
+   `locale` decides which language the alert emails go out in, so it is pinned
+   to the app's locales rather than taken as free text. The owner is absent:
+   a saved search belongs to the session that created it. */
+export const saveSearchInputSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  queryString: z.string().max(2000),
+  alerts: z.boolean(),
+  locale: z.enum(["vi", "en"]),
+});
+export type SaveSearchInput = z.infer<typeof saveSearchInputSchema>;
+
 /* Save-dialog form — the name field only; alerts is a toggle, not an input.
    Built from a translator (validation namespace) like the other form schemas. */
 export const createSaveSearchSchema = (t: (key: string) => string) =>

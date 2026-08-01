@@ -1,63 +1,28 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
-import { useUser } from "@/hooks/auth";
+import { bookTourAction } from "@/lib/actions/tours";
+import { unwrap } from "@/lib/actions/result";
 import { tourKeys } from "@/hooks/use-my-tours";
 import { ensureTourChannel } from "@/lib/actions/tour-chat";
-import { type Listing } from "@/schemas/listing";
+import { type BookTourInput } from "@/schemas/tour";
 
-/* Creates a tour request in the Supabase `tours` table for the signed-in
-   renter. RLS requires the row's renter_id to equal the caller (auth.uid()),
-   so booking is only possible once the visitor has a real session — the
-   book-tour dialog gates the confirm step on useUser for exactly this.
+/* Creates a tour request for the signed-in renter, through the booking action.
 
-   owner_id below is best-effort only: the DB derives it authoritatively from
-   the listing via the set_tour_owner_id trigger (migration
-   20260718120000_tour_owner_id_integrity), so a tampered value can't misdirect
-   the tour to another owner. */
+   Neither the renter nor the owner is in the payload: the renter is the
+   session, and the DB derives owner_id from the listing via the
+   set_tour_owner_id trigger (migration 20260718120000_tour_owner_id_integrity).
+   The book-tour dialog still gates its confirm step on useUser, but that is
+   now UI, not the guard — bookTour() re-checks the session server-side. */
 
-export type BookTourInput = {
-  listing: Listing;
-  date: string; // YYYY-MM-DD
-  time: string; // HH:mm
-  moveIn?: string;
-  people?: string;
-  note?: string;
-  renterName: string;
-  renterEmail: string;
-};
+export type { BookTourInput };
 
 export function useBookTour() {
   const queryClient = useQueryClient();
-  const { data: user } = useUser();
 
   return useMutation({
-    mutationFn: async (input: BookTourInput) => {
-      const userId = user?.id;
-      if (!userId) throw new Error("Not signed in");
-
-      const supabase = createClient();
-
-      const { data, error } = await supabase
-        .from("tours")
-        .insert({
-          listing_id: input.listing.id,
-          owner_id: input.listing.owner,
-          renter_id: userId,
-          renter_name: input.renterName,
-          renter_email: input.renterEmail,
-          date: input.date,
-          time: input.time,
-          move_in: input.moveIn || null,
-          people: input.people || null,
-          note: input.note ?? "",
-        })
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: async (input: BookTourInput) =>
+      unwrap(await bookTourAction(input)),
     onSuccess: (tour) => {
       // Refresh the my-tours list and the per-listing active-tour guard.
       queryClient.invalidateQueries({ queryKey: tourKeys.all });
@@ -70,10 +35,10 @@ export function useBookTour() {
       if (tour.note) void ensureTourChannel(tour.id).catch(() => {});
     },
     onError: (error) => {
-      // 23505 = the one-active-tour-per-home unique index fired (a race the
-      // client guard didn't catch). Refresh so the active-tour guard surfaces
-      // the tour that already exists.
-      if ((error as { code?: string })?.code === "23505") {
+      // "conflict" = the one-active-tour-per-home unique index fired (a race
+      // the client guard didn't catch; the service maps Postgres 23505 onto
+      // it). Refresh so the active-tour guard surfaces the existing tour.
+      if ((error as { code?: string })?.code === "conflict") {
         queryClient.invalidateQueries({ queryKey: tourKeys.all });
       }
     },
