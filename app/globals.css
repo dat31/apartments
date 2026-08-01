@@ -450,3 +450,160 @@ textarea::placeholder {
     opacity: 0.8;
   }
 }
+
+/* ============================================================
+   360° virtual tour (Tham quan 360°)
+
+   Every control here sits on top of a photograph rather than on a page
+   surface, so it is dark translucent glass in both themes — the tour shell
+   scopes itself to `.dark` so the booking components it reuses from the
+   detail page land on that glass in their dark palette.
+   ============================================================ */
+.tour-shell {
+  background: oklch(0.16 0.008 152);
+  color: #fff;
+}
+
+.tour-glass {
+  background: oklch(0.16 0.008 152 / 0.55);
+  backdrop-filter: blur(10px);
+  color: #fff;
+}
+.tour-glass-btn {
+  transition: background-color 0.18s ease;
+}
+.tour-glass-btn:hover {
+  background: oklch(0.16 0.008 152 / 0.82);
+}
+/* The room you are standing in, and any toggle that is on. */
+.tour-chip-active {
+  background: #fff !important;
+  color: oklch(0.2 0.01 152) !important;
+}
+/* The room rail scrolls, but a scrollbar across the photography would read
+   as part of the room. */
+.tour-rail {
+  scrollbar-width: none;
+}
+.tour-rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* Keeps the chrome legible over a bright window or a white wall, and hides
+   the hard edge of the canvas. */
+.pano-vignette,
+.pano-dim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.pano-vignette {
+  background: linear-gradient(
+    to bottom,
+    oklch(0.15 0.01 152 / 0.5) 0%,
+    transparent 20%,
+    transparent 58%,
+    oklch(0.15 0.01 152 / 0.66) 100%
+  );
+}
+/* While a point of interest is open, the room steps back so the host's note
+   is the thing being read. */
+.pano-dim {
+  background: oklch(0.15 0.01 152 / 0.34);
+}
+
+.pano-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 15px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.pano-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 22%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  max-width: 22rem;
+  padding: 11px 17px;
+  text-align: center;
+  pointer-events: none;
+  animation: panoHint 2.8s ease-in-out infinite;
+}
+@keyframes panoHint {
+  0%,
+  100% {
+    transform: translateX(-50%);
+  }
+  50% {
+    transform: translateX(calc(-50% + 7px));
+  }
+}
+.pano-ctl {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+/* ---- markers ----
+   Round for the same reason map pins are: they sit on a photograph, not in
+   the layout, and a square badge painted over a doorway reads as part of the
+   room rather than as a control. Hence the !important radius overrides. */
+.tour-door-ring {
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border-radius: 50% !important;
+  background: oklch(1 0 0 / 0.88);
+  color: oklch(0.2 0.01 152);
+  transition: transform 0.2s cubic-bezier(0.22, 0.61, 0.36, 1),
+    background-color 0.2s ease;
+}
+.tour-door:hover .tour-door-ring,
+.tour-door:focus-visible .tour-door-ring {
+  transform: scale(1.1);
+  background: #fff;
+}
+.tour-poi-dot {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50% !important;
+  background: oklch(0.16 0.008 152 / 0.55);
+  backdrop-filter: blur(4px);
+  /* Outline, not a border: the ring has to survive the flat system's
+     border reset and read against a light wall. */
+  outline: 2px solid oklch(1 0 0 / 0.85);
+  outline-offset: -2px;
+  transition: transform 0.2s cubic-bezier(0.22, 0.61, 0.36, 1),
+    background-color 0.2s ease, color 0.2s ease;
+}
+.tour-poi:hover .tour-poi-dot,
+.tour-poi:focus-visible .tour-poi-dot {
+  transform: scale(1.1);
+}
+.tour-poi[aria-expanded="true"] .tour-poi-dot {
+  background: #fff;
+  color: oklch(0.2 0.01 152);
+}
+.tour-marker-label {
+  padding: 3px 9px;
+  background: oklch(0.16 0.008 152 / 0.6);
+  backdrop-filter: blur(6px);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pano-hint {
+    animation: none !important;
+  }
+}

@@ -76,6 +76,9 @@ export function toListing(row: ListingRow): Listing {
     lat: row.lat ?? undefined,
     lng: row.lng ?? undefined,
     costs: toCosts(row),
+    // Trigger-owned, like `views` and `palette` — read here, never written by
+    // toListingWrite below.
+    hasVirtualTour: row.has_virtual_tour,
   };
 }
 

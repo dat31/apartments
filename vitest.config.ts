@@ -48,6 +48,11 @@ export default defineConfig({
         "lib/posthog-server.ts",
         "lib/geocode.ts",
         "lib/og.tsx",
+        // The three.js panorama engine: WebGL contexts, textures and an
+        // animation frame. Its pure half already lives in lib/virtual-tour
+        // (math + scene-graph), which is unit-tested; what is left needs a
+        // GPU, so the e2e suite covers it instead.
+        "app/**/virtual-tour/lib/engine.ts",
       ],
       // Set just below the suite's actual numbers: high enough that dropping
       // a module's tests fails CI, loose enough not to fail on one new branch.

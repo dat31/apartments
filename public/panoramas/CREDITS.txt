@@ -1,0 +1,13 @@
+Demo panoramas — CC0 (public domain), from Poly Haven (https://polyhaven.com).
+
+Tonemapped JPG versions of the source HDRIs, downscaled to 4096x2048 with a
+512x256 preview beside each one (see docs/plans/virtual-home-tour.md §5).
+
+  living-room.jpg  Lythwood Lounge          https://polyhaven.com/a/lythwood_lounge
+  kitchen.jpg      Kiara Interior           https://polyhaven.com/a/kiara_interior
+  bedroom.jpg      Relax Inn Seaview Suite  https://polyhaven.com/a/relax_inn_seaview_suite
+  bathroom.jpg     Bathroom                 https://polyhaven.com/a/bathroom
+  balcony.jpg      Cayley Interior          https://polyhaven.com/a/cayley_interior
+
+These stand in for owner-captured 360s until the panorama pipeline in phase 3
+of the plan exists. They are demo content, not real Danapa listings.

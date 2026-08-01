@@ -15,7 +15,9 @@ import { AvailabilityLabel } from "./availability-label";
 import { NotOwner } from "./viewer-is-owner";
 import { CostsSection } from "./costs-section";
 import { MoveInEstimate } from "./move-in-estimate";
-import { Bath, BedDouble, MapPin, Maximize } from "lucide-react";
+import { Bath, BedDouble, MapPin, Maximize, Rotate3d } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 import { AMENITY_ICONS } from "@/components/icons";
 import { PALETTE, AMENITIES } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
@@ -25,7 +27,13 @@ import { districtLabel, type Listing } from "@/schemas/listing";
 export function DetailView({ listing }: { listing: Listing }) {
   const t = useTranslations("detail");
   const ta = useTranslations("apartments");
+  const tv = useTranslations("virtualTour");
   const money = useMoney();
+  /* A column the row already carries (maintained by a trigger on
+     listing_virtual_tours), so asking costs no extra read here. */
+  const tourHref = listing.hasVirtualTour
+    ? `/apartments/${listing.id}/virtual-tour`
+    : undefined;
   const colors = PALETTE[listing.palette];
   const coords = coordsOf(listing);
   const ams = AMENITIES.filter((a) => listing.amenities.includes(a.id));
@@ -41,8 +49,13 @@ export function DetailView({ listing }: { listing: Listing }) {
       {/* Records this listing in the recently-viewed history (renders nothing). */}
       <RecordRecentlyViewed id={listing.id} />
 
-      {/* Gallery */}
-      <Gallery images={listing.images} colors={colors} label={listing.title} />
+      {/* Gallery — carries the 360° entry when this home has a tour */}
+      <Gallery
+        images={listing.images}
+        colors={colors}
+        label={listing.title}
+        tourHref={tourHref}
+      />
 
       <div className="mt-8 grid lg:grid-cols-[1fr_340px] gap-10">
         {/* Main */}
@@ -171,6 +184,17 @@ export function DetailView({ listing }: { listing: Listing }) {
             </p>
             <MoveInEstimate listing={listing} variant="compact" className="mt-4" />
             <div className="mt-5 flex flex-col gap-2.5">
+              {/* Above "Book a tour" on purpose: the virtual tour is the step
+                  a renter takes to decide whether the real one is worth it.
+                  Outside <NotOwner> — a host looking at their own listing has
+                  as much reason to check the tour as anyone. */}
+              {tourHref && (
+                <Button asChild variant="secondary" className="h-11 gap-2">
+                  <Link href={tourHref}>
+                    <Rotate3d size={18} /> {tv("entryCtaLong")}
+                  </Link>
+                </Button>
+              )}
               <NotOwner ownerId={listing.owner}>
                 <BookTourButton listing={listing} mode="full" />
               </NotOwner>
