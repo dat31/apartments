@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { notFound } from "next/navigation";
 import { toast } from "sonner";
 import { useRouter } from "@/i18n/navigation";
@@ -47,6 +47,8 @@ import {
   formToCore,
   type ListingFormValues,
 } from "@/schemas/listing";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { routing, localeNames, type Locale } from "@/i18n/routing";
 import { ArrowLeft, Clock } from "lucide-react";
 import posthog from "posthog-js";
 
@@ -67,6 +69,10 @@ export function ListingForm({
   listingId?: string;
 }) {
   const t = useTranslations("listingForm");
+  /* Language *names* inside a sentence read in the reader's own language
+     ("bản Tiếng Anh"), unlike the tab labels below, which are endonyms — the
+     same split the language switcher already makes. */
+  const tc = useTranslations("common");
   const tt = useTranslations("apartments");
   const tv = useTranslations("validation");
   const listingFormSchema = React.useMemo(
@@ -79,9 +85,15 @@ export function ListingForm({
 
   const existing = isEdit && listingId ? getById(listingId) : undefined;
 
+  /* A new listing's base language is the one the owner is authoring in; an
+     existing one keeps whatever it was written in, so editing from /en never
+     relabels a Vietnamese listing as English. */
+  const uiLocale = useLocale() as Locale;
   const form = useForm<ListingFormValues>({
     resolver: zodResolver(listingFormSchema),
-    defaultValues: existing ? listingToForm(existing) : blankListingForm,
+    defaultValues: existing
+      ? listingToForm(existing)
+      : { ...blankListingForm, baseLocale: uiLocale },
   });
   const {
     register,
@@ -90,6 +102,12 @@ export function ListingForm({
     handleSubmit,
     formState: { errors },
   } = form;
+
+  /* Which language tab is open. Seeded from the listing when it is already in
+     cache; the hydration effect below corrects it when it arrives late. */
+  const [tab, setTab] = React.useState<string>(() =>
+    existing ? listingToForm(existing).baseLocale : uiLocale
+  );
 
   // Resolve "today" after mount so the date input's min matches the clock
   // without risking an SSR/hydration mismatch.
@@ -106,7 +124,11 @@ export function ListingForm({
   React.useEffect(() => {
     if (isEdit && existing && !hydrated.current) {
       hydrated.current = true;
-      form.reset(listingToForm(existing));
+      const values = listingToForm(existing);
+      form.reset(values);
+      // The listing's own base language, which the create-mode default (the
+      // dashboard's locale) may have guessed differently.
+      setTab(values.baseLocale);
     }
   }, [isEdit, existing, form]);
 
@@ -124,6 +146,8 @@ export function ListingForm({
     amenities,
     costs,
     price,
+    baseLocale,
+    i18n,
   ] = useWatch({
     control,
     name: [
@@ -138,8 +162,25 @@ export function ListingForm({
       "amenities",
       "costs",
       "price",
+      "baseLocale",
+      "i18n",
     ],
   });
+
+  /* Base language first, then the rest in routing order — the original is
+     what an owner edits most, and the tab strip should not reorder itself
+     depending on which language the dashboard happens to be in. */
+  const orderedLocales = React.useMemo(
+    () => [baseLocale, ...routing.locales.filter((l) => l !== baseLocale)],
+    [baseLocale]
+  );
+  // Which non-base tabs have any copy — drives the "not translated" hint.
+  const translated = Object.fromEntries(
+    routing.locales.map((l) => [
+      l,
+      !!(i18n?.[l]?.title.trim() || i18n?.[l]?.desc.trim()),
+    ])
+  ) as Record<Locale, boolean>;
 
   // Keep the listing's own district selectable even if it predates the list.
   const districtOptions =
@@ -171,6 +212,13 @@ export function ListingForm({
 
   const setField = (name: keyof ListingFormValues, value: string | string[]) =>
     setValue(name, value as never, { shouldValidate: true, shouldDirty: true });
+
+  /* Only the base copy is ever required, and its field lives on one tab — so
+     a title error raised while the owner is on a translation tab would render
+     out of sight. Bring them back to where the problem is. */
+  const showCopyErrors = (invalid: { title?: unknown }) => {
+    if (invalid.title) setTab(baseLocale);
+  };
 
   // Editing a listing that isn't in the owner's set: wait for the load, then
   // 404 if it's genuinely absent (or not theirs).
@@ -216,20 +264,92 @@ export function ListingForm({
           />
         </section>
 
+        {/* Title & description, one tab per language the app serves */}
+        <section className="bg-card p-6">
+          <h2 className="font-semibold mb-1">{t("copy")}</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            {t("copyHint", { language: tc(`languages.${baseLocale}`) })}
+          </p>
+
+          <Tabs value={tab} onValueChange={setTab}>
+            <TabsList className="w-full">
+              {orderedLocales.map((locale) => (
+                <TabsTrigger key={locale} value={locale}>
+                  {localeNames[locale]}
+                  {locale === baseLocale && (
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {t("original")}
+                    </span>
+                  )}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {orderedLocales.map((locale) => {
+              const isBase = locale === baseLocale;
+              /* The base tab edits the listing's own columns; every other tab
+                 edits its entry in the translations map. Same two inputs
+                 either way, so the owner never has to learn that the two are
+                 stored differently. */
+              const titleField = isBase ? "title" : (`i18n.${locale}.title` as const);
+              const descField = isBase ? "desc" : (`i18n.${locale}.desc` as const);
+
+              return (
+                <TabsContent
+                  key={locale}
+                  value={locale}
+                  className="flex flex-col gap-5 pt-2"
+                >
+                  {!isBase && !translated[locale] && (
+                    <p className="text-sm text-muted-foreground">
+                      {t("notTranslated", {
+                        language: tc(`languages.${baseLocale}`),
+                      })}
+                    </p>
+                  )}
+
+                  <Field data-invalid={isBase && !!errors.title}>
+                    <FieldLabel htmlFor={`title-${locale}`}>
+                      {t("title")}
+                    </FieldLabel>
+                    <Input
+                      id={`title-${locale}`}
+                      placeholder={t("titlePlaceholder")}
+                      aria-invalid={isBase && !!errors.title}
+                      {...register(titleField)}
+                    />
+                    {isBase && (
+                      <FieldError
+                        errors={errors.title ? [errors.title] : undefined}
+                      />
+                    )}
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor={`desc-${locale}`}>
+                      {t("description")}
+                    </FieldLabel>
+                    <Textarea
+                      id={`desc-${locale}`}
+                      rows={4}
+                      placeholder={t("descriptionPlaceholder")}
+                      {...register(descField)}
+                    />
+                    {!isBase && (
+                      <FieldDescription>
+                        {t("translationOptional")}
+                      </FieldDescription>
+                    )}
+                  </Field>
+                </TabsContent>
+              );
+            })}
+          </Tabs>
+        </section>
+
         {/* Basics */}
         <section className="bg-card p-6 flex flex-col gap-5">
           <h2 className="font-semibold">{t("basics")}</h2>
-
-          <Field data-invalid={!!errors.title}>
-            <FieldLabel htmlFor="title">{t("title")}</FieldLabel>
-            <Input
-              id="title"
-              placeholder={t("titlePlaceholder")}
-              aria-invalid={!!errors.title}
-              {...register("title")}
-            />
-            <FieldError errors={errors.title ? [errors.title] : undefined} />
-          </Field>
 
           <div className="grid sm:grid-cols-2 gap-5">
             <Field>
@@ -367,15 +487,6 @@ export function ListingForm({
             <FieldDescription>{t("availableHint")}</FieldDescription>
           </Field>
 
-          <Field>
-            <FieldLabel htmlFor="desc">{t("description")}</FieldLabel>
-            <Textarea
-              id="desc"
-              rows={4}
-              placeholder={t("descriptionPlaceholder")}
-              {...register("desc")}
-            />
-          </Field>
         </section>
 
         {/* Location pin */}
@@ -429,7 +540,7 @@ export function ListingForm({
                 type="button"
                 className="w-full justify-center"
                 disabled={saving}
-                onClick={handleSubmit((v) => save(v, "active"))}
+                onClick={handleSubmit((v) => save(v, "active"), showCopyErrors)}
               >
                 {isEdit ? t("publish.saveChanges") : t("publish.publish")}
               </Button>
@@ -439,7 +550,7 @@ export function ListingForm({
                   variant="secondary"
                   className="w-full justify-center"
                   disabled={saving}
-                  onClick={handleSubmit((v) => save(v, "draft"))}
+                  onClick={handleSubmit((v) => save(v, "draft"), showCopyErrors)}
                 >
                   {t("publish.saveDraft")}
                 </Button>

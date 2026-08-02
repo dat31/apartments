@@ -3,7 +3,11 @@
     "appName": "Danapa",
     "signIn": "Đăng nhập",
     "home": "Trang chủ",
-    "toggleTheme": "Đổi giao diện"
+    "toggleTheme": "Đổi giao diện",
+    "languages": {
+      "vi": "Tiếng Việt",
+      "en": "Tiếng Anh"
+    }
   },
   "meta": {
     "titleTemplate": "%s — Danapa",
@@ -388,6 +392,7 @@
     "you": "Bạn",
     "viewProfile": "Xem hồ sơ",
     "aboutTitle": "Giới thiệu về nơi này",
+    "shownInOriginal": "Đang hiển thị bằng {language} — chủ nhà chưa viết bản mô tả bằng ngôn ngữ bạn đang xem.",
     "includedTitle": "Tiện nghi đi kèm",
     "perMonth": "/ tháng",
     "perMonthShort": "/tháng",
@@ -566,6 +571,11 @@
     "saveError": "Không thể lưu tin đăng. Vui lòng thử lại.",
     "photos": "Hình ảnh",
     "photosHint": "Tải lên hình ảnh chỗ ở của bạn. Kéo để sắp xếp lại — ảnh đầu tiên được dùng làm ảnh bìa.",
+    "copy": "Tiêu đề & mô tả",
+    "copyHint": "Bản {language} là bản gốc của tin này. Bạn có thể thêm ngôn ngữ khác ở các tab bên cạnh — để trống thì người thuê vẫn thấy bản gốc.",
+    "original": "(bản gốc)",
+    "notTranslated": "Chưa dịch — người thuê đang thấy bản {language}.",
+    "translationOptional": "Không bắt buộc. Để trống thì phần này vẫn hiện bản gốc.",
     "basics": "Thông tin cơ bản",
     "title": "Tiêu đề",
     "titlePlaceholder": "vd. Căn studio đầy nắng gần Mỹ Khê",

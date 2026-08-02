@@ -1,5 +1,6 @@
-import type { Tables, TablesUpdate } from "@/lib/database.types";
+import type { Tables, TablesInsert, TablesUpdate } from "@/lib/database.types";
 import {
+  DEFAULT_BASE_LOCALE,
   District,
   type Listing,
   type ListingCore,
@@ -18,7 +19,13 @@ import { hasAnyCost } from "@/lib/listing-costs";
    inside the "use cache" boundaries its callers sit in anyway. */
 
 type ListingRow = Tables<"listings">;
-type TranslationRow = Tables<"listing_translations">;
+
+/* Only the three columns that carry meaning — so a freshly written row (which
+   has no server-assigned timestamps yet) is as good an input as a read one. */
+type TranslationRow = Pick<
+  Tables<"listing_translations">,
+  "locale" | "title" | "description"
+>;
 
 /* A listings row read with its translations embedded:
    `.select("*, listing_translations(*)")`. Optional so the narrower selects
@@ -165,5 +172,42 @@ export function toListingWrite(
     util_building: core.costs?.util.building ?? null,
     util_building_amount: core.costs?.amt.building ?? null,
     min_lease_months: core.costs?.minLease ?? null,
+    /* Omitted rather than defaulted when the caller doesn't name one: the
+       column already has a default for inserts, and on update writing a
+       guess would relabel copy the owner didn't touch. */
+    ...(core.baseLocale ? { base_locale: core.baseLocale } : {}),
   };
+}
+
+/* A row on its way in. Both text columns are always stated — explicitly null
+   when blank — so the same value can be handed to toListing without a re-read
+   after the write. */
+export type TranslationWrite = TablesInsert<"listing_translations"> &
+  TranslationRow;
+
+/** The `listing_translations` rows a `ListingCore` asks for — the complete
+    desired state of a listing's non-base copy, which is what lets the service
+    treat a locale that isn't here as one the owner cleared.
+
+    Two things are dropped rather than written:
+
+    - the base locale, whose copy lives in `listings.title`/`description`. A
+      row for it would be a second, divergent source of truth for the same
+      text.
+    - entries blank in both fields, which the table's `not_empty` constraint
+      rejects — the check exists to catch exactly this, and we never want to
+      be the one who trips it. */
+export function toTranslationRows(
+  listingId: string,
+  core: ListingCore
+): TranslationWrite[] {
+  const rows: TranslationWrite[] = [];
+  for (const [locale, text] of Object.entries(core.i18n ?? {})) {
+    if (locale === (core.baseLocale ?? DEFAULT_BASE_LOCALE)) continue;
+    const title = text?.title?.trim() ? text.title : null;
+    const description = text?.desc?.trim() ? text.desc : null;
+    if (!title && !description) continue;
+    rows.push({ listing_id: listingId, locale, title, description });
+  }
+  return rows;
 }

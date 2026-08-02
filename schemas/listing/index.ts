@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { routing } from "@/i18n/routing";
 
 /* ============================================================
    Listing domain schemas + types.
@@ -98,6 +99,12 @@ export type ListingText = z.infer<typeof ListingTextSchema>;
     objects, and any row predating the column. Mirrors the `base_locale`
     column default in 20260802120000_listing_translations.sql. */
 export const DEFAULT_BASE_LOCALE = "vi";
+
+/** The locales this deploy serves, straight from i18n/routing.ts — so adding
+    one there is all it takes for the form to offer it and the save actions to
+    accept it. Reads stay on plain strings (see `Listing.i18n`); only writes
+    are held to this list. */
+export const LocaleSchema = z.enum(routing.locales);
 
 export const ListingSchema = z.object({
   id: z.string(),
@@ -209,6 +216,19 @@ export const ListingCoreSchema = ListingSchema.pick({
   lat: true,
   lng: true,
   costs: true,
+}).extend({
+  /* The two multilingual fields are typed harder here than on `Listing`.
+     A listing *read* from the database may carry any locale — a row written
+     when the app served a third language must still parse — but a listing
+     *written* by a client may only carry the locales this deploy serves. A
+     save action is a public HTTP endpoint, and `z.record(z.string(), …)`
+     would accept an unbounded map, which is an unbounded insert.
+
+     Both stay optional: a `ListingCore` built before these existed (and every
+     fixture) is still valid, and an absent `baseLocale` leaves the column at
+     its default rather than relabelling the copy as Vietnamese. */
+  baseLocale: LocaleSchema.optional(),
+  i18n: z.partialRecord(LocaleSchema, ListingTextSchema).optional(),
 });
 export type ListingCore = z.infer<typeof ListingCoreSchema>;
 
@@ -247,8 +267,20 @@ export const blankCostsForm: CostsFormValues = {
   minLease: "",
 };
 
+/* Per-locale copy while editing. Unlike the domain's `ListingText`, both
+   fields are always present as strings — a controlled input has no "absent",
+   only "". formToCore is what turns "" back into absent. */
+const translationFormSchema = z.object({
+  title: z.string(),
+  desc: z.string(),
+});
+
 export const createListingFormSchema = (t: (key: string) => string) =>
   z.object({
+    /* The base tab's copy, and the language it is written in. Only this
+       title is required: requirement 3 of improvement #14 is that an owner
+       is never made to write twice before they can publish. */
+    baseLocale: LocaleSchema,
     title: z.string().trim().min(1, t("listing.title")),
     type: z.string().min(1),
     price: z.string().refine((v) => Number(v) > 0, t("listing.price")),
@@ -264,13 +296,29 @@ export const createListingFormSchema = (t: (key: string) => string) =>
     lat: z.number().nullable(),
     lng: z.number().nullable(),
     costs: costsFormSchema,
+    /* One entry per locale the app serves, including the base one — whose
+       entry is simply never read (the base tab edits `title`/`desc` above,
+       and toTranslationRows drops it). Keeping the map complete means the
+       form never has to ask whether a tab exists yet. */
+    i18n: z.record(LocaleSchema, translationFormSchema),
   });
 
 export type ListingFormValues = z.infer<
   ReturnType<typeof createListingFormSchema>
 >;
 
+/** An empty tab for every configured locale. Adding one to i18n/routing.ts
+    grows the form by itself — no edit here, which is the whole point of
+    keying on `routing.locales` rather than naming languages. */
+export const blankTranslationForms = (): ListingFormValues["i18n"] =>
+  Object.fromEntries(
+    routing.locales.map((l) => [l, { title: "", desc: "" }])
+  ) as ListingFormValues["i18n"];
+
 export const blankListingForm: ListingFormValues = {
+  // Overridden with the locale the owner is authoring in (see listing-form).
+  baseLocale: routing.defaultLocale,
+  i18n: blankTranslationForms(),
   title: "",
   type: "Apartment",
   price: "",
@@ -347,9 +395,26 @@ export function costsToForm(costs: Listing["costs"]): CostsFormValues {
   };
 }
 
-/* Populate the form from an existing listing (edit mode). */
+/* Populate the form from an existing listing (edit mode).
+
+   `title`/`desc` are the *base* copy — the language named by `baseLocale` —
+   never a resolved translation. The action that feeds this deliberately skips
+   localization for exactly that reason: prefilling with the English of a
+   Vietnamese listing would overwrite the original on the next save. */
 export function listingToForm(l: Listing): ListingFormValues {
+  const i18n = blankTranslationForms();
+  for (const locale of routing.locales) {
+    const t = l.i18n?.[locale];
+    if (t) i18n[locale] = { title: t.title ?? "", desc: t.desc ?? "" };
+  }
+
   return {
+    baseLocale: (routing.locales as readonly string[]).includes(
+      l.baseLocale ?? ""
+    )
+      ? (l.baseLocale as ListingFormValues["baseLocale"])
+      : DEFAULT_BASE_LOCALE,
+    i18n,
     title: l.title,
     type: l.type,
     price: String(l.price),
@@ -369,7 +434,29 @@ export function listingToForm(l: Listing): ListingFormValues {
 
 /* Convert validated form values into the listing core the store stores. */
 export function formToCore(v: ListingFormValues): ListingCore {
+  /* Blank tabs are dropped, not saved as empty strings: "" means "not
+     translated" everywhere else (localizeListing falls back on it, the
+     mapping drops it, and the table's not-empty constraint rejects a row
+     that is blank in both fields). Clearing a tab is therefore how an owner
+     deletes a translation — the service removes the row for a locale that
+     doesn't come back. The base locale's tab is never read; that copy lives
+     in `title`/`desc`. */
+  const i18n: Record<string, ListingText> = {};
+  for (const [locale, text] of Object.entries(v.i18n)) {
+    if (locale === v.baseLocale) continue;
+    const entry: ListingText = {};
+    if (text.title.trim()) entry.title = text.title.trim();
+    if (text.desc.trim()) entry.desc = text.desc;
+    if (entry.title || entry.desc) i18n[locale] = entry;
+  }
+
+  /* Always present, even when empty: the core a save action receives is the
+     complete desired state of the listing's copy, so an empty map is a
+     meaningful instruction ("this listing has no translations") rather than
+     a missing field the service would have to guess about. */
   return {
+    baseLocale: v.baseLocale,
+    i18n,
     title: v.title.trim(),
     type: v.type,
     price: Number(v.price),

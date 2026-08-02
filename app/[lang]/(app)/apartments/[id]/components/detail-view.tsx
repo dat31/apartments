@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Gallery } from "./gallery";
 import { LocationMapLazy } from "./location-map-lazy";
@@ -22,10 +22,12 @@ import { AMENITY_ICONS } from "@/components/icons";
 import { PALETTE, AMENITIES } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { coordsOf } from "@/lib/geo";
-import { districtLabel, type Listing } from "@/schemas/listing";
+import { districtLabel, type LocalizedListing } from "@/schemas/listing";
 
-export function DetailView({ listing }: { listing: Listing }) {
+export function DetailView({ listing }: { listing: LocalizedListing }) {
   const t = useTranslations("detail");
+  const tc = useTranslations("common");
+  const locale = useLocale();
   const ta = useTranslations("apartments");
   const tv = useTranslations("virtualTour");
   const money = useMoney();
@@ -120,6 +122,16 @@ export function DetailView({ listing }: { listing: Listing }) {
             <p className="whitespace-pre-line text-[15px] leading-relaxed text-muted-foreground text-pretty">
               {listing.desc}
             </p>
+            {/* The description is the owner's original because they haven't
+                written one in this language. Say so, rather than letting a
+                reader wonder why one page switched languages on them. */}
+            {listing.descLocale !== locale && (
+              <p className="mt-2 text-sm text-muted-foreground/80">
+                {t("shownInOriginal", {
+                  language: tc(`languages.${listing.descLocale}`),
+                })}
+              </p>
+            )}
           </div>
 
           <div className="mt-8">

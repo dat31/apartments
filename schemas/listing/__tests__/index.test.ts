@@ -4,6 +4,7 @@ import {
   blankListingForm,
   costsToForm,
   createListingFormSchema,
+  DEFAULT_BASE_LOCALE,
   District,
   districtLabel,
   DISTRICTS,
@@ -13,6 +14,7 @@ import {
   localizeListing,
   localizeListings,
   type CostsFormValues,
+  type ListingFormValues,
 } from "@/schemas/listing";
 import { makeListing } from "@/tests/factories";
 
@@ -223,6 +225,69 @@ describe("formToCore", () => {
     });
     expect(core.costs?.deposit).toBe("1mo");
     expect(core.costs?.minLease).toBe(6);
+  });
+
+  /* The authoring half of improvement #14: what an owner types in the tabs has
+     to survive the trip to the core the save action writes — and, just as
+     importantly, an emptied tab has to survive as a *deletion*. */
+  describe("translations", () => {
+    const withTabs = (i18n: ListingFormValues["i18n"]) =>
+      formToCore({ ...filled, baseLocale: "en", i18n });
+
+    it("carries a filled tab into the core", () => {
+      const core = withTabs({
+        en: { title: "ignored", desc: "ignored" },
+        vi: { title: "Studio đón nắng", desc: "Một nơi sáng sủa." },
+      });
+      expect(core.i18n).toEqual({
+        vi: { title: "Studio đón nắng", desc: "Một nơi sáng sủa." },
+      });
+    });
+
+    it("drops the base locale's tab, whose copy lives on the listing itself", () => {
+      // Otherwise the same text would exist in two places and drift apart.
+      const core = withTabs({
+        en: { title: "A second copy", desc: "of the base text" },
+        vi: { title: "", desc: "" },
+      });
+      expect(core.i18n).toEqual({});
+      expect(core.title).toBe("Sunlit studio");
+    });
+
+    it("drops a tab the owner cleared, so the service deletes its row", () => {
+      const core = withTabs({
+        en: { title: "", desc: "" },
+        vi: { title: "   ", desc: "" },
+      });
+      expect(core.i18n).toEqual({});
+    });
+
+    it("keeps a half-filled tab, which falls back per field on read", () => {
+      const core = withTabs({
+        en: { title: "", desc: "" },
+        vi: { title: "Studio đón nắng", desc: "" },
+      });
+      expect(core.i18n).toEqual({ vi: { title: "Studio đón nắng" } });
+    });
+
+    it("round-trips translations through the form and back", () => {
+      const listing = makeListing({
+        title: "Riverside loft",
+        baseLocale: "en",
+        i18n: { vi: { title: "Căn hộ ven sông", desc: "Yên tĩnh." } },
+      });
+      const core = formToCore(listingToForm(listing));
+      expect(core.baseLocale).toBe("en");
+      expect(core.i18n).toEqual(listing.i18n);
+    });
+
+    it("keeps an unknown base locale out of the form", () => {
+      // A row written when the app served a language this deploy doesn't:
+      // the form can only offer tabs it has, so it falls back rather than
+      // rendering a tab strip with nothing selected.
+      const form = listingToForm(makeListing({ baseLocale: "ko" }));
+      expect(form.baseLocale).toBe(DEFAULT_BASE_LOCALE);
+    });
   });
 });
 
