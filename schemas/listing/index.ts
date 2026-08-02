@@ -79,6 +79,26 @@ export const ListingCostsSchema = z.object({
 });
 export type ListingCosts = z.infer<typeof ListingCostsSchema>;
 
+/* ---- Multilingual copy (improvement #14) ----
+   A listing's two owner-authored strings in the locales the app serves.
+   `title`/`desc` below hold the *base* copy — the language the owner wrote
+   first, named by `baseLocale` — and `i18n` holds every other locale.
+
+   Either field of a translation may be absent: a translated title with an
+   untranslated description is the common case, and falls back per field
+   rather than wholesale (see localizeListing). */
+
+export const ListingTextSchema = z.object({
+  title: z.string().optional(),
+  desc: z.string().optional(),
+});
+export type ListingText = z.infer<typeof ListingTextSchema>;
+
+/** Assumed base language of a listing that doesn't name one — fixtures, seed
+    objects, and any row predating the column. Mirrors the `base_locale`
+    column default in 20260802120000_listing_translations.sql. */
+export const DEFAULT_BASE_LOCALE = "vi";
+
 export const ListingSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -110,8 +130,63 @@ export const ListingSchema = z.object({
   // trigger on listing_virtual_tours, never written by the listing form.
   // Optional because seed objects and fixtures predate the column.
   hasVirtualTour: z.boolean().optional(),
+  // The language `title` and `desc` are written in. Optional on the same
+  // grounds as the fields above — absent means DEFAULT_BASE_LOCALE.
+  baseLocale: z.string().optional(),
+  // Owner-authored copy in every *other* locale, keyed by locale. Absent when
+  // the owner wrote one language only, which is a normal state and not a
+  // broken one — the same rule as `lat`/`lng`.
+  i18n: z.record(z.string(), ListingTextSchema).optional(),
 });
 export type Listing = z.infer<typeof ListingSchema>;
+
+/* ---- Locale resolution ----
+   A listing whose copy has been resolved to one locale. `title`/`desc` are
+   the strings to render; the two *Locale fields say where each actually came
+   from, which is what lets the detail page tell a renter it is showing them a
+   language they didn't ask for. `i18n` survives untouched, so a "show the
+   original" affordance never needs a second read. */
+
+export type LocalizedListing = Listing & {
+  titleLocale: string;
+  descLocale: string;
+};
+
+/* An empty or whitespace-only translation is "not translated", never "this
+   listing has no description" — a cleared textarea must fall back, not blank
+   the page (improvement #14, requirement 2). */
+const filled = (s: string | undefined): s is string => !!s && s.trim() !== "";
+
+/** Resolve a listing's owner-authored copy to `locale`, per field, falling
+    back to the base copy.
+
+    Pure, and the locale is always an argument: this module runs in the
+    browser as well as on the server, so it can never reach for getLocale()
+    itself. Call it where a listing enters the tree — a page or section
+    boundary — never inside a leaf component, so filtering and search still
+    see every language (see filterListings). */
+export function localizeListing(l: Listing, locale: string): LocalizedListing {
+  const base = l.baseLocale ?? DEFAULT_BASE_LOCALE;
+  const t = l.i18n?.[locale];
+  const title = t?.title;
+  const desc = t?.desc;
+
+  return {
+    ...l,
+    title: filled(title) ? title : l.title,
+    desc: filled(desc) ? desc : l.desc,
+    titleLocale: filled(title) ? locale : base,
+    descLocale: filled(desc) ? locale : base,
+  };
+}
+
+/** localizeListing over a list — the usual call at a page boundary. */
+export function localizeListings(
+  listings: Listing[],
+  locale: string
+): LocalizedListing[] {
+  return listings.map((l) => localizeListing(l, locale));
+}
 
 /* The editable core of a listing — everything except the server-owned
    fields (id, owner, views, palette, status). Shared by the create/edit

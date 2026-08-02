@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { getLocale } from "next-intl/server";
 import { filtersSchema, type Filters, type SortKey } from "@/schemas/filters";
 import {
   getSavedFacets,
@@ -13,6 +14,7 @@ import type {
   SavedFacets,
   SavedListingsPage,
 } from "@/hooks/saved-listings-keys";
+import { localizeListings } from "@/schemas/listing";
 import { toResult, type ActionResult } from "./result";
 
 /* ============================================================
@@ -39,7 +41,11 @@ const pageInputSchema = z.object({
   page: z.number().int().min(1).max(1000),
 });
 
-/** One filtered, sorted, paginated page of the shortlist. */
+/** One filtered, sorted, paginated page of the shortlist.
+
+    Filtering happens in SQL, before this resolves the copy — same ordering as
+    browse, and for the same reason: the page's `q` has to be able to match a
+    language the reader isn't currently being shown. */
 export async function fetchSavedListingsPage(input: {
   saved: string[];
   filters: Filters;
@@ -48,7 +54,12 @@ export async function fetchSavedListingsPage(input: {
 }): Promise<ActionResult<SavedListingsPage>> {
   const parsed = pageInputSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
-  return toResult(() => getSavedListingsPage(parsed.data));
+
+  const locale = await getLocale();
+  return toResult(async () => {
+    const page = await getSavedListingsPage(parsed.data);
+    return { ...page, listings: localizeListings(page.listings, locale) };
+  });
 }
 
 /** Districts and total for the shortlist, independent of filters and paging. */

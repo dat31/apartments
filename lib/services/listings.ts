@@ -12,7 +12,7 @@ import {
   SHOWCASE_SIZE,
   type DistrictTile,
 } from "@/app/[lang]/lib/landing";
-import { toListing, toListingWrite } from "./listings-map";
+import { LISTING_SELECT, toListing, toListingWrite } from "./listings-map";
 import { ServiceError } from "./errors";
 import { requireUser } from "./session";
 
@@ -32,8 +32,12 @@ import { requireUser } from "./session";
      and every mutation, through the cookie-bound client. Never
      cached, and never trusting an owner id from the caller.
 
-   The pure row ↔ domain mapping lives in ./listings-map so it can
-   also run in the browser (see hooks/use-saved-listings).
+   The pure row ↔ domain mapping lives in ./listings-map, which
+   stays free of `server-only`, caching and React so it can be
+   reasoned about — and tested — on its own. Every read below
+   selects LISTING_SELECT, so the listings it returns carry their
+   copy in *every* locale; resolving to one is a page-boundary
+   job (localizeListing), not this layer's.
    ============================================================ */
 
 /** All active listings, oldest first. Cached across requests via "use cache";
@@ -55,7 +59,7 @@ async function fetchActiveListings(): Promise<Listing[]> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("listings")
-    .select("*")
+    .select(LISTING_SELECT)
     .eq("status", "active")
     .order("created_at", { ascending: true });
 
@@ -161,7 +165,7 @@ export async function getListingsByOwner(
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("listings")
-    .select("*")
+    .select(LISTING_SELECT)
     .eq("status", "active")
     .eq("owner_id", ownerId)
     .order("created_at", { ascending: true });
@@ -211,7 +215,11 @@ export async function getSimilarListings(
 
   const supabase = createPublicClient();
   const active = () =>
-    supabase.from("listings").select("*").eq("status", "active").limit(30);
+    supabase
+      .from("listings")
+      .select(LISTING_SELECT)
+      .eq("status", "active")
+      .limit(30);
 
   const { data: inDistrict, error } = await active().eq(
     "district",
@@ -282,7 +290,7 @@ export async function getListingById(id: string): Promise<Listing | null> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("listings")
-    .select("*")
+    .select(LISTING_SELECT)
     .eq("id", id)
     .maybeSingle();
 
@@ -328,7 +336,7 @@ export async function listMyListings(): Promise<Listing[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("listings")
-    .select("*")
+    .select(LISTING_SELECT)
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
 

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { getActiveListings } from "@/lib/services/listings";
+import { localizeListings } from "@/schemas/listing";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -38,7 +39,14 @@ import {
    page skeleton. */
 
 /** Filtered + sorted results for the current URL. Shared by every island;
-    getActiveListings() is cached so the repeated calls collapse to one read. */
+    getActiveListings() is cached so the repeated calls collapse to one read.
+
+    Results come back carrying their copy in every language; only the island
+    that actually renders them resolves it (Results, below). That ordering is
+    deliberate: filterListings' `q` haystack spans every language, so an
+    English search still finds a home written in Vietnamese. Localizing first
+    would silently reduce search to whichever language is on screen — and the
+    two count-only islands would pay for work they never display. */
 async function getResults(searchParams: Promise<SearchParams>) {
   const [listings, sp] = await Promise.all([getActiveListings(), searchParams]);
   return filterListings(listings, parseFilters(sp), parseSort(sp));
@@ -180,6 +188,14 @@ async function Results({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const results = await getResults(searchParams);
-  return <Listing results={results} searchParams={await searchParams} />;
+  const [results, locale] = await Promise.all([
+    getResults(searchParams),
+    getLocale(),
+  ]);
+  return (
+    <Listing
+      results={localizeListings(results, locale)}
+      searchParams={await searchParams}
+    />
+  );
 }

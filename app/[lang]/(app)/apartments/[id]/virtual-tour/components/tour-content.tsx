@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { ArrowLeft, Pencil } from "lucide-react";
 import { TourStage } from "./tour-stage";
@@ -10,7 +10,7 @@ import { NotOwner, OnlyOwner } from "../../components/viewer-is-owner";
 import { getListingById } from "@/lib/services/listings";
 import { getVirtualTour } from "@/lib/services/virtual-tours";
 import { orderedScenes } from "@/lib/virtual-tour/scene-graph";
-import { districtLabel } from "@/schemas/listing";
+import { districtLabel, localizeListing } from "@/schemas/listing";
 
 /* The listing-dependent half of the tour page. Async server component: it
    resolves the listing and its tour, then hands both to the client stage.
@@ -26,12 +26,16 @@ import { districtLabel } from "@/schemas/listing";
    read cookies during the render and cost this route its prerendered shell
    (see ../../components/viewer-is-owner). */
 export async function TourContent({ id }: { id: string }) {
-  const [listing, tour] = await Promise.all([getListingById(id), getVirtualTour(id)]);
+  const [found, tour] = await Promise.all([getListingById(id), getVirtualTour(id)]);
   // No listing, or a listing whose tour isn't published: there is nothing to
   // walk through. The detail page stays the canonical surface for the home.
-  if (!listing || !tour) notFound();
+  if (!found || !tour) notFound();
 
-  const t = await getTranslations("virtualTour");
+  const [t, locale] = await Promise.all([
+    getTranslations("virtualTour"),
+    getLocale(),
+  ]);
+  const listing = localizeListing(found, locale);
   const scenes = orderedScenes(tour.scenes);
 
   return (

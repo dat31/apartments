@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { type Listing } from "@/schemas/listing";
 import { type BookTourInput, type TourRequest } from "@/schemas/tour";
 import type { Tables } from "@/lib/database.types";
-import { toListing } from "./listings-map";
+import { LISTING_SELECT, toListing } from "./listings-map";
 import { getListingById } from "./listings";
 import { toTourRequest } from "./tours-map";
 import { ServiceError } from "./errors";
@@ -58,7 +58,7 @@ export async function listTours(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tours")
-    .select("*, listing:listings(*)")
+    .select(`*, listing:listings(${LISTING_SELECT})`)
     .eq(scopeColumn(scope), user.id)
     .order("created_at", { ascending: false });
 

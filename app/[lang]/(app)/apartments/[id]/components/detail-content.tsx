@@ -4,6 +4,7 @@ import { DetailView } from "./detail-view";
 import { JsonLd } from "@/components/json-ld";
 import { listingJsonLd } from "../lib/json-ld";
 import { getListingDetail } from "@/lib/services/listings";
+import { localizeListing } from "@/schemas/listing";
 import type { Locale } from "@/i18n/routing";
 
 /* The listing-dependent half of the detail page. Lives below a Suspense
@@ -27,17 +28,22 @@ export async function DetailContent({ id }: { id: string }) {
   const lang = (await getLocale()) as Locale;
   const t = await getTranslations();
 
+  /* Resolve the owner-authored copy once, here, where the listing enters the
+     tree — everything below reads plain `title`/`desc` and stays unaware that
+     a listing has more than one language. */
+  const shown = localizeListing(listing, lang);
+
   return (
     <>
       <JsonLd
         data={listingJsonLd(
-          listing,
+          shown,
           lang,
           { home: t("common.home"), apartments: t("apartments.heading") },
           now
         )}
       />
-      <DetailView listing={listing} />
+      <DetailView listing={shown} />
     </>
   );
 }

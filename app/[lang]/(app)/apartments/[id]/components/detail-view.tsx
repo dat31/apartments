@@ -114,7 +114,10 @@ export function DetailView({ listing }: { listing: Listing }) {
 
           <div className="mt-8">
             <h2 className="text-lg font-semibold mb-2">{t("aboutTitle")}</h2>
-            <p className="text-[15px] leading-relaxed text-muted-foreground text-pretty">
+            {/* whitespace-pre-line: owners write descriptions in paragraphs
+                (the seeded ones are three lines each) and a plain <p> collapses
+                every newline into a single run-on block. */}
+            <p className="whitespace-pre-line text-[15px] leading-relaxed text-muted-foreground text-pretty">
               {listing.desc}
             </p>
           </div>

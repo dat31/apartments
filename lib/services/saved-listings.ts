@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
-import { toListing } from "./listings-map";
+import { LISTING_SELECT, toListing } from "./listings-map";
 import { DISTRICTS, districtLabel, TYPES } from "@/schemas/listing";
 import {
   availCutoffISO,
@@ -95,7 +95,7 @@ export async function getSavedListingsPage({
   const supabase = createPublicClient();
   let query = supabase
     .from("listings")
-    .select("*", { count: "exact" })
+    .select(LISTING_SELECT, { count: "exact" })
     .eq("status", "active")
     .in("id", saved);
 

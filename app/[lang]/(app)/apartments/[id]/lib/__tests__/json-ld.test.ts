@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { listingJsonLd } from "../json-ld";
 import { SITE_URL } from "@/lib/seo";
 import { USD_TO_VND } from "@/lib/data/listings";
-import { District } from "@/schemas/listing";
+import { District, localizeListing } from "@/schemas/listing";
 import { makeListing } from "@/tests/factories";
 
 /* Structured data Google parses: a malformed field here is invisible in the
@@ -13,7 +13,7 @@ const crumbs = { home: "Trang chủ", apartments: "Nhà ở" };
 // otherwise the availabilityStarts cases drift with the calendar.
 const NOW = new Date("2026-06-15T09:00:00").getTime();
 const build = (listing = makeListing(), lang: "vi" | "en" = "vi") =>
-  listingJsonLd(listing, lang, crumbs, NOW);
+  listingJsonLd(localizeListing(listing, lang), lang, crumbs, NOW);
 
 type Node = Record<string, never> & Record<string, unknown>;
 const listingNode = (nodes: object[]) => nodes[0] as Node;

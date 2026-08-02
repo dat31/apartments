@@ -1,9 +1,11 @@
 "use server";
 
 import { updateTag } from "next/cache";
+import { getLocale } from "next-intl/server";
 import {
   ListingCoreSchema,
   ListingStatusSchema,
+  localizeListings,
   type Listing,
   type ListingCore,
 } from "@/schemas/listing";
@@ -32,6 +34,13 @@ import { toResult, type ActionResult } from "./result";
    callers fired-and-forgot so a failed bust passed silently. A
    cache flush is now a consequence of a write that succeeded,
    not something a client can ask for.
+
+   These actions are also where listing copy gets resolved to one
+   language for the client components that consume them — the
+   client-side equivalent of a page boundary. The services stay
+   locale-free (and so stay cached once, not once per locale);
+   `getLocale()` is legal here because an action runs in request
+   context and is never inside a "use cache" boundary.
    ============================================================ */
 
 /** Expire every cached listing read. Called only after a write succeeds. */
@@ -39,12 +48,28 @@ function expireListingCaches() {
   updateTag("listings");
 }
 
-/** Every listing the caller owns, drafts included. */
+/** Every listing the caller owns, drafts included — in the owner's own words.
+
+    Deliberately *not* localized, and this one is load-bearing: useListings()
+    feeds both the dashboard rows and the edit form's prefill
+    (listing-form.tsx → listingToForm). Resolving the copy here would put the
+    English translation into the form fields of a Vietnamese listing, and
+    saving would write it straight back over `listings.title` — quietly
+    destroying the original the translation was made from.
+
+    Showing an owner what they actually wrote is also the right call on its
+    own terms. The per-locale editing surface is the listing form's job. */
 export async function fetchMyListings(): Promise<ActionResult<Listing[]>> {
   return toResult(listMyListings);
 }
 
-/** Every active listing. Public — reads through the cached path. */
+/** Every active listing, in every language.
+
+    Deliberately *not* localized: the only caller is the saved-searches strip,
+    which runs filterListings over these to count matches. Resolving the copy
+    first would make a saved search count matches against one language while
+    browse counts them against all of them, and the two numbers would disagree
+    on the same screen. */
 export async function fetchActiveListings(): Promise<ActionResult<Listing[]>> {
   return toResult(getActiveListings);
 }
@@ -53,7 +78,10 @@ export async function fetchActiveListings(): Promise<ActionResult<Listing[]>> {
 export async function fetchListingsByIds(
   ids: string[]
 ): Promise<ActionResult<Listing[]>> {
-  return toResult(() => getActiveListingsByIds(ids));
+  const locale = await getLocale();
+  return toResult(async () =>
+    localizeListings(await getActiveListingsByIds(ids), locale)
+  );
 }
 
 export async function createListingAction(

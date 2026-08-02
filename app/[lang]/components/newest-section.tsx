@@ -1,7 +1,8 @@
 import { Suspense } from "react";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Sparkles } from "lucide-react";
 import { getNewestShowcase } from "@/lib/services/listings";
+import { localizeListings } from "@/schemas/listing";
 import { SectionHeader } from "./section-header";
 import { ListingCarousel } from "./listing-carousel";
 import { CarouselSkeleton } from "./carousel-skeleton";
@@ -30,9 +31,10 @@ export async function NewestSection() {
 async function NewestCarousel() {
   const t = await getTranslations("landing.showcase");
   const { listings, now } = await getNewestShowcase();
+  const shown = localizeListings(listings, await getLocale());
   return (
     <ListingCarousel
-      listings={listings}
+      listings={shown}
       now={now}
       badgeFor={() => ({ icon: <Sparkles size={13} />, label: t("badgeNew") })}
     />

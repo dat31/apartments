@@ -51,4 +51,61 @@ test.describe("listing detail", () => {
     await back.click();
     await expect(page).toHaveURL(/\/apartments(\?|$)/);
   });
+
+  /* The read path for `listing_translations` (improvement #14). The services
+     and the row→domain mapping are excluded from unit coverage by design
+     (AGENTS.md), so this is the only test that proves an embedded translation
+     survives the whole way to the rendered page. */
+  test("serves the owner's English copy on /en and the base copy on /", async ({
+    page,
+  }) => {
+    const translated = await aTranslatedListing();
+    test.skip(
+      !translated,
+      "no active listing has an English translation in this database"
+    );
+    const { id, base, english } = translated!;
+
+    await page.goto(`/apartments/${id}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(base);
+
+    await page.goto(`/en/apartments/${id}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(english);
+  });
 });
+
+/** An active listing whose title exists in both languages, read straight from
+    the REST API rather than fixtured: the point of the assertion above is that
+    real rows reach the page, and the backfill names no uuids this could pin
+    to. Null when the database has none — a fresh one won't until an owner
+    writes a translation. */
+async function aTranslatedListing() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) return null;
+
+  const query = new URLSearchParams({
+    select: "listing_id,title,listings!inner(title,status)",
+    locale: "eq.en",
+    title: "not.is.null",
+    "listings.status": "eq.active",
+    limit: "5",
+  });
+  const res = await fetch(`${url}/rest/v1/listing_translations?${query}`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}` },
+  });
+  if (!res.ok) return null;
+
+  const rows: {
+    listing_id: string;
+    title: string;
+    listings: { title: string };
+  }[] = await res.json();
+
+  // A translation identical to the base copy would pass the assertion for the
+  // wrong reason, so only a genuinely differing pair counts.
+  const row = rows.find((r) => r.title.trim() !== r.listings.title.trim());
+  return row
+    ? { id: row.listing_id, base: row.listings.title, english: row.title }
+    : null;
+}

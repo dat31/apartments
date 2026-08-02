@@ -4,15 +4,55 @@ import {
   type Listing,
   type ListingCore,
   type ListingCosts,
+  type ListingText,
 } from "@/schemas/listing";
 import { hasAnyCost } from "@/lib/listing-costs";
 
 /* Pure row → domain mapping for `listings`, split out of the server-only
-   listings service so it can be reused by client-side reads (e.g. the saved
-   page fetches active listings straight from the browser Supabase client).
-   No `server-only`, no cache, no React — just data. */
+   listings service. No `server-only`, no cache, no React — just data.
+
+   The purity is a rule, not an accident: this is where a locale would be
+   most tempting to read, and it must never be. Listing copy is carried in
+   every locale (see `i18n` below) and resolved at a page boundary by
+   localizeListing, so nothing here calls getLocale() — which it could not do
+   inside the "use cache" boundaries its callers sit in anyway. */
 
 type ListingRow = Tables<"listings">;
+type TranslationRow = Tables<"listing_translations">;
+
+/* A listings row read with its translations embedded:
+   `.select("*, listing_translations(*)")`. Optional so the narrower selects
+   (and fixtures) still satisfy the type. */
+type ListingRowWithText = ListingRow & {
+  listing_translations?: TranslationRow[] | null;
+};
+
+/** The `select` every listing read uses: the row plus its translations, which
+    is exactly the shape toListing expects. Kept as one constant so a new read
+    can't quietly omit the embed and serve base copy to every locale — the
+    kind of bug that looks like "the translation didn't save". A single FK
+    joins the two tables, so unlike `virtual_tour_scenes` no disambiguation is
+    needed. */
+export const LISTING_SELECT = "*, listing_translations(*)";
+
+/* Embedded translation rows → the domain's `i18n` map. Blank strings are
+   dropped rather than carried: localizeListing treats them as absent anyway,
+   and keeping them would ship empty strings to the client on every listing.
+   A locale left with nothing at all is omitted entirely. */
+function toI18n(
+  rows: TranslationRow[] | null | undefined
+): Record<string, ListingText> | undefined {
+  if (!rows?.length) return undefined;
+
+  const i18n: Record<string, ListingText> = {};
+  for (const row of rows) {
+    const text: ListingText = {};
+    if (row.title?.trim()) text.title = row.title;
+    if (row.description?.trim()) text.desc = row.description;
+    if (text.title || text.desc) i18n[row.locale] = text;
+  }
+  return Object.keys(i18n).length ? i18n : undefined;
+}
 
 /* DB stores listing types as lowercase enum slugs; the UI shows the
    capitalized labels from schemas/listing TYPES. */
@@ -52,8 +92,11 @@ function toCosts(row: ListingRow): ListingCosts | undefined {
   return hasAnyCost(costs) ? costs : undefined;
 }
 
-/** Map a Supabase `listings` row to the app's domain `Listing`. */
-export function toListing(row: ListingRow): Listing {
+/** Map a Supabase `listings` row to the app's domain `Listing`. Translations
+    come along when the caller embedded them; a row read without them maps to
+    a listing with base copy only, which renders identically in the base
+    locale. */
+export function toListing(row: ListingRowWithText): Listing {
   return {
     id: row.id,
     title: row.title,
@@ -79,6 +122,8 @@ export function toListing(row: ListingRow): Listing {
     // Trigger-owned, like `views` and `palette` — read here, never written by
     // toListingWrite below.
     hasVirtualTour: row.has_virtual_tour,
+    baseLocale: row.base_locale,
+    i18n: toI18n(row.listing_translations),
   };
 }
 
