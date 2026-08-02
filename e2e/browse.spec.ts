@@ -1,4 +1,11 @@
-import { test, expect, listingLinks, parsePriceDigits } from "./fixtures";
+import {
+  test,
+  expect,
+  listingLinks,
+  parsePriceDigits,
+  aTranslatedListing,
+  englishOnlyWord,
+} from "./fixtures";
 
 /* The URL is the single source of truth for filter/sort/page state
    (app/[lang]/(app)/apartments/lib/query.ts), so these drive the page by URL
@@ -63,6 +70,26 @@ test.describe("browse", () => {
     for (const text of filtered) {
       expect(parsePriceDigits(text)).toBeLessThanOrEqual(cheapestUsd);
     }
+  });
+
+  /* filterListings' bilingual haystack is unit-tested; what only a real page
+     can show is that the translation survives the select → mapping → filter
+     chain, none of which is unit-covered. Searched on the *Vietnamese* page on
+     purpose: the query language and the page's language are independent. */
+  test("an English query finds a Vietnamese-titled home", async ({ page }) => {
+    const translated = await aTranslatedListing();
+    const word = translated && englishOnlyWord(translated.base, translated.english);
+    test.skip(!word, "no active listing has an English-only word in its title");
+
+    await page.goto(`/apartments?q=${encodeURIComponent(word!)}`);
+
+    const hit = page
+      .locator(`a[href*="/apartments/${translated!.id}"]`)
+      .first();
+    await expect(hit).toBeVisible({ timeout: 30_000 });
+    // The card is still labelled in Vietnamese: the match came from copy this
+    // reader is not being shown, which is exactly the point.
+    expect(await hit.getAttribute("aria-label")).toBe(translated!.base);
   });
 
   test("an unmatchable query shows the empty state", async ({ page }) => {

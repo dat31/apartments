@@ -47,6 +47,27 @@ export function parsePage(sp: SearchParams): number {
   return Number.isFinite(p) && p >= 1 ? Math.floor(p) : 1;
 }
 
+/* What the free-text box matches against.
+
+   The titles are plural on purpose: this runs *before* localizeListing (see
+   browse.tsx), so a listing still carries its copy in every language, and an
+   English query has to be able to find a home whose base copy is Vietnamese.
+   Localizing first would quietly shrink search to whatever is on screen.
+
+   Titles only, in every language — descriptions stay out of the haystack in
+   all of them. Matching prose is a much broader change to what search returns
+   (every home that merely *mentions* a district would start matching a
+   district query), and it isn't what makes search bilingual. Keep the two
+   decisions separate; `lib/services/saved-listings.ts` textOr and the alerts
+   edge function both mirror this choice. */
+function haystack(l: Listing): string {
+  const titles = [l.title, ...Object.values(l.i18n ?? {}).map((t) => t.title)];
+  return [...titles, l.district, districtLabel(l.district), l.city, l.type]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
 export function filterListings(
   listings: Listing[],
   filters: Filters,
@@ -54,12 +75,7 @@ export function filterListings(
 ): Listing[] {
   let r = listings.filter((l) => l.status === "active");
   const q = filters.q.trim().toLowerCase();
-  if (q)
-    r = r.filter((l) =>
-      (l.title + l.district + districtLabel(l.district) + l.city + l.type)
-        .toLowerCase()
-        .includes(q)
-    );
+  if (q) r = r.filter((l) => haystack(l).includes(q));
   if (filters.type !== "All") r = r.filter((l) => l.type === filters.type);
   if (filters.district !== "All")
     r = r.filter((l) => l.district === filters.district);

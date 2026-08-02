@@ -78,3 +78,60 @@ export function listingLinks(page: Page): Locator {
 export function parsePriceDigits(text: string): number {
   return Number(text.replace(/[^\d]/g, ""));
 }
+
+/** An active listing whose title exists in both languages, read straight from
+    the REST API rather than fixtured. `lib/services/**` is excluded from unit
+    coverage by design (AGENTS.md), so the specs that use this are the only
+    proof that a real translation row reaches a rendered page — and the
+    backfill names no uuids for them to pin to. Null when the database has
+    none: a fresh one has nothing translated until an owner writes something.
+
+    Anon-key only: `listing_translations` of active listings are publicly
+    readable, which is the same access the app itself has here. */
+export async function aTranslatedListing(): Promise<{
+  id: string;
+  base: string;
+  english: string;
+} | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) return null;
+
+  const query = new URLSearchParams({
+    select: "listing_id,title,listings!inner(title,status)",
+    locale: "eq.en",
+    title: "not.is.null",
+    "listings.status": "eq.active",
+    limit: "20",
+  });
+  const res = await fetch(`${url}/rest/v1/listing_translations?${query}`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}` },
+  });
+  if (!res.ok) return null;
+
+  const rows: {
+    listing_id: string;
+    title: string;
+    listings: { title: string };
+  }[] = await res.json();
+
+  // A translation identical to the base copy would pass an assertion for the
+  // wrong reason, so only a genuinely differing pair counts.
+  const row = rows.find((r) => r.title.trim() !== r.listings.title.trim());
+  return row
+    ? { id: row.listing_id, base: row.listings.title, english: row.title }
+    : null;
+}
+
+/** A word from `english` that does not appear in `base` — a search term that
+    can only match through the translation. Null when the two titles share
+    every word worth searching for (place names often survive translation). */
+export function englishOnlyWord(base: string, english: string): string | null {
+  const baseText = base.toLowerCase();
+  return (
+    english
+      .toLowerCase()
+      .split(/[^\p{L}]+/u)
+      .find((w) => w.length >= 5 && !baseText.includes(w)) ?? null
+  );
+}

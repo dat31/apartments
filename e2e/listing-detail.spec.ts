@@ -1,4 +1,4 @@
-import { test, expect, listingLinks } from "./fixtures";
+import { test, expect, listingLinks, aTranslatedListing } from "./fixtures";
 import vi from "@/messages/vi.json";
 
 /* The site header's logo also links to /apartments, so the back link has to be
@@ -73,39 +73,3 @@ test.describe("listing detail", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(english);
   });
 });
-
-/** An active listing whose title exists in both languages, read straight from
-    the REST API rather than fixtured: the point of the assertion above is that
-    real rows reach the page, and the backfill names no uuids this could pin
-    to. Null when the database has none — a fresh one won't until an owner
-    writes a translation. */
-async function aTranslatedListing() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return null;
-
-  const query = new URLSearchParams({
-    select: "listing_id,title,listings!inner(title,status)",
-    locale: "eq.en",
-    title: "not.is.null",
-    "listings.status": "eq.active",
-    limit: "5",
-  });
-  const res = await fetch(`${url}/rest/v1/listing_translations?${query}`, {
-    headers: { apikey: key, Authorization: `Bearer ${key}` },
-  });
-  if (!res.ok) return null;
-
-  const rows: {
-    listing_id: string;
-    title: string;
-    listings: { title: string };
-  }[] = await res.json();
-
-  // A translation identical to the base copy would pass the assertion for the
-  // wrong reason, so only a genuinely differing pair counts.
-  const row = rows.find((r) => r.title.trim() !== r.listings.title.trim());
-  return row
-    ? { id: row.listing_id, base: row.listings.title, english: row.title }
-    : null;
-}

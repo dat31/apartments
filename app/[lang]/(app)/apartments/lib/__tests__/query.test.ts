@@ -95,6 +95,49 @@ describe("filterListings", () => {
     expect(ids(filterListings(base, filters({ q: "Sơn Trà" }), "featured"))).toEqual(["b"]);
   });
 
+  /* The case improvement #14 says nothing would catch: search runs before the
+     copy is resolved to one language (browse.tsx), so a query in either
+     language finds the home regardless of which one its owner wrote in. */
+  it("matches the text query in every language the copy exists in", () => {
+    const bilingual = [
+      makeListing({
+        id: "vi-base",
+        title: "Căn hộ ven sông",
+        baseLocale: "vi",
+        i18n: { en: { title: "Riverside apartment" } },
+      }),
+      makeListing({
+        id: "en-base",
+        title: "Seaside townhouse",
+        baseLocale: "en",
+        i18n: { vi: { title: "Nhà phố ven biển" } },
+      }),
+    ];
+
+    // An English search finds the Vietnamese-authored home...
+    expect(ids(filterListings(bilingual, filters({ q: "riverside" }), "featured"))).toEqual(["vi-base"]);
+    // ...and a Vietnamese search finds the English-authored one.
+    expect(ids(filterListings(bilingual, filters({ q: "ven biển" }), "featured"))).toEqual(["en-base"]);
+    // Both still match on their own base copy.
+    expect(ids(filterListings(bilingual, filters({ q: "ven sông" }), "featured"))).toEqual(["vi-base"]);
+    expect(ids(filterListings(bilingual, filters({ q: "seaside" }), "featured"))).toEqual(["en-base"]);
+  });
+
+  it("keeps descriptions out of the haystack in every language", () => {
+    // Widening search to prose is a separate decision from making it
+    // bilingual; the translated desc must not become a back door to it.
+    const withDesc = [
+      makeListing({
+        id: "a",
+        title: "Riverside loft",
+        desc: "Steps from the night market.",
+        i18n: { vi: { title: "Căn hộ ven sông", desc: "Gần chợ đêm." } },
+      }),
+    ];
+    expect(filterListings(withDesc, filters({ q: "night market" }), "featured")).toEqual([]);
+    expect(filterListings(withDesc, filters({ q: "chợ đêm" }), "featured")).toEqual([]);
+  });
+
   it("filters by type, district and owner", () => {
     expect(ids(filterListings(base, filters({ type: "House" }), "featured"))).toEqual(["b"]);
     expect(

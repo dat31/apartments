@@ -344,6 +344,20 @@ const text = [l.title, ...Object.values(l.i18n ?? {}).flatMap(t => [t.title, t.d
 
 Pagination and sorting are unaffected — they never touched text.
 
+**Amended during implementation: titles only, no `t.desc`.** The sketch above
+is asymmetric — the base `desc` is *not* in today's haystack, so pulling in
+translated descriptions would make "balcony" find a Vietnamese home whose
+English translation mentions one while missing an English-authored home whose
+own description says the same thing. The same query, two answers, depending on
+which language a listing happened to be written in.
+
+Closing that gap the other way — adding every description — is a much larger
+change to what browse returns (every home that merely *mentions* Hải Châu in
+prose starts matching a district query), and it is not what makes search
+bilingual. So the haystack is the same fields it always was, in every language
+now; widening it to prose stays a separate decision. `textOr` and the edge
+function mirror this.
+
 ### Saved page — `lib/services/saved-listings.ts` `textOr`
 
 This one is SQL, and PostgREST **cannot `or()` across a parent column and an

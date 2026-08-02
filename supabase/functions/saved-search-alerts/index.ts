@@ -57,7 +57,24 @@ type ListingRow = {
   amenities: string[];
   available_from: string | null;
   images: string[];
+  /* The owner's copy in every other language (improvement #14). `title` above
+     is the base copy, in whatever language the owner wrote first. Embedded by
+     the read below; absent on a listing nobody has translated. */
+  listing_translations?: {
+    locale: string;
+    title: string | null;
+    description: string | null;
+  }[] | null;
 };
+
+/** The listing's title in `locale`, falling back to the base copy — the same
+    per-field rule as localizeListing() in schemas/listing. This is the one
+    place the "which language" answer comes from stored data (the subscriber's
+    `saved_searches.locale`) rather than from the URL. */
+function localizedTitle(l: ListingRow, locale: string): string {
+  const t = l.listing_translations?.find((row) => row.locale === locale);
+  return t?.title?.trim() ? t.title : l.title;
+}
 
 const TYPE_LABELS: Record<string, string> = {
   studio: "Studio",
@@ -126,13 +143,23 @@ function listingMatches(l: ListingRow, f: Filters): boolean {
   const typeLabel = TYPE_LABELS[l.type] ?? l.type;
   const q = f.q.trim().toLowerCase();
   if (q) {
-    const hay = (
-      l.title +
-      l.district +
-      (DISTRICT_LABELS[l.district] ?? "") +
-      l.city +
-      typeLabel
-    ).toLowerCase();
+    // Every language the title exists in, mirroring filterListings' haystack:
+    // the renter searched in one language, the owner may have authored in the
+    // other, and a saved search that matches on browse must alert here too.
+    const titles = [
+      l.title,
+      ...(l.listing_translations ?? []).map((t) => t.title),
+    ];
+    const hay = [
+      ...titles,
+      l.district,
+      DISTRICT_LABELS[l.district] ?? "",
+      l.city,
+      typeLabel,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
     if (!hay.includes(q)) return false;
   }
   if (f.type !== "All" && typeLabel !== f.type) return false;
@@ -253,7 +280,10 @@ function renderAlertEmail(opts: {
   const browseUrl = `${SITE_URL}${prefix}/apartments`;
   const seeAllUrl = queryString ? `${browseUrl}?${queryString}` : browseUrl;
 
-  const title = escapeHtml(listing.title);
+  // The subject and the card name the home in the subscriber's own language,
+  // and the link below already carries that locale's prefix — so the email and
+  // the page it opens agree.
+  const title = escapeHtml(localizedTitle(listing, locale));
   const name = escapeHtml(searchName);
   const districtLabel = DISTRICT_LABELS[listing.district] ?? listing.district;
   const location = escapeHtml(`${districtLabel}, ${listing.city}`);
@@ -420,7 +450,9 @@ Deno.serve(async (req: Request) => {
 
   const { data: listing, error: listingError } = await supabase
     .from("listings")
-    .select("*")
+    // The embed is what makes the match and the email bilingual; a bare "*"
+    // would silently alert on, and email, base copy only.
+    .select("*, listing_translations(*)")
     .eq("id", listingId)
     .maybeSingle<ListingRow>();
   if (listingError) return json({ error: listingError.message }, 500);

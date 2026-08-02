@@ -51,10 +51,44 @@ const TYPE_SLUG: Record<string, TypeSlug> = {
 /* Drop characters that would break a PostgREST filter expression. */
 const sanitize = (s: string) => s.replace(/[(),\\%]/g, " ").trim();
 
+/* Ids of shortlisted listings whose *translated* title matches the query.
+
+   Two queries rather than one because PostgREST cannot `or()` across a parent
+   column and an embedded resource in a single expression — the translation
+   half has to be resolved to ids first and folded back into the main `or` as
+   `id.in.(…)`. Bounded by the shortlist, which is small and already an input
+   to this function, so it stays one cheap indexed lookup.
+
+   Titles only, matching filterListings' haystack: the browse page and the
+   saved page have to agree about what a query matches, or the same `q` would
+   return different homes on two screens. sanitize() applies here for the same
+   reason it applies below — same PostgREST expression grammar, same injection
+   surface. */
+async function translatedIds(
+  supabase: ReturnType<typeof createPublicClient>,
+  saved: string[],
+  q: string
+): Promise<string[]> {
+  const term = sanitize(q);
+  if (!term) return [];
+
+  const { data, error } = await supabase
+    .from("listing_translations")
+    .select("listing_id")
+    .in("listing_id", saved)
+    .ilike("title", `%${term}%`);
+
+  if (error) throw new ServiceError("failed", error.message);
+  return [...new Set((data ?? []).map((r) => r.listing_id))];
+}
+
 /* OR clause for the free-text box. Matches the raw title/city columns and
    expands district/type *labels* (what the user sees) back to their slugs, so
    typing "Hải Châu" or "Apartment" still hits — mirroring the old client-side
    `filterListings` q behaviour as closely as SQL allows.
+
+   This half sees only the base copy on `listings`; the translated titles come
+   from translatedIds() above and join in as one more `id.in.(…)` condition.
 
    district is a Postgres enum, which has no ilike operator (`district.ilike`
    errors with 42883 and fails the whole query), so district matching goes
@@ -100,7 +134,11 @@ export async function getSavedListingsPage({
     .in("id", saved);
 
   const or = textOr(filters.q);
-  if (or) query = query.or(or);
+  if (or) {
+    // A home saved in Vietnamese is still findable by its English title.
+    const ids = await translatedIds(supabase, saved, filters.q);
+    query = query.or(ids.length ? `${or},id.in.(${ids.join(",")})` : or);
+  }
   if (filters.type !== "All" && TYPE_SLUG[filters.type])
     query = query.eq("type", TYPE_SLUG[filters.type]);
   if (filters.district !== "All")
