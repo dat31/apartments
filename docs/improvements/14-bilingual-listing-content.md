@@ -11,10 +11,18 @@ Everything *around* the listing is already translated: chrome, filters, cost
 labels, availability, amenity names, alert emails. The listing itself is the
 hole in the middle of that.
 
-> **Status: open question.** The approach below is deliberately undecided.
-> This file exists to capture the problem, the constraints, and the candidate
-> designs so the decision can be made with the trade-offs written down. Nothing
-> here is committed to.
+> **Status: decided — see [`docs/plans/multilingual-listing-content.md`](../plans/multilingual-listing-content.md).**
+> The call is **option C**, a `listing_translations` side table, with
+> owner-authored optional translations and `vi` + `en` on day one. The
+> candidate designs below are kept as the record of what was weighed; the plan
+> states the deviations from C as written here (the base copy stays in
+> `listings`) and why.
+>
+> One factual correction this file makes worth carrying: it assumes the seeded
+> rows are Vietnamese-based. The live database says 18 of 28 listings are
+> **English-only** demo rows and only 10 carry the `"<VI> · <EN>"` shape, so
+> the base language has to be recorded per listing, not assumed globally —
+> which is also the strongest argument against option A.
 
 ## Why it matters now
 

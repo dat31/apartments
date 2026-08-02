@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      listing_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          listing_id: string
+          locale: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          listing_id: string
+          locale: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          listing_id?: string
+          locale?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_translations_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_virtual_tours: {
         Row: {
           created_at: string
@@ -61,6 +96,7 @@ export type Database = {
           amenities: Database["public"]["Enums"]["amenity"][]
           area: number | null
           available_from: string | null
+          base_locale: string
           baths: number
           beds: number
           city: string
@@ -98,6 +134,7 @@ export type Database = {
           amenities?: Database["public"]["Enums"]["amenity"][]
           area?: number | null
           available_from?: string | null
+          base_locale?: string
           baths?: number
           beds?: number
           city?: string
@@ -135,6 +172,7 @@ export type Database = {
           amenities?: Database["public"]["Enums"]["amenity"][]
           area?: number | null
           available_from?: string | null
+          base_locale?: string
           baths?: number
           beds?: number
           city?: string
