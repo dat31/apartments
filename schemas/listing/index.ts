@@ -157,6 +157,12 @@ export type Listing = z.infer<typeof ListingSchema>;
 export type LocalizedListing = Listing & {
   titleLocale: string;
   descLocale: string;
+  /** The owner's own words, in the language they wrote them in — kept beside
+      the resolved copy so a renter reading a translation can be offered the
+      original without a second read. Equal to `title`/`desc` whenever nothing
+      was translated away. */
+  baseTitle: string;
+  baseDesc: string;
 };
 
 /* An empty or whitespace-only translation is "not translated", never "this
@@ -184,7 +190,29 @@ export function localizeListing(l: Listing, locale: string): LocalizedListing {
     desc: filled(desc) ? desc : l.desc,
     titleLocale: filled(title) ? locale : base,
     descLocale: filled(desc) ? locale : base,
+    baseTitle: l.title,
+    baseDesc: l.desc,
   };
+}
+
+/** Every locale this listing has any owner-written copy in, its own language
+    first. "Any" is per listing, not per field: a locale with a translated
+    title and no description counts, because the owner did write it in that
+    language.
+
+    Owner-facing — it answers "which languages does this home have?" on a
+    dashboard row without opening each one. Renters are never told this
+    (improvement #14: whether a home has a translation is not interesting on a
+    card), so keep it off reader surfaces. */
+export function writtenLocales(l: Listing): string[] {
+  const base = l.baseLocale ?? DEFAULT_BASE_LOCALE;
+  const rest = Object.entries(l.i18n ?? {})
+    .filter(
+      ([locale, text]) =>
+        locale !== base && (filled(text.title) || filled(text.desc))
+    )
+    .map(([locale]) => locale);
+  return [base, ...rest];
 }
 
 /** localizeListing over a list — the usual call at a page boundary. */
@@ -277,7 +305,7 @@ const translationFormSchema = z.object({
 
 export const createListingFormSchema = (t: (key: string) => string) =>
   z.object({
-    /* The base tab's copy, and the language it is written in. Only this
+    /* The original copy, and the language it is written in. Only this
        title is required: requirement 3 of improvement #14 is that an owner
        is never made to write twice before they can publish. */
     baseLocale: LocaleSchema,
@@ -297,9 +325,9 @@ export const createListingFormSchema = (t: (key: string) => string) =>
     lng: z.number().nullable(),
     costs: costsFormSchema,
     /* One entry per locale the app serves, including the base one — whose
-       entry is simply never read (the base tab edits `title`/`desc` above,
-       and toTranslationRows drops it). Keeping the map complete means the
-       form never has to ask whether a tab exists yet. */
+       entry is simply never read (the original is `title`/`desc` above, and
+       toTranslationRows drops it). Keeping the map complete means the form
+       never has to ask whether a language has an entry yet. */
     i18n: z.record(LocaleSchema, translationFormSchema),
   });
 
@@ -307,7 +335,7 @@ export type ListingFormValues = z.infer<
   ReturnType<typeof createListingFormSchema>
 >;
 
-/** An empty tab for every configured locale. Adding one to i18n/routing.ts
+/** An empty entry for every configured locale. Adding one to i18n/routing.ts
     grows the form by itself — no edit here, which is the whole point of
     keying on `routing.locales` rather than naming languages. */
 export const blankTranslationForms = (): ListingFormValues["i18n"] =>
@@ -437,10 +465,10 @@ export function formToCore(v: ListingFormValues): ListingCore {
   /* Blank tabs are dropped, not saved as empty strings: "" means "not
      translated" everywhere else (localizeListing falls back on it, the
      mapping drops it, and the table's not-empty constraint rejects a row
-     that is blank in both fields). Clearing a tab is therefore how an owner
-     deletes a translation — the service removes the row for a locale that
-     doesn't come back. The base locale's tab is never read; that copy lives
-     in `title`/`desc`. */
+     that is blank in both fields). Clearing both fields is therefore how an
+     owner deletes a translation — the service removes the row for a locale
+     that doesn't come back. The base locale's entry is never read; that copy
+     lives in `title`/`desc`. */
   const i18n: Record<string, ListingText> = {};
   for (const [locale, text] of Object.entries(v.i18n)) {
     if (locale === v.baseLocale) continue;

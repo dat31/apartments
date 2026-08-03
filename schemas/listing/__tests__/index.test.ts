@@ -13,6 +13,7 @@ import {
   listingToForm,
   localizeListing,
   localizeListings,
+  writtenLocales,
   type CostsFormValues,
   type ListingFormValues,
 } from "@/schemas/listing";
@@ -229,12 +230,12 @@ describe("formToCore", () => {
 
   /* The authoring half of improvement #14: what an owner types in the tabs has
      to survive the trip to the core the save action writes — and, just as
-     importantly, an emptied tab has to survive as a *deletion*. */
+     importantly, emptied fields have to survive as a *deletion*. */
   describe("translations", () => {
     const withTabs = (i18n: ListingFormValues["i18n"]) =>
       formToCore({ ...filled, baseLocale: "en", i18n });
 
-    it("carries a filled tab into the core", () => {
+    it("carries a written translation into the core", () => {
       const core = withTabs({
         en: { title: "ignored", desc: "ignored" },
         vi: { title: "Studio đón nắng", desc: "Một nơi sáng sủa." },
@@ -244,7 +245,7 @@ describe("formToCore", () => {
       });
     });
 
-    it("drops the base locale's tab, whose copy lives on the listing itself", () => {
+    it("drops the base locale's entry, whose copy lives on the listing itself", () => {
       // Otherwise the same text would exist in two places and drift apart.
       const core = withTabs({
         en: { title: "A second copy", desc: "of the base text" },
@@ -254,7 +255,7 @@ describe("formToCore", () => {
       expect(core.title).toBe("Sunlit studio");
     });
 
-    it("drops a tab the owner cleared, so the service deletes its row", () => {
+    it("drops a translation the owner cleared, so the service deletes its row", () => {
       const core = withTabs({
         en: { title: "", desc: "" },
         vi: { title: "   ", desc: "" },
@@ -262,7 +263,7 @@ describe("formToCore", () => {
       expect(core.i18n).toEqual({});
     });
 
-    it("keeps a half-filled tab, which falls back per field on read", () => {
+    it("keeps a half-written translation, which falls back per field on read", () => {
       const core = withTabs({
         en: { title: "", desc: "" },
         vi: { title: "Studio đón nắng", desc: "" },
@@ -284,7 +285,7 @@ describe("formToCore", () => {
     it("keeps an unknown base locale out of the form", () => {
       // A row written when the app served a language this deploy doesn't:
       // the form can only offer tabs it has, so it falls back rather than
-      // rendering a tab strip with nothing selected.
+      // leaving a language block with no entry to bind to.
       const form = listingToForm(makeListing({ baseLocale: "ko" }));
       expect(form.baseLocale).toBe(DEFAULT_BASE_LOCALE);
     });
@@ -408,6 +409,21 @@ describe("localizeListing", () => {
     expect(l.i18n?.vi?.title).toBe("Studio đón nắng gần Mỹ Khê");
   });
 
+  /* "Read the original" needs the owner's own words after the resolved copy
+     has replaced them. */
+  it("keeps the base copy beside the resolved copy", () => {
+    const l = localizeListing(bilingual(), "vi");
+    expect(l.title).toBe("Studio đón nắng gần Mỹ Khê");
+    expect(l.baseTitle).toBe("Sunlit studio near Mỹ Khê");
+    expect(l.baseDesc).toBe("A bright little place.");
+  });
+
+  it("base copy equals the resolved copy when nothing was translated away", () => {
+    const l = localizeListing(bilingual(), "en");
+    expect(l.baseTitle).toBe(l.title);
+    expect(l.baseDesc).toBe(l.desc);
+  });
+
   it("does not mutate the listing it was given", () => {
     const listing = bilingual();
     localizeListing(listing, "vi");
@@ -420,5 +436,45 @@ describe("localizeListing", () => {
       "Studio đón nắng gần Mỹ Khê",
       "Studio đón nắng gần Mỹ Khê",
     ]);
+  });
+});
+
+describe("writtenLocales", () => {
+  it("lists the home's own language first, then the ones it was translated into", () => {
+    const l = makeListing({
+      baseLocale: "en",
+      i18n: { vi: { title: "Studio đón nắng gần Mỹ Khê" } },
+    });
+    expect(writtenLocales(l)).toEqual(["en", "vi"]);
+  });
+
+  /* A home in one language is finished, not incomplete — the answer here is
+     one language, not "one of two". */
+  it("is just the original when nothing else was written", () => {
+    expect(writtenLocales(makeListing({ baseLocale: "vi" }))).toEqual(["vi"]);
+  });
+
+  /* Per listing, not per field: a translated title with no description is
+     still a language the owner wrote this home in. */
+  it("counts a locale with only one of the two fields", () => {
+    const l = makeListing({
+      baseLocale: "vi",
+      i18n: { en: { desc: "A bright little place." } },
+    });
+    expect(writtenLocales(l)).toEqual(["vi", "en"]);
+  });
+
+  it("ignores a blank translation and a shadow of the base locale", () => {
+    const l = makeListing({
+      baseLocale: "vi",
+      i18n: { en: { title: "  ", desc: "" }, vi: { title: "Bản gốc" } },
+    });
+    expect(writtenLocales(l)).toEqual(["vi"]);
+  });
+
+  it("assumes the default base locale when a listing names none", () => {
+    const l = makeListing();
+    delete l.baseLocale;
+    expect(writtenLocales(l)).toEqual([DEFAULT_BASE_LOCALE]);
   });
 });

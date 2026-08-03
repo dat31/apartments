@@ -1,4 +1,9 @@
-import { districtLabel, type Listing } from "@/schemas/listing";
+import {
+  districtLabel,
+  DEFAULT_BASE_LOCALE,
+  type Listing,
+  type LocalizedListing,
+} from "@/schemas/listing";
 import {
   AVAIL_KEYS,
   availCutoffISO,
@@ -66,6 +71,45 @@ function haystack(l: Listing): string {
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
+}
+
+/* The other half of a bilingual search: a renter types English words and gets
+   back a home whose card is in Vietnamese, because the match came from copy
+   they aren't being shown. That pairing has to read as deliberate rather than
+   buggy, so the card says which language the words were found in.
+
+   Deliberately silent whenever the reader can see why the home came back —
+   the title on the card contains the query, or it matched the district, city
+   or home type, which the card also shows. Both halves mirror `haystack`
+   exactly: any field this checks that search doesn't (or the reverse) would
+   put an explanation on a card that doesn't need one, or leave one bare. */
+export function unshownMatchLocales(l: LocalizedListing, q: string): string[] {
+  const needle = q.trim().toLowerCase();
+  if (!needle) return [];
+
+  const shown = [
+    l.title,
+    l.district,
+    districtLabel(l.district),
+    l.city,
+    l.type,
+  ];
+  if (shown.some((s) => s?.toLowerCase().includes(needle))) return [];
+
+  const base = l.baseLocale ?? DEFAULT_BASE_LOCALE;
+  const titles: [string, string | undefined][] = [
+    [base, l.baseTitle],
+    ...Object.entries(l.i18n ?? {}).map(
+      ([locale, text]) => [locale, text.title] as [string, string | undefined]
+    ),
+  ];
+  return [
+    ...new Set(
+      titles
+        .filter(([, title]) => title?.toLowerCase().includes(needle))
+        .map(([locale]) => locale)
+    ),
+  ];
 }
 
 export function filterListings(

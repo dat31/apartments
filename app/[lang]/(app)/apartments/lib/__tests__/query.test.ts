@@ -7,9 +7,10 @@ import {
   parseFilters,
   parsePage,
   parseSort,
+  unshownMatchLocales,
 } from "../query";
 import { DEFAULT_FILTERS, type Filters } from "@/schemas/filters";
-import { District } from "@/schemas/listing";
+import { District, localizeListing } from "@/schemas/listing";
 import { makeListing } from "@/tests/factories";
 
 /* The URL is the single source of truth for browse state, so everything here
@@ -289,5 +290,50 @@ describe("activeFilterCount", () => {
 describe("PAGE_SIZE", () => {
   it("is a positive page size the pagination can divide by", () => {
     expect(PAGE_SIZE).toBeGreaterThan(0);
+  });
+});
+
+/* The other half of a bilingual search: the card has to explain why a home
+   whose title the reader can't read came back for their query. The rule is
+   the mirror of the haystack — silent whenever the reader can see the match
+   for themselves. */
+describe("unshownMatchLocales", () => {
+  const bilingual = () =>
+    makeListing({
+      title: "Căn hộ ven sông",
+      baseLocale: "vi",
+      i18n: { en: { title: "Riverside apartment" } },
+    });
+
+  it("names the language a match came from when the card shows another", () => {
+    const shown = localizeListing(bilingual(), "vi");
+    expect(unshownMatchLocales(shown, "riverside")).toEqual(["en"]);
+  });
+
+  it("says nothing when the title on the card contains the query", () => {
+    const shown = localizeListing(bilingual(), "en");
+    expect(unshownMatchLocales(shown, "riverside")).toEqual([]);
+  });
+
+  it("says nothing when the match is the district, city or home type", () => {
+    const shown = localizeListing(
+      makeListing({ district: District.HaiChau, city: "Da Nang", type: "House" }),
+      "vi"
+    );
+    expect(unshownMatchLocales(shown, "hai-chau")).toEqual([]);
+    expect(unshownMatchLocales(shown, "Hải Châu")).toEqual([]);
+    expect(unshownMatchLocales(shown, "da nang")).toEqual([]);
+    expect(unshownMatchLocales(shown, "house")).toEqual([]);
+  });
+
+  it("finds the home's own language when the reader is reading a translation", () => {
+    const shown = localizeListing(bilingual(), "en");
+    expect(unshownMatchLocales(shown, "ven sông")).toEqual(["vi"]);
+  });
+
+  it("says nothing for an empty query or a query nothing matched", () => {
+    const shown = localizeListing(bilingual(), "vi");
+    expect(unshownMatchLocales(shown, "   ")).toEqual([]);
+    expect(unshownMatchLocales(shown, "penthouse")).toEqual([]);
   });
 });

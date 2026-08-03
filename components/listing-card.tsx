@@ -2,7 +2,15 @@ import { useTranslations, useFormatter } from "next-intl";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bath, BedDouble, Check, MapPin, Maximize, Rotate3d } from "lucide-react";
+import {
+  Bath,
+  BedDouble,
+  Check,
+  MapPin,
+  Maximize,
+  Rotate3d,
+  Search,
+} from "lucide-react";
 import { PALETTE, availInfo } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { districtLabel, type Listing } from "@/schemas/listing";
@@ -29,10 +37,16 @@ export function ListingCard({
   select,
   now,
   priority,
+  matchedIn,
 }: {
   listing: Listing;
   badge?: { icon: ReactNode; label: string };
   select?: ListingCardSelect;
+  /** The search this card came back for, when the words that matched are in a
+      language the card isn't showing. Omitted everywhere else: a card says
+      nothing about which languages a home has — that isn't interesting to
+      someone scanning results, and this is the one thing that is. */
+  matchedIn?: { query: string; locales: string[] };
   /** Reference time (epoch ms) for the availability label. Static call sites
       pass a clock read inside a cache boundary; omit it to use the live time. */
   now?: number;
@@ -42,6 +56,7 @@ export function ListingCard({
   priority?: boolean;
 }) {
   const t = useTranslations("apartments");
+  const tc = useTranslations("common");
   const tv = useTranslations("virtualTour");
   const format = useFormatter();
   const money = useMoney();
@@ -168,6 +183,24 @@ export function ListingCard({
         <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
           <MapPin size={14} /> {districtLabel(listing.district)}
         </p>
+        {/* Why a Vietnamese-titled card came back for an English query.
+            Search reads every language at once, before anything is chosen for
+            display, so the pairing is correct — but it only looks deliberate
+            if the card says where the words were found. */}
+        {matchedIn && matchedIn.locales.length > 0 && (
+          <p className="mt-1.5 flex items-start gap-1.5 text-xs leading-snug text-muted-foreground">
+            <Search size={13} className="shrink-0 mt-0.5" />
+            <span className="text-pretty">
+              {t("card.matchedIn", {
+                query: matchedIn.query,
+                languages: format.list(
+                  matchedIn.locales.map((l) => tc(`languages.${l}`)),
+                  { type: "conjunction" }
+                ),
+              })}
+            </span>
+          </p>
+        )}
         <p className="mt-1.5 text-sm font-medium text-primary">
           {avail.kind === "now"
             ? t("card.availableNow")

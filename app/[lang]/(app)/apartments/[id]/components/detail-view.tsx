@@ -15,7 +15,8 @@ import { AvailabilityLabel } from "./availability-label";
 import { NotOwner } from "./viewer-is-owner";
 import { CostsSection } from "./costs-section";
 import { MoveInEstimate } from "./move-in-estimate";
-import { Bath, BedDouble, MapPin, Maximize, Rotate3d } from "lucide-react";
+import { OriginalDisclosure } from "./original-disclosure";
+import { Bath, BedDouble, Globe, MapPin, Maximize, Rotate3d } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { AMENITY_ICONS } from "@/components/icons";
@@ -23,6 +24,7 @@ import { PALETTE, AMENITIES } from "@/lib/data/listings";
 import { useMoney } from "@/hooks/use-money";
 import { coordsOf } from "@/lib/geo";
 import { districtLabel, type LocalizedListing } from "@/schemas/listing";
+import { localeNames, type Locale } from "@/i18n/routing";
 
 export function DetailView({ listing }: { listing: LocalizedListing }) {
   const t = useTranslations("detail");
@@ -72,7 +74,14 @@ export function DetailView({ listing }: { listing: LocalizedListing }) {
                   </Badge>
                 )}
               </div>
-              <h1 className="text-3xl font-semibold tracking-tight text-balance">
+              {/* lang: title and description fall back independently, so a
+                  page may legitimately name a home in English and tell its
+                  story in Vietnamese. Each carries its own language for
+                  screen readers and hyphenation. */}
+              <h1
+                lang={listing.titleLocale}
+                className="text-3xl font-semibold tracking-tight text-balance"
+              >
                 {listing.title}
               </h1>
               <p className="mt-1.5 flex items-center gap-1.5 text-muted-foreground">
@@ -119,19 +128,32 @@ export function DetailView({ listing }: { listing: LocalizedListing }) {
             {/* whitespace-pre-line: owners write descriptions in paragraphs
                 (the seeded ones are three lines each) and a plain <p> collapses
                 every newline into a single run-on block. */}
-            <p className="whitespace-pre-line text-[15px] leading-relaxed text-muted-foreground text-pretty">
+            <p
+              lang={listing.descLocale}
+              className="whitespace-pre-line text-[15px] leading-relaxed text-muted-foreground text-pretty"
+            >
               {listing.desc}
             </p>
             {/* The description is the owner's original because they haven't
-                written one in this language. Say so, rather than letting a
-                reader wonder why one page switched languages on them. */}
+                written one in this language. A person not writing something is
+                a fact about that person, not a failure of the app — and a page
+                that silently switches language on a reader looks broken. Said
+                quietly, because for an English reader it lands on most homes
+                for a long while yet. */}
             {listing.descLocale !== locale && (
-              <p className="mt-2 text-sm text-muted-foreground/80">
-                {t("shownInOriginal", {
-                  language: tc(`languages.${listing.descLocale}`),
-                })}
+              <p className="mt-2.5 flex items-start gap-2 text-[13px] leading-relaxed text-muted-foreground">
+                <Globe size={14} className="shrink-0 mt-0.5" />
+                <span className="text-pretty">
+                  {t("descriptionNotWritten", {
+                    reader: tc(`languages.${locale}`),
+                    original: localeNames[listing.descLocale as Locale],
+                  })}
+                </span>
               </p>
             )}
+            {/* The way back to the owner's own words, when the reader is
+                being served a translation of them. */}
+            <OriginalDisclosure listing={listing} />
           </div>
 
           <div className="mt-8">
