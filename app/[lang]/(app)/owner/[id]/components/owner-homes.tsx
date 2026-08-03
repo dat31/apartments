@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Building2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { ListingCard } from "@/components/listing-card";
 import { SkeletonListingCard } from "@/components/skeleton-listing-card";
 import { getListingsByOwner } from "@/lib/services/listings";
 import { getOwnerProfile } from "@/lib/services/owners";
+import { localizeListings } from "@/schemas/listing";
 
 /* Homes shown before the "See all" affordance takes over. */
 const HOMES_PREVIEW = 3;
@@ -15,12 +16,15 @@ const HOMES_PREVIEW = 3;
    listings read streams below its own <Suspense> instead of holding up the
    hero and the reviews above it. */
 export async function OwnerHomes({ id }: { id: string }) {
-  const [t, owner, { listings: homes, now }] = await Promise.all([
+  const [t, owner, { listings, now }, locale] = await Promise.all([
     getTranslations("owner"),
     getOwnerProfile(id),
     getListingsByOwner(id),
+    getLocale(),
   ]);
   if (!owner) return null;
+
+  const homes = localizeListings(listings, locale);
 
   const firstName = owner.name.split(" ")[0];
   // "See all" carries the owner over to the browse page as a filter.

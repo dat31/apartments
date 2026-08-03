@@ -1,5 +1,7 @@
 "use server";
 
+import { getLocale } from "next-intl/server";
+
 import {
   bookTourSchema,
   proposeSlotSchema,
@@ -18,6 +20,7 @@ import {
   type TourScope,
   type TourWithListing,
 } from "@/lib/services/tours";
+import { localizeListing } from "@/schemas/listing";
 import { toResult, type ActionResult } from "./result";
 
 /* ============================================================
@@ -29,11 +32,21 @@ import { toResult, type ActionResult } from "./result";
    whole story.
    ============================================================ */
 
-/** The caller's tours as renter or as owner. */
+/** The caller's tours as renter or as owner.
+
+    The joined listing carries the copy the tour cards render, so it is
+    resolved here — the same job a page boundary does for server-rendered
+    listings. A tour whose listing has since been deleted keeps its null. */
 export async function fetchTours(
   scope: TourScope
 ): Promise<ActionResult<TourWithListing[]>> {
-  return toResult(() => listTours(scope));
+  const locale = await getLocale();
+  return toResult(async () =>
+    (await listTours(scope)).map((row) => ({
+      ...row,
+      listing: row.listing ? localizeListing(row.listing, locale) : null,
+    }))
+  );
 }
 
 /** The caller's live tour for one listing, or null. */

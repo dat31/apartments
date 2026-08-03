@@ -6,7 +6,7 @@ import { DetailContent } from "./components/detail-content";
 import { DetailSkeleton } from "./components/detail-skeleton";
 import { ShareHeaderSlot } from "./components/share-header-slot";
 import { getActiveListings, getListingById } from "@/lib/services/listings";
-import { districtLabel } from "@/schemas/listing";
+import { districtLabel, localizeListing } from "@/schemas/listing";
 import { formatMoney } from "@/lib/money";
 import { ogDefaults, pageAlternates } from "@/lib/seo";
 
@@ -34,8 +34,13 @@ export async function generateMetadata({
   params,
 }: PageProps<"/[lang]/apartments/[id]">): Promise<Metadata> {
   const { lang, id } = await params;
-  const listing = await getListingById(id);
-  if (!listing) return {};
+  const found = await getListingById(id);
+  if (!found) return {};
+
+  // The tab title, the description and the og card all describe the home in
+  // the language this URL serves — otherwise /en's hreflang alternate would
+  // promise English and deliver Vietnamese.
+  const listing = localizeListing(found, lang);
 
   const [t, ta, format] = await Promise.all([
     getTranslations({ locale: lang, namespace: "meta.detail" }),

@@ -3,7 +3,11 @@
     "appName": "Danapa",
     "signIn": "Sign in",
     "home": "Home",
-    "toggleTheme": "Toggle theme"
+    "toggleTheme": "Toggle theme",
+    "languages": {
+      "vi": "Vietnamese",
+      "en": "English"
+    }
   },
   "meta": {
     "titleTemplate": "%s — Danapa",
@@ -294,7 +298,8 @@
       "removeSaved": "Remove from saved",
       "depositNone": "No deposit",
       "depositMonths": "{count} mo deposit",
-      "depositAmount": "{amount} deposit"
+      "depositAmount": "{amount} deposit",
+      "matchedIn": "“{query}” appears in this home's {languages} title."
     },
     "recentlyViewed": {
       "title": "Recently viewed",
@@ -388,6 +393,10 @@
     "you": "You",
     "viewProfile": "View profile",
     "aboutTitle": "About this place",
+    "descriptionNotWritten": "The owner hasn't written a description in {reader}. You're reading the original, in {original}.",
+    "writtenIn": "The owner wrote this home in {original}.",
+    "readOriginal": "Read the original",
+    "hideOriginal": "Hide the original",
     "includedTitle": "What's included",
     "perMonth": "/ month",
     "perMonthShort": "/mo",
@@ -566,6 +575,8 @@
     "saveError": "Couldn't save your listing. Please try again.",
     "photos": "Photos",
     "photosHint": "Upload photos of your place. Drag to reorder — the first photo is used as the cover.",
+    "copy": "Title & description",
+    "copyHint": "Write it in whichever language comes naturally. This is the listing's original — the only version you are ever asked for.",
     "basics": "The basics",
     "title": "Title",
     "titlePlaceholder": "e.g. Sunlit studio near Mỹ Khê",
@@ -583,6 +594,25 @@
     "pickDate": "Pick a date",
     "availableHint": "When can a renter move in?",
     "description": "Description",
+    "languages": {
+      "heading": "Other languages",
+      "originalNote": "Renters see your original wherever nothing else exists. Only that version is ever required.",
+      "readerMismatch": "You're reading Danapa in {reader}. This home is written in {original} — your own words are what you'll see here.",
+      "writtenInLabel": "Language it was written in",
+      "readersSee": "Right now, {language} readers see your {original} title and description.",
+      "writeIn": "Write this home in {language}",
+      "titleIn": "Title in {language}",
+      "descriptionIn": "Description in {language}",
+      "yourOriginal": "Your {language}:",
+      "emptyMeans": "Leave either one empty and {language} readers see your {original} version of it — never a blank.",
+      "liveNow": "This home is live. {language} readers see this the moment you save.",
+      "remove": "Remove {language}",
+      "removeTitle": "Remove the {language} version?",
+      "removeBody": "This deletes what you wrote. {language} readers will see your {original} title and description again.",
+      "cancel": "Cancel",
+      "removed": "{language} version removed",
+      "undo": "Undo"
+    },
     "descriptionPlaceholder": "Describe the light, the layout, the neighborhood…",
     "amenities": "Amenities",
     "costs": {
@@ -668,6 +698,9 @@
       "emptyActive": "No active listings",
       "emptyDrafts": "No drafts",
       "emptyBody": "Create a listing to start renting out your place.",
+      "langSummary": "{count, plural, =1 {One of your homes is} other {# of your homes are}} written in more than one language. The rest show their original to every reader.",
+      "langSummaryNone": "All of your homes are written in one language. That is what every reader sees.",
+      "alsoIn": "also {languages}",
       "pause": "Pause",
       "publish": "Publish",
       "preview": "Preview",

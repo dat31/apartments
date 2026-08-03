@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { notFound } from "next/navigation";
 import { toast } from "sonner";
 import { useRouter } from "@/i18n/navigation";
@@ -47,6 +47,8 @@ import {
   formToCore,
   type ListingFormValues,
 } from "@/schemas/listing";
+import { TranslationEditor } from "./translation-editor";
+import { type Locale } from "@/i18n/routing";
 import { ArrowLeft, Clock } from "lucide-react";
 import posthog from "posthog-js";
 
@@ -79,9 +81,15 @@ export function ListingForm({
 
   const existing = isEdit && listingId ? getById(listingId) : undefined;
 
+  /* A new listing's base language is the one the owner is authoring in; an
+     existing one keeps whatever it was written in, so editing from /en never
+     relabels a Vietnamese listing as English. */
+  const uiLocale = useLocale() as Locale;
   const form = useForm<ListingFormValues>({
     resolver: zodResolver(listingFormSchema),
-    defaultValues: existing ? listingToForm(existing) : blankListingForm,
+    defaultValues: existing
+      ? listingToForm(existing)
+      : { ...blankListingForm, baseLocale: uiLocale },
   });
   const {
     register,
@@ -124,6 +132,7 @@ export function ListingForm({
     amenities,
     costs,
     price,
+    baseLocale,
   ] = useWatch({
     control,
     name: [
@@ -138,6 +147,7 @@ export function ListingForm({
       "amenities",
       "costs",
       "price",
+      "baseLocale",
     ],
   });
 
@@ -216,20 +226,51 @@ export function ListingForm({
           />
         </section>
 
-        {/* Basics */}
+        {/* The owner's own words, in whatever language they write them in.
+            This is the listing's original: the only copy ever required, and
+            what every renter falls back to. Other languages sit on top of it,
+            in their own section below. */}
         <section className="bg-card p-6 flex flex-col gap-5">
-          <h2 className="font-semibold">{t("basics")}</h2>
+          <div>
+            <h2 className="font-semibold">{t("copy")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground text-pretty">
+              {t("copyHint")}
+            </p>
+          </div>
 
           <Field data-invalid={!!errors.title}>
             <FieldLabel htmlFor="title">{t("title")}</FieldLabel>
             <Input
               id="title"
+              lang={baseLocale}
               placeholder={t("titlePlaceholder")}
               aria-invalid={!!errors.title}
               {...register("title")}
             />
             <FieldError errors={errors.title ? [errors.title] : undefined} />
           </Field>
+
+          <Field>
+            <FieldLabel htmlFor="desc">{t("description")}</FieldLabel>
+            <Textarea
+              id="desc"
+              rows={4}
+              lang={baseLocale}
+              placeholder={t("descriptionPlaceholder")}
+              {...register("desc")}
+            />
+          </Field>
+        </section>
+
+        {/* Other languages — additive, and never a condition of publishing. */}
+        <TranslationEditor
+          form={form}
+          isLive={isEdit && existing?.status === "active"}
+        />
+
+        {/* Basics */}
+        <section className="bg-card p-6 flex flex-col gap-5">
+          <h2 className="font-semibold">{t("basics")}</h2>
 
           <div className="grid sm:grid-cols-2 gap-5">
             <Field>
@@ -367,15 +408,6 @@ export function ListingForm({
             <FieldDescription>{t("availableHint")}</FieldDescription>
           </Field>
 
-          <Field>
-            <FieldLabel htmlFor="desc">{t("description")}</FieldLabel>
-            <Textarea
-              id="desc"
-              rows={4}
-              placeholder={t("descriptionPlaceholder")}
-              {...register("desc")}
-            />
-          </Field>
         </section>
 
         {/* Location pin */}

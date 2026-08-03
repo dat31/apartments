@@ -5,7 +5,8 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { ListingRow } from "./listing-row";
 import { useListings } from "@/hooks/use-listings";
-import { Building2, Plus } from "lucide-react";
+import { writtenLocales } from "@/schemas/listing";
+import { Building2, Globe, Plus } from "lucide-react";
 
 type Filter = "all" | "active" | "drafts";
 
@@ -51,8 +52,21 @@ export function ListingsTab({ filter }: { filter: Filter }) {
     );
   }
 
+  /* "Three of five translated" is either useful or guilt-inducing, and the
+     difference is entirely in how it's said — so it's said as a fact about
+     what readers get, over the owner's whole set rather than per row. */
+  const multilingual = listings.filter((l) => writtenLocales(l).length > 1).length;
+
   return (
     <div className="flex flex-col gap-3 stagger">
+      <p className="flex items-start gap-2 text-sm text-muted-foreground text-pretty">
+        <Globe size={15} className="shrink-0 mt-0.5" />
+        <span>
+          {multilingual === 0
+            ? t("listings.langSummaryNone")
+            : t("listings.langSummary", { count: multilingual })}
+        </span>
+      </p>
       {shown.map((l) => (
         <ListingRow
           key={l.id}

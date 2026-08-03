@@ -7,9 +7,10 @@ import {
   parseFilters,
   parsePage,
   parseSort,
+  unshownMatchLocales,
 } from "../query";
 import { DEFAULT_FILTERS, type Filters } from "@/schemas/filters";
-import { District } from "@/schemas/listing";
+import { District, localizeListing } from "@/schemas/listing";
 import { makeListing } from "@/tests/factories";
 
 /* The URL is the single source of truth for browse state, so everything here
@@ -93,6 +94,49 @@ describe("filterListings", () => {
     expect(ids(filterListings(base, filters({ q: "HOUSE" }), "featured"))).toEqual(["b"]);
     // District label, not just the slug.
     expect(ids(filterListings(base, filters({ q: "Sơn Trà" }), "featured"))).toEqual(["b"]);
+  });
+
+  /* The case improvement #14 says nothing would catch: search runs before the
+     copy is resolved to one language (browse.tsx), so a query in either
+     language finds the home regardless of which one its owner wrote in. */
+  it("matches the text query in every language the copy exists in", () => {
+    const bilingual = [
+      makeListing({
+        id: "vi-base",
+        title: "Căn hộ ven sông",
+        baseLocale: "vi",
+        i18n: { en: { title: "Riverside apartment" } },
+      }),
+      makeListing({
+        id: "en-base",
+        title: "Seaside townhouse",
+        baseLocale: "en",
+        i18n: { vi: { title: "Nhà phố ven biển" } },
+      }),
+    ];
+
+    // An English search finds the Vietnamese-authored home...
+    expect(ids(filterListings(bilingual, filters({ q: "riverside" }), "featured"))).toEqual(["vi-base"]);
+    // ...and a Vietnamese search finds the English-authored one.
+    expect(ids(filterListings(bilingual, filters({ q: "ven biển" }), "featured"))).toEqual(["en-base"]);
+    // Both still match on their own base copy.
+    expect(ids(filterListings(bilingual, filters({ q: "ven sông" }), "featured"))).toEqual(["vi-base"]);
+    expect(ids(filterListings(bilingual, filters({ q: "seaside" }), "featured"))).toEqual(["en-base"]);
+  });
+
+  it("keeps descriptions out of the haystack in every language", () => {
+    // Widening search to prose is a separate decision from making it
+    // bilingual; the translated desc must not become a back door to it.
+    const withDesc = [
+      makeListing({
+        id: "a",
+        title: "Riverside loft",
+        desc: "Steps from the night market.",
+        i18n: { vi: { title: "Căn hộ ven sông", desc: "Gần chợ đêm." } },
+      }),
+    ];
+    expect(filterListings(withDesc, filters({ q: "night market" }), "featured")).toEqual([]);
+    expect(filterListings(withDesc, filters({ q: "chợ đêm" }), "featured")).toEqual([]);
   });
 
   it("filters by type, district and owner", () => {
@@ -246,5 +290,50 @@ describe("activeFilterCount", () => {
 describe("PAGE_SIZE", () => {
   it("is a positive page size the pagination can divide by", () => {
     expect(PAGE_SIZE).toBeGreaterThan(0);
+  });
+});
+
+/* The other half of a bilingual search: the card has to explain why a home
+   whose title the reader can't read came back for their query. The rule is
+   the mirror of the haystack — silent whenever the reader can see the match
+   for themselves. */
+describe("unshownMatchLocales", () => {
+  const bilingual = () =>
+    makeListing({
+      title: "Căn hộ ven sông",
+      baseLocale: "vi",
+      i18n: { en: { title: "Riverside apartment" } },
+    });
+
+  it("names the language a match came from when the card shows another", () => {
+    const shown = localizeListing(bilingual(), "vi");
+    expect(unshownMatchLocales(shown, "riverside")).toEqual(["en"]);
+  });
+
+  it("says nothing when the title on the card contains the query", () => {
+    const shown = localizeListing(bilingual(), "en");
+    expect(unshownMatchLocales(shown, "riverside")).toEqual([]);
+  });
+
+  it("says nothing when the match is the district, city or home type", () => {
+    const shown = localizeListing(
+      makeListing({ district: District.HaiChau, city: "Da Nang", type: "House" }),
+      "vi"
+    );
+    expect(unshownMatchLocales(shown, "hai-chau")).toEqual([]);
+    expect(unshownMatchLocales(shown, "Hải Châu")).toEqual([]);
+    expect(unshownMatchLocales(shown, "da nang")).toEqual([]);
+    expect(unshownMatchLocales(shown, "house")).toEqual([]);
+  });
+
+  it("finds the home's own language when the reader is reading a translation", () => {
+    const shown = localizeListing(bilingual(), "en");
+    expect(unshownMatchLocales(shown, "ven sông")).toEqual(["vi"]);
+  });
+
+  it("says nothing for an empty query or a query nothing matched", () => {
+    const shown = localizeListing(bilingual(), "vi");
+    expect(unshownMatchLocales(shown, "   ")).toEqual([]);
+    expect(unshownMatchLocales(shown, "penthouse")).toEqual([]);
   });
 });

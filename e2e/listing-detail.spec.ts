@@ -1,4 +1,4 @@
-import { test, expect, listingLinks } from "./fixtures";
+import { test, expect, listingLinks, aTranslatedListing } from "./fixtures";
 import vi from "@/messages/vi.json";
 
 /* The site header's logo also links to /apartments, so the back link has to be
@@ -50,5 +50,26 @@ test.describe("listing detail", () => {
     await expect(back).toBeVisible();
     await back.click();
     await expect(page).toHaveURL(/\/apartments(\?|$)/);
+  });
+
+  /* The read path for `listing_translations` (improvement #14). The services
+     and the row→domain mapping are excluded from unit coverage by design
+     (AGENTS.md), so this is the only test that proves an embedded translation
+     survives the whole way to the rendered page. */
+  test("serves the owner's English copy on /en and the base copy on /", async ({
+    page,
+  }) => {
+    const translated = await aTranslatedListing();
+    test.skip(
+      !translated,
+      "no active listing has an English translation in this database"
+    );
+    const { id, base, english } = translated!;
+
+    await page.goto(`/apartments/${id}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(base);
+
+    await page.goto(`/en/apartments/${id}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(english);
   });
 });

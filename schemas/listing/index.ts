@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { routing } from "@/i18n/routing";
 
 /* ============================================================
    Listing domain schemas + types.
@@ -79,6 +80,32 @@ export const ListingCostsSchema = z.object({
 });
 export type ListingCosts = z.infer<typeof ListingCostsSchema>;
 
+/* ---- Multilingual copy (improvement #14) ----
+   A listing's two owner-authored strings in the locales the app serves.
+   `title`/`desc` below hold the *base* copy — the language the owner wrote
+   first, named by `baseLocale` — and `i18n` holds every other locale.
+
+   Either field of a translation may be absent: a translated title with an
+   untranslated description is the common case, and falls back per field
+   rather than wholesale (see localizeListing). */
+
+export const ListingTextSchema = z.object({
+  title: z.string().optional(),
+  desc: z.string().optional(),
+});
+export type ListingText = z.infer<typeof ListingTextSchema>;
+
+/** Assumed base language of a listing that doesn't name one — fixtures, seed
+    objects, and any row predating the column. Mirrors the `base_locale`
+    column default in 20260802120000_listing_translations.sql. */
+export const DEFAULT_BASE_LOCALE = "vi";
+
+/** The locales this deploy serves, straight from i18n/routing.ts — so adding
+    one there is all it takes for the form to offer it and the save actions to
+    accept it. Reads stay on plain strings (see `Listing.i18n`); only writes
+    are held to this list. */
+export const LocaleSchema = z.enum(routing.locales);
+
 export const ListingSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -110,8 +137,91 @@ export const ListingSchema = z.object({
   // trigger on listing_virtual_tours, never written by the listing form.
   // Optional because seed objects and fixtures predate the column.
   hasVirtualTour: z.boolean().optional(),
+  // The language `title` and `desc` are written in. Optional on the same
+  // grounds as the fields above — absent means DEFAULT_BASE_LOCALE.
+  baseLocale: z.string().optional(),
+  // Owner-authored copy in every *other* locale, keyed by locale. Absent when
+  // the owner wrote one language only, which is a normal state and not a
+  // broken one — the same rule as `lat`/`lng`.
+  i18n: z.record(z.string(), ListingTextSchema).optional(),
 });
 export type Listing = z.infer<typeof ListingSchema>;
+
+/* ---- Locale resolution ----
+   A listing whose copy has been resolved to one locale. `title`/`desc` are
+   the strings to render; the two *Locale fields say where each actually came
+   from, which is what lets the detail page tell a renter it is showing them a
+   language they didn't ask for. `i18n` survives untouched, so a "show the
+   original" affordance never needs a second read. */
+
+export type LocalizedListing = Listing & {
+  titleLocale: string;
+  descLocale: string;
+  /** The owner's own words, in the language they wrote them in — kept beside
+      the resolved copy so a renter reading a translation can be offered the
+      original without a second read. Equal to `title`/`desc` whenever nothing
+      was translated away. */
+  baseTitle: string;
+  baseDesc: string;
+};
+
+/* An empty or whitespace-only translation is "not translated", never "this
+   listing has no description" — a cleared textarea must fall back, not blank
+   the page (improvement #14, requirement 2). */
+const filled = (s: string | undefined): s is string => !!s && s.trim() !== "";
+
+/** Resolve a listing's owner-authored copy to `locale`, per field, falling
+    back to the base copy.
+
+    Pure, and the locale is always an argument: this module runs in the
+    browser as well as on the server, so it can never reach for getLocale()
+    itself. Call it where a listing enters the tree — a page or section
+    boundary — never inside a leaf component, so filtering and search still
+    see every language (see filterListings). */
+export function localizeListing(l: Listing, locale: string): LocalizedListing {
+  const base = l.baseLocale ?? DEFAULT_BASE_LOCALE;
+  const t = l.i18n?.[locale];
+  const title = t?.title;
+  const desc = t?.desc;
+
+  return {
+    ...l,
+    title: filled(title) ? title : l.title,
+    desc: filled(desc) ? desc : l.desc,
+    titleLocale: filled(title) ? locale : base,
+    descLocale: filled(desc) ? locale : base,
+    baseTitle: l.title,
+    baseDesc: l.desc,
+  };
+}
+
+/** Every locale this listing has any owner-written copy in, its own language
+    first. "Any" is per listing, not per field: a locale with a translated
+    title and no description counts, because the owner did write it in that
+    language.
+
+    Owner-facing — it answers "which languages does this home have?" on a
+    dashboard row without opening each one. Renters are never told this
+    (improvement #14: whether a home has a translation is not interesting on a
+    card), so keep it off reader surfaces. */
+export function writtenLocales(l: Listing): string[] {
+  const base = l.baseLocale ?? DEFAULT_BASE_LOCALE;
+  const rest = Object.entries(l.i18n ?? {})
+    .filter(
+      ([locale, text]) =>
+        locale !== base && (filled(text.title) || filled(text.desc))
+    )
+    .map(([locale]) => locale);
+  return [base, ...rest];
+}
+
+/** localizeListing over a list — the usual call at a page boundary. */
+export function localizeListings(
+  listings: Listing[],
+  locale: string
+): LocalizedListing[] {
+  return listings.map((l) => localizeListing(l, locale));
+}
 
 /* The editable core of a listing — everything except the server-owned
    fields (id, owner, views, palette, status). Shared by the create/edit
@@ -134,6 +244,19 @@ export const ListingCoreSchema = ListingSchema.pick({
   lat: true,
   lng: true,
   costs: true,
+}).extend({
+  /* The two multilingual fields are typed harder here than on `Listing`.
+     A listing *read* from the database may carry any locale — a row written
+     when the app served a third language must still parse — but a listing
+     *written* by a client may only carry the locales this deploy serves. A
+     save action is a public HTTP endpoint, and `z.record(z.string(), …)`
+     would accept an unbounded map, which is an unbounded insert.
+
+     Both stay optional: a `ListingCore` built before these existed (and every
+     fixture) is still valid, and an absent `baseLocale` leaves the column at
+     its default rather than relabelling the copy as Vietnamese. */
+  baseLocale: LocaleSchema.optional(),
+  i18n: z.partialRecord(LocaleSchema, ListingTextSchema).optional(),
 });
 export type ListingCore = z.infer<typeof ListingCoreSchema>;
 
@@ -172,8 +295,20 @@ export const blankCostsForm: CostsFormValues = {
   minLease: "",
 };
 
+/* Per-locale copy while editing. Unlike the domain's `ListingText`, both
+   fields are always present as strings — a controlled input has no "absent",
+   only "". formToCore is what turns "" back into absent. */
+const translationFormSchema = z.object({
+  title: z.string(),
+  desc: z.string(),
+});
+
 export const createListingFormSchema = (t: (key: string) => string) =>
   z.object({
+    /* The original copy, and the language it is written in. Only this
+       title is required: requirement 3 of improvement #14 is that an owner
+       is never made to write twice before they can publish. */
+    baseLocale: LocaleSchema,
     title: z.string().trim().min(1, t("listing.title")),
     type: z.string().min(1),
     price: z.string().refine((v) => Number(v) > 0, t("listing.price")),
@@ -189,13 +324,29 @@ export const createListingFormSchema = (t: (key: string) => string) =>
     lat: z.number().nullable(),
     lng: z.number().nullable(),
     costs: costsFormSchema,
+    /* One entry per locale the app serves, including the base one — whose
+       entry is simply never read (the original is `title`/`desc` above, and
+       toTranslationRows drops it). Keeping the map complete means the form
+       never has to ask whether a language has an entry yet. */
+    i18n: z.record(LocaleSchema, translationFormSchema),
   });
 
 export type ListingFormValues = z.infer<
   ReturnType<typeof createListingFormSchema>
 >;
 
+/** An empty entry for every configured locale. Adding one to i18n/routing.ts
+    grows the form by itself — no edit here, which is the whole point of
+    keying on `routing.locales` rather than naming languages. */
+export const blankTranslationForms = (): ListingFormValues["i18n"] =>
+  Object.fromEntries(
+    routing.locales.map((l) => [l, { title: "", desc: "" }])
+  ) as ListingFormValues["i18n"];
+
 export const blankListingForm: ListingFormValues = {
+  // Overridden with the locale the owner is authoring in (see listing-form).
+  baseLocale: routing.defaultLocale,
+  i18n: blankTranslationForms(),
   title: "",
   type: "Apartment",
   price: "",
@@ -272,9 +423,26 @@ export function costsToForm(costs: Listing["costs"]): CostsFormValues {
   };
 }
 
-/* Populate the form from an existing listing (edit mode). */
+/* Populate the form from an existing listing (edit mode).
+
+   `title`/`desc` are the *base* copy — the language named by `baseLocale` —
+   never a resolved translation. The action that feeds this deliberately skips
+   localization for exactly that reason: prefilling with the English of a
+   Vietnamese listing would overwrite the original on the next save. */
 export function listingToForm(l: Listing): ListingFormValues {
+  const i18n = blankTranslationForms();
+  for (const locale of routing.locales) {
+    const t = l.i18n?.[locale];
+    if (t) i18n[locale] = { title: t.title ?? "", desc: t.desc ?? "" };
+  }
+
   return {
+    baseLocale: (routing.locales as readonly string[]).includes(
+      l.baseLocale ?? ""
+    )
+      ? (l.baseLocale as ListingFormValues["baseLocale"])
+      : DEFAULT_BASE_LOCALE,
+    i18n,
     title: l.title,
     type: l.type,
     price: String(l.price),
@@ -294,7 +462,29 @@ export function listingToForm(l: Listing): ListingFormValues {
 
 /* Convert validated form values into the listing core the store stores. */
 export function formToCore(v: ListingFormValues): ListingCore {
+  /* Blank tabs are dropped, not saved as empty strings: "" means "not
+     translated" everywhere else (localizeListing falls back on it, the
+     mapping drops it, and the table's not-empty constraint rejects a row
+     that is blank in both fields). Clearing both fields is therefore how an
+     owner deletes a translation — the service removes the row for a locale
+     that doesn't come back. The base locale's entry is never read; that copy
+     lives in `title`/`desc`. */
+  const i18n: Record<string, ListingText> = {};
+  for (const [locale, text] of Object.entries(v.i18n)) {
+    if (locale === v.baseLocale) continue;
+    const entry: ListingText = {};
+    if (text.title.trim()) entry.title = text.title.trim();
+    if (text.desc.trim()) entry.desc = text.desc;
+    if (entry.title || entry.desc) i18n[locale] = entry;
+  }
+
+  /* Always present, even when empty: the core a save action receives is the
+     complete desired state of the listing's copy, so an empty map is a
+     meaningful instruction ("this listing has no translations") rather than
+     a missing field the service would have to guess about. */
   return {
+    baseLocale: v.baseLocale,
+    i18n,
     title: v.title.trim(),
     type: v.type,
     price: Number(v.price),

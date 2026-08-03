@@ -12,7 +12,13 @@ import {
   SHOWCASE_SIZE,
   type DistrictTile,
 } from "@/app/[lang]/lib/landing";
-import { toListing, toListingWrite } from "./listings-map";
+import {
+  LISTING_SELECT,
+  toListing,
+  toListingWrite,
+  toTranslationRows,
+  type TranslationWrite,
+} from "./listings-map";
 import { ServiceError } from "./errors";
 import { requireUser } from "./session";
 
@@ -32,8 +38,12 @@ import { requireUser } from "./session";
      and every mutation, through the cookie-bound client. Never
      cached, and never trusting an owner id from the caller.
 
-   The pure row ↔ domain mapping lives in ./listings-map so it can
-   also run in the browser (see hooks/use-saved-listings).
+   The pure row ↔ domain mapping lives in ./listings-map, which
+   stays free of `server-only`, caching and React so it can be
+   reasoned about — and tested — on its own. Every read below
+   selects LISTING_SELECT, so the listings it returns carry their
+   copy in *every* locale; resolving to one is a page-boundary
+   job (localizeListing), not this layer's.
    ============================================================ */
 
 /** All active listings, oldest first. Cached across requests via "use cache";
@@ -55,7 +65,7 @@ async function fetchActiveListings(): Promise<Listing[]> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("listings")
-    .select("*")
+    .select(LISTING_SELECT)
     .eq("status", "active")
     .order("created_at", { ascending: true });
 
@@ -161,7 +171,7 @@ export async function getListingsByOwner(
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("listings")
-    .select("*")
+    .select(LISTING_SELECT)
     .eq("status", "active")
     .eq("owner_id", ownerId)
     .order("created_at", { ascending: true });
@@ -211,7 +221,11 @@ export async function getSimilarListings(
 
   const supabase = createPublicClient();
   const active = () =>
-    supabase.from("listings").select("*").eq("status", "active").limit(30);
+    supabase
+      .from("listings")
+      .select(LISTING_SELECT)
+      .eq("status", "active")
+      .limit(30);
 
   const { data: inDistrict, error } = await active().eq(
     "district",
@@ -282,7 +296,7 @@ export async function getListingById(id: string): Promise<Listing | null> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("listings")
-    .select("*")
+    .select(LISTING_SELECT)
     .eq("id", id)
     .maybeSingle();
 
@@ -328,7 +342,7 @@ export async function listMyListings(): Promise<Listing[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("listings")
-    .select("*")
+    .select(LISTING_SELECT)
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -336,7 +350,8 @@ export async function listMyListings(): Promise<Listing[]> {
   return (data ?? []).map(toListing);
 }
 
-/** Create a listing owned by the caller. */
+/** Create a listing owned by the caller, with whatever translations its core
+    carries. */
 export async function createListing(
   core: ListingCore,
   status: Listing["status"]
@@ -361,16 +376,35 @@ export async function createListing(
     console.error("[listings] insert failed", error);
     throw new ServiceError("failed", error.message);
   }
-  return toListing(data);
+
+  // The insert above proved ownership (owner_id came from the session), so
+  // the translation write can trust this id.
+  const translations = toTranslationRows(data.id, core);
+  await writeTranslations(supabase, data.id, translations);
+  // The rows we just wrote *are* the listing's translations, so the returned
+  // Listing is complete without a second read.
+  return toListing({ ...data, listing_translations: translations });
 }
 
-/** Overwrite the editable columns of a listing the caller owns. */
+/** Overwrite the editable columns of a listing the caller owns, and bring its
+    translations to exactly what `core` asks for.
+
+    The core is the *complete* desired state of the copy, so a locale it
+    doesn't mention is one the owner cleared, and its row is deleted. Callers
+    that only mean to touch some other field must not route through here (see
+    setListingStatus, which patches `status` alone). */
 export async function updateListing(
   id: string,
   core: ListingCore,
   status: Listing["status"]
 ): Promise<string> {
-  return writeOwnedListing(id, toListingWrite(core, status));
+  // Ownership is decided by this call, on the query that states it; the
+  // translation writes below run only because it returned a row.
+  await writeOwnedListing(id, toListingWrite(core, status));
+
+  const supabase = await createClient();
+  await writeTranslations(supabase, id, toTranslationRows(id, core));
+  return id;
 }
 
 /** Flip a listing the caller owns between active and draft. */
@@ -424,6 +458,52 @@ export async function getListingForChat(
 
   if (error) throw new ServiceError("failed", error.message);
   return data ?? null;
+}
+
+/* Bring a listing's `listing_translations` rows to exactly `rows`: drop the
+   locales that are no longer there, then upsert the ones that are.
+
+   Called only after the caller's ownership of `listingId` has been established
+   by the `listings` write that precedes it — RLS on this table checks the same
+   thing again, and is the last line rather than the only one.
+
+   supabase-js cannot transact across two tables, and the plan is explicit that
+   a Postgres function to make it atomic would be the wrong trade: it would
+   move the ownership check off the query that states it. So the failure mode
+   is a listing whose base copy saved and whose translations didn't — visible,
+   harmless (every read falls back to the base copy), and fixed by saving
+   again. It throws rather than passing silently, so the owner is told. */
+async function writeTranslations(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  listingId: string,
+  rows: TranslationWrite[]
+): Promise<void> {
+  const kept = rows.map((r) => r.locale);
+
+  let remove = supabase
+    .from("listing_translations")
+    .delete()
+    .eq("listing_id", listingId);
+  // PostgREST needs the list parenthesised; with nothing kept, every row for
+  // this listing goes — which is how an owner clears their last translation.
+  if (kept.length) remove = remove.not("locale", "in", `(${kept.join(",")})`);
+
+  const { error: deleteError } = await remove;
+  if (deleteError) {
+    console.error("[listings] translation delete failed", deleteError);
+    throw new ServiceError("failed", deleteError.message);
+  }
+
+  if (!rows.length) return;
+
+  const { error } = await supabase
+    .from("listing_translations")
+    .upsert(rows, { onConflict: "listing_id,locale" });
+
+  if (error) {
+    console.error("[listings] translation upsert failed", error);
+    throw new ServiceError("failed", error.message);
+  }
 }
 
 /* The shared body of the two update paths: filter on the caller's ownership,

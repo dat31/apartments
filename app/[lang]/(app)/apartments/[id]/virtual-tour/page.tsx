@@ -6,6 +6,7 @@ import { TourSkeleton } from "./components/tour-skeleton";
 import { getListingById } from "@/lib/services/listings";
 import { getListingIdsWithTour, getVirtualTour } from "@/lib/services/virtual-tours";
 import { ogDefaults, pageAlternates } from "@/lib/seo";
+import { localizeListing } from "@/schemas/listing";
 
 /* Prerender the tour of every listing that has one, next to the detail pages
    they hang off. Listings whose tour is published after the build render on
@@ -30,9 +31,10 @@ export async function generateMetadata({
   ]);
   if (!listing || !tour) return {};
 
-  const title = t("metaTitle", { title: listing.title });
+  const { title: name } = localizeListing(listing, lang);
+  const title = t("metaTitle", { title: name });
   const description = t("metaDescription", {
-    title: listing.title,
+    title: name,
     rooms: tour.scenes.length,
   });
   const entry = tour.scenes.find((s) => s.id === tour.entryScene) ?? tour.scenes[0];

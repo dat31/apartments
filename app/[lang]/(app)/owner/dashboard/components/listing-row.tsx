@@ -1,13 +1,22 @@
 "use client";
 
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PALETTE } from "@/lib/data/listings";
-import { districtLabel, type Listing } from "@/schemas/listing";
-import { BedDouble, Eye, MapPin, Pencil, Rotate3d, Trash2 } from "lucide-react";
+import { districtLabel, writtenLocales, type Listing } from "@/schemas/listing";
+import { localeNames, type Locale } from "@/i18n/routing";
+import {
+  BedDouble,
+  Eye,
+  Globe,
+  MapPin,
+  Pencil,
+  Rotate3d,
+  Trash2,
+} from "lucide-react";
 import { useMoney } from "@/hooks/use-money";
 import posthog from "posthog-js";
 
@@ -23,8 +32,13 @@ export function ListingRow({
 }) {
   const t = useTranslations("dashboard");
   const ta = useTranslations("apartments");
+  const format = useFormatter();
   const money = useMoney();
   const isActive = listing.status === "active";
+  /* Owner surfaces speak the owner's language: this row renders the copy the
+     owner typed (the listing arrives unlocalized from useListings), so the
+     languages it lists are about the home, never about the dashboard. */
+  const written = writtenLocales(listing);
   const cover = listing.images?.[0];
   const colors = PALETTE[listing.palette];
 
@@ -58,7 +72,10 @@ export function ListingRow({
             </Badge>
             <Badge variant="secondary">{ta(`types.${listing.type}`)}</Badge>
           </div>
-          <h3 className="font-semibold tracking-tight truncate">
+          <h3
+            lang={written[0]}
+            className="font-semibold tracking-tight truncate"
+          >
             {listing.title}
           </h3>
           <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
@@ -77,6 +94,26 @@ export function ListingRow({
             </span>
             <span className="flex items-center gap-1">
               <Eye size={15} /> {listing.views}
+            </span>
+            {/* Which languages this home already has, without opening it to
+                find out. Stated as a fact, not a score: a home in one
+                language is finished, not incomplete. */}
+            <span className="flex items-center gap-1.5">
+              <Globe size={15} />
+              <span lang={written[0]}>
+                {localeNames[written[0] as Locale]}
+              </span>
+              {written.length > 1 && (
+                <span>
+                  ·{" "}
+                  {t("listings.alsoIn", {
+                    languages: format.list(
+                      written.slice(1).map((l) => localeNames[l as Locale]),
+                      { type: "conjunction" }
+                    ),
+                  })}
+                </span>
+              )}
             </span>
           </div>
         </div>

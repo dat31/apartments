@@ -4,13 +4,18 @@ import {
   blankListingForm,
   costsToForm,
   createListingFormSchema,
+  DEFAULT_BASE_LOCALE,
   District,
   districtLabel,
   DISTRICTS,
   formCostsToCore,
   formToCore,
   listingToForm,
+  localizeListing,
+  localizeListings,
+  writtenLocales,
   type CostsFormValues,
+  type ListingFormValues,
 } from "@/schemas/listing";
 import { makeListing } from "@/tests/factories";
 
@@ -222,6 +227,69 @@ describe("formToCore", () => {
     expect(core.costs?.deposit).toBe("1mo");
     expect(core.costs?.minLease).toBe(6);
   });
+
+  /* The authoring half of improvement #14: what an owner types in the tabs has
+     to survive the trip to the core the save action writes — and, just as
+     importantly, emptied fields have to survive as a *deletion*. */
+  describe("translations", () => {
+    const withTabs = (i18n: ListingFormValues["i18n"]) =>
+      formToCore({ ...filled, baseLocale: "en", i18n });
+
+    it("carries a written translation into the core", () => {
+      const core = withTabs({
+        en: { title: "ignored", desc: "ignored" },
+        vi: { title: "Studio đón nắng", desc: "Một nơi sáng sủa." },
+      });
+      expect(core.i18n).toEqual({
+        vi: { title: "Studio đón nắng", desc: "Một nơi sáng sủa." },
+      });
+    });
+
+    it("drops the base locale's entry, whose copy lives on the listing itself", () => {
+      // Otherwise the same text would exist in two places and drift apart.
+      const core = withTabs({
+        en: { title: "A second copy", desc: "of the base text" },
+        vi: { title: "", desc: "" },
+      });
+      expect(core.i18n).toEqual({});
+      expect(core.title).toBe("Sunlit studio");
+    });
+
+    it("drops a translation the owner cleared, so the service deletes its row", () => {
+      const core = withTabs({
+        en: { title: "", desc: "" },
+        vi: { title: "   ", desc: "" },
+      });
+      expect(core.i18n).toEqual({});
+    });
+
+    it("keeps a half-written translation, which falls back per field on read", () => {
+      const core = withTabs({
+        en: { title: "", desc: "" },
+        vi: { title: "Studio đón nắng", desc: "" },
+      });
+      expect(core.i18n).toEqual({ vi: { title: "Studio đón nắng" } });
+    });
+
+    it("round-trips translations through the form and back", () => {
+      const listing = makeListing({
+        title: "Riverside loft",
+        baseLocale: "en",
+        i18n: { vi: { title: "Căn hộ ven sông", desc: "Yên tĩnh." } },
+      });
+      const core = formToCore(listingToForm(listing));
+      expect(core.baseLocale).toBe("en");
+      expect(core.i18n).toEqual(listing.i18n);
+    });
+
+    it("keeps an unknown base locale out of the form", () => {
+      // A row written when the app served a language this deploy doesn't:
+      // the form can only offer tabs it has, so it falls back rather than
+      // leaving a language block with no entry to bind to.
+      const form = listingToForm(makeListing({ baseLocale: "ko" }));
+      expect(form.baseLocale).toBe(DEFAULT_BASE_LOCALE);
+    });
+  });
 });
 
 describe("createListingFormSchema", () => {
@@ -263,5 +331,150 @@ describe("createListingFormSchema", () => {
     if (!result.success) {
       expect(result.error.issues[0].message).toBe("listing.price");
     }
+  });
+});
+
+describe("localizeListing", () => {
+  /* The fixture is English-based, so `vi` is the translated side here. */
+  const bilingual = () =>
+    makeListing({
+      title: "Sunlit studio near Mỹ Khê",
+      desc: "A bright little place.",
+      baseLocale: "en",
+      i18n: { vi: { title: "Studio đón nắng gần Mỹ Khê", desc: "Một nơi sáng sủa." } },
+    });
+
+  it("uses the translation when the locale has one", () => {
+    const l = localizeListing(bilingual(), "vi");
+    expect(l.title).toBe("Studio đón nắng gần Mỹ Khê");
+    expect(l.desc).toBe("Một nơi sáng sủa.");
+    expect(l.titleLocale).toBe("vi");
+    expect(l.descLocale).toBe("vi");
+  });
+
+  it("falls back to the base copy for a locale with no translation", () => {
+    const l = localizeListing(bilingual(), "ko");
+    expect(l.title).toBe("Sunlit studio near Mỹ Khê");
+    expect(l.titleLocale).toBe("en");
+    expect(l.descLocale).toBe("en");
+  });
+
+  it("asked for the base locale, returns the base copy", () => {
+    const l = localizeListing(bilingual(), "en");
+    expect(l.title).toBe("Sunlit studio near Mỹ Khê");
+    expect(l.titleLocale).toBe("en");
+  });
+
+  /* The common real case: owners translate the headline and skip the body. */
+  it("falls back per field, not wholesale", () => {
+    const listing = makeListing({
+      title: "Sunlit studio near Mỹ Khê",
+      desc: "A bright little place.",
+      baseLocale: "en",
+      i18n: { vi: { title: "Studio đón nắng gần Mỹ Khê" } },
+    });
+    const l = localizeListing(listing, "vi");
+    expect(l.title).toBe("Studio đón nắng gần Mỹ Khê");
+    expect(l.titleLocale).toBe("vi");
+    // The description keeps the language that actually has one.
+    expect(l.desc).toBe("A bright little place.");
+    expect(l.descLocale).toBe("en");
+  });
+
+  /* A cleared textarea must read as "not translated", never as "this listing
+     has no description" — improvement #14, requirement 2. */
+  it("treats a blank or whitespace-only translation as absent", () => {
+    const listing = makeListing({
+      title: "Sunlit studio near Mỹ Khê",
+      desc: "A bright little place.",
+      baseLocale: "en",
+      i18n: { vi: { title: "   ", desc: "" } },
+    });
+    const l = localizeListing(listing, "vi");
+    expect(l.title).toBe("Sunlit studio near Mỹ Khê");
+    expect(l.desc).toBe("A bright little place.");
+    expect(l.descLocale).toBe("en");
+  });
+
+  it("assumes the default base locale when a listing names none", () => {
+    const rest = makeListing();
+    delete rest.baseLocale;
+    const l = localizeListing(rest, "en");
+    expect(l.titleLocale).toBe("vi");
+  });
+
+  it("leaves the translations on the object for a show-original affordance", () => {
+    const l = localizeListing(bilingual(), "vi");
+    expect(l.i18n?.en).toBeUndefined();
+    expect(l.i18n?.vi?.title).toBe("Studio đón nắng gần Mỹ Khê");
+  });
+
+  /* "Read the original" needs the owner's own words after the resolved copy
+     has replaced them. */
+  it("keeps the base copy beside the resolved copy", () => {
+    const l = localizeListing(bilingual(), "vi");
+    expect(l.title).toBe("Studio đón nắng gần Mỹ Khê");
+    expect(l.baseTitle).toBe("Sunlit studio near Mỹ Khê");
+    expect(l.baseDesc).toBe("A bright little place.");
+  });
+
+  it("base copy equals the resolved copy when nothing was translated away", () => {
+    const l = localizeListing(bilingual(), "en");
+    expect(l.baseTitle).toBe(l.title);
+    expect(l.baseDesc).toBe(l.desc);
+  });
+
+  it("does not mutate the listing it was given", () => {
+    const listing = bilingual();
+    localizeListing(listing, "vi");
+    expect(listing.title).toBe("Sunlit studio near Mỹ Khê");
+  });
+
+  it("localizeListings maps the whole list", () => {
+    const out = localizeListings([bilingual(), bilingual()], "vi");
+    expect(out.map((l) => l.title)).toEqual([
+      "Studio đón nắng gần Mỹ Khê",
+      "Studio đón nắng gần Mỹ Khê",
+    ]);
+  });
+});
+
+describe("writtenLocales", () => {
+  it("lists the home's own language first, then the ones it was translated into", () => {
+    const l = makeListing({
+      baseLocale: "en",
+      i18n: { vi: { title: "Studio đón nắng gần Mỹ Khê" } },
+    });
+    expect(writtenLocales(l)).toEqual(["en", "vi"]);
+  });
+
+  /* A home in one language is finished, not incomplete — the answer here is
+     one language, not "one of two". */
+  it("is just the original when nothing else was written", () => {
+    expect(writtenLocales(makeListing({ baseLocale: "vi" }))).toEqual(["vi"]);
+  });
+
+  /* Per listing, not per field: a translated title with no description is
+     still a language the owner wrote this home in. */
+  it("counts a locale with only one of the two fields", () => {
+    const l = makeListing({
+      baseLocale: "vi",
+      i18n: { en: { desc: "A bright little place." } },
+    });
+    expect(writtenLocales(l)).toEqual(["vi", "en"]);
+  });
+
+  it("ignores a blank translation and a shadow of the base locale", () => {
+    const l = makeListing({
+      baseLocale: "vi",
+      i18n: { en: { title: "  ", desc: "" }, vi: { title: "Bản gốc" } },
+    });
+    expect(writtenLocales(l)).toEqual(["vi"]);
+  });
+
+  it("assumes the default base locale when a listing names none", () => {
+    const l = makeListing();
+    delete l.baseLocale;
+    expect(writtenLocales(l)).toEqual([DEFAULT_BASE_LOCALE]);
   });
 });

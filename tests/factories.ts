@@ -124,6 +124,10 @@ export function makeListing(overrides: Partial<Listing> = {}): Listing {
     views: 0,
     available: "now",
     desc: "A bright little place.",
+    /* English base copy, matching the title/desc above — so a fixture that
+       adds an `i18n.vi` entry is testing a real fallback, not a mislabelled
+       one. Override alongside `title`/`desc` when a test needs the reverse. */
+    baseLocale: "en",
     ...overrides,
   };
 }

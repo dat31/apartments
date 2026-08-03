@@ -1,6 +1,10 @@
 import { localePath, SITE_URL } from "@/lib/seo";
 import { USD_TO_VND, availInfo } from "@/lib/data/listings";
-import { districtLabel, type Listing } from "@/schemas/listing";
+import {
+  districtLabel,
+  type Listing,
+  type LocalizedListing,
+} from "@/schemas/listing";
 import type { Locale } from "@/i18n/routing";
 
 /* schema.org JSON-LD for a listing detail page: a RealEstateListing (lease
@@ -12,7 +16,9 @@ const schemaType = (type: Listing["type"]) =>
   type === "House" || type === "Townhouse" ? "House" : "Apartment";
 
 export function listingJsonLd(
-  listing: Listing,
+  /* Localized: the markup has to describe the home in the language this URL
+     actually serves, and `descLocale` is what inLanguage below reports. */
+  listing: LocalizedListing,
   lang: Locale,
   crumbs: { home: string; apartments: string },
   /** Reference time (epoch ms) for the availability comparison. Comes from a
@@ -37,6 +43,9 @@ export function listingJsonLd(
       name: listing.title,
       url,
       description: listing.desc,
+      /* The language of the copy above, which is not always the page's:
+         an untranslated home falls back to the owner's original. */
+      inLanguage: listing.descLocale,
       ...(listing.images?.length ? { image: listing.images } : {}),
       about: {
         "@type": schemaType(listing.type),

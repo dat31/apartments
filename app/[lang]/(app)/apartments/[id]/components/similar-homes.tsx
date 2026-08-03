@@ -1,8 +1,12 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { ListingCard } from "@/components/listing-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SkeletonListingCard } from "@/components/skeleton-listing-card";
-import { districtLabel, type Listing } from "@/schemas/listing";
+import {
+  districtLabel,
+  localizeListings,
+  type Listing,
+} from "@/schemas/listing";
 import { getSimilarListings } from "@/lib/services/listings";
 
 /* "Similar homes" row, shown full-width below the detail two-column layout.
@@ -19,11 +23,16 @@ import { getSimilarListings } from "@/lib/services/listings";
    resolve and this heavier below-the-fold query streams in underneath rather
    than blocking the whole page. */
 export async function SimilarHomes({ listing }: { listing: Listing }) {
-  const [t, { picks, districtScoped, now }] = await Promise.all([
+  const [t, { picks, districtScoped, now }, locale] = await Promise.all([
     getTranslations("detail.similar"),
+    // Ranked on type/price/beds/area — never on the copy — so it makes no
+    // difference that the listing handed in here is already localized.
     getSimilarListings(listing),
+    getLocale(),
   ]);
   if (!picks.length) return null;
+
+  const shown = localizeListings(picks, locale);
 
   const district = districtLabel(listing.district);
   const city = listing.city.split(",")[0].trim() || listing.city;
@@ -39,7 +48,7 @@ export async function SimilarHomes({ listing }: { listing: Listing }) {
         <p className="mt-1 text-sm text-muted-foreground text-pretty">{sub}</p>
       </div>
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 stagger">
-        {picks.map((l) => (
+        {shown.map((l) => (
           <ListingCard key={l.id} listing={l} now={now} />
         ))}
       </div>
