@@ -703,10 +703,14 @@
       "alsoIn": "có thêm {languages}",
       "pause": "Tạm ẩn",
       "publish": "Đăng",
+      "actions": "Tùy chọn tin đăng",
       "preview": "Xem trước",
-      "edit": "Chỉnh sửa",
-      "editTour": "Chỉnh sửa tham quan 360°",
-      "delete": "Xóa"
+      "edit": "Chỉnh sửa tin đăng",
+      "tour360": "Tham quan 360°",
+      "addTour360": "Thêm tham quan 360°",
+      "delete": "Xóa",
+      "deleteFailed": "Không thể xóa tin đăng. Vui lòng thử lại.",
+      "statusFailed": "Không thể cập nhật tin đăng. Vui lòng thử lại."
     },
     "tours": {
       "needsResponse": "Cần bạn phản hồi",
@@ -718,7 +722,8 @@
       "confirmedToastDesc": "Chúng tôi đã báo cho người thuê biết.",
       "declinedToast": "Đã từ chối lịch xem",
       "proposedToast": "Đã đề xuất thời gian mới",
-      "proposedToastDesc": "Người thuê có thể chấp nhận hoặc từ chối đề xuất của bạn."
+      "proposedToastDesc": "Người thuê có thể chấp nhận hoặc từ chối đề xuất của bạn.",
+      "actionFailed": "Không thể cập nhật lịch xem. Vui lòng thử lại."
     },
     "tourCard": {
       "listingRemoved": "Tin đăng đã bị gỡ",

@@ -22,25 +22,40 @@ export const availabilityKeys = {
     ["availability", ownerId ?? "none"] as const,
 };
 
+/** A week a Server Component already read, handed in so the first render —
+    on both sides — has the real thing instead of an empty grid. */
+export type AvailabilitySeed = { ownerId: string; template: WeekTemplate };
+
 /** One owner's weekly availability template (public read). */
-export function useAvailability(ownerId: string | undefined) {
+export function useAvailability(
+  ownerId: string | undefined,
+  initialTemplate?: WeekTemplate
+) {
   const query = useQuery({
     queryKey: availabilityKeys.owner(ownerId),
     enabled: !!ownerId,
     queryFn: async (): Promise<WeekTemplate> =>
       unwrap(await fetchAvailability(ownerId!)),
+    initialData: initialTemplate,
   });
 
   const template = query.data ?? {};
   return { template, ready: !ownerId || !query.isLoading };
 }
 
-/** The signed-in owner's own availability, with editing. */
-export function useMyAvailability() {
+/** The signed-in owner's own availability, with editing.
+
+    `seed` is what lets a server-rendered editor paint the real week: without
+    it the owner id arrives from useUser() only after mount, so the query
+    can't even start until then and the grid renders empty first. With it,
+    both the id and the data are there on the first render — the mutations
+    below are unaffected either way, since the actions take the owner from the
+    session and this id is only a cache key. */
+export function useMyAvailability(seed?: AvailabilitySeed) {
   const queryClient = useQueryClient();
   const { data: user } = useUser();
-  const ownerId = user?.id;
-  const { template, ready } = useAvailability(ownerId);
+  const ownerId = seed?.ownerId ?? user?.id;
+  const { template, ready } = useAvailability(ownerId, seed?.template);
   const key = availabilityKeys.owner(ownerId);
 
   const setCache = useCallback(

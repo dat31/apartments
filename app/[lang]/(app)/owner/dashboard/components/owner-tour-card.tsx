@@ -1,20 +1,18 @@
-"use client";
-
 import Image from "next/image";
 import { useTranslations, useFormatter } from "next-intl";
-import { Button } from "@/components/ui/button";
 import { StatusTag } from "@/components/status-tag";
+import { TourActions } from "./tour-actions";
 import { PALETTE } from "@/lib/data/listings";
 import { type Listing } from "@/schemas/listing";
 import { type TourRequest } from "@/schemas/tour";
 import {
+  type WeekTemplate,
   parseYmd,
   tourSlot,
 } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import {
   Calendar,
   CalendarClock,
-  Check,
   Clock,
   MessageSquare,
   User,
@@ -22,19 +20,24 @@ import {
 } from "lucide-react";
 import { TourChatPanel } from "@/components/messaging/tour-chat-panel";
 
-/* One incoming tour request with the owner's available actions. */
+/* One incoming tour request with the owner's available actions.
+
+   A Server Component: everything above the button row is the request read
+   back to its owner. The buttons are one island (TourActions) and the chat
+   is another (TourChatPanel) — both were already separate concerns, so the
+   card between them never needed the client. */
 export function OwnerTourCard({
   tour,
   listing,
-  onAccept,
-  onDecline,
-  onPropose,
+  template,
+  occupied,
 }: {
   tour: TourRequest;
   listing: Listing | null;
-  onAccept: (id: string) => void;
-  onDecline: (id: string) => void;
-  onPropose: (tour: TourRequest) => void;
+  /** The owner's week, for the propose-a-new-time picker. */
+  template: WeekTemplate;
+  /** Slots this owner already holds, this tour's own excluded. */
+  occupied: string[];
 }) {
   const t = useTranslations("dashboard.tourCard");
   const tt = useTranslations("tours");
@@ -129,53 +132,12 @@ export function OwnerTourCard({
         )}
 
         <div className="flex flex-wrap items-center gap-2 mt-auto">
-          {tour.status === "pending" && (
-            <>
-              <Button size="sm" onClick={() => onAccept(tour.id)}>
-                <Check size={16} /> {t("accept")}
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => onPropose(tour)}
-              >
-                <Calendar size={16} /> {t("suggestNewTime")}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hover:bg-destructive hover:text-destructive-foreground"
-                onClick={() => onDecline(tour.id)}
-              >
-                {t("decline")}
-              </Button>
-            </>
-          )}
-          {tour.status === "confirmed" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hover:bg-destructive hover:text-destructive-foreground"
-              onClick={() => onDecline(tour.id)}
-            >
-              {t("cancelTour")}
-            </Button>
-          )}
-          {tour.status === "reschedule" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hover:bg-destructive hover:text-destructive-foreground"
-              onClick={() => onDecline(tour.id)}
-            >
-              {t("withdraw")}
-            </Button>
-          )}
-          {tour.status === "declined" && (
-            <span className="text-sm text-muted-foreground">
-              {t("noAction")}
-            </span>
-          )}
+          <TourActions
+            tour={tour}
+            listingTitle={listing?.title ?? null}
+            template={template}
+            occupied={occupied}
+          />
         </div>
 
         <TourChatPanel tour={tour} />

@@ -3,7 +3,10 @@
 import { useTranslations, useFormatter } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useMyAvailability } from "@/hooks/use-availability";
+import {
+  useMyAvailability,
+  type AvailabilitySeed,
+} from "@/hooks/use-availability";
 import {
   TOUR_TIMES,
   type WeekTemplate,
@@ -11,8 +14,14 @@ import {
 import { Clock } from "lucide-react";
 
 /* Weekly recurring tour-availability editor. Each weekday is a row of
-   toggleable time chips; the result repeats every week. */
-export function AvailabilityEditor() {
+   toggleable time chips; the result repeats every week.
+
+   The one dashboard surface that stays a client component, and it earns it:
+   63 chips that flip under a rapid pointer, with react-query coalescing the
+   optimistic writes. What changed is the start — `seed` is the week its page
+   read on the server, so the grid renders filled in the HTML instead of
+   painting empty and correcting itself once useUser() resolves. */
+export function AvailabilityEditor({ seed }: { seed: AvailabilitySeed }) {
   const t = useTranslations("dashboard.availability");
   const format = useFormatter();
   // Locale-aware short weekday labels, Sun→Sat (2023-01-01 is a Sunday).
@@ -23,7 +32,7 @@ export function AvailabilityEditor() {
     const [h, m] = time.split(":").map(Number);
     return format.dateTime(new Date(2000, 0, 1, h, m), { hour: "numeric" });
   };
-  const { template, total, toggle, replaceWeek } = useMyAvailability();
+  const { template, total, toggle, replaceWeek } = useMyAvailability(seed);
 
   const preset = (kind: "weekday" | "all" | "clear") => {
     if (kind === "clear") return replaceWeek({});

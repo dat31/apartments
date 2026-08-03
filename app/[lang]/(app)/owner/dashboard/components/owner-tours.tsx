@@ -1,84 +1,24 @@
-"use client";
-
-import * as React from "react";
-import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { getTranslations } from "next-intl/server";
 import { OwnerTourCard } from "./owner-tour-card";
-import { ProposeTimeModal } from "./propose-time-modal";
-import { useOwnerTours, type OwnerTour } from "@/hooks/use-owner-tours";
-import { useMyAvailability } from "@/hooks/use-availability";
-import { type TourRequest } from "@/schemas/tour";
-import { tourSlot } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
+import { groupOwnerTours, occupiedSlotsExcluding } from "../lib/tours";
+import { listTours, type TourWithListing } from "@/lib/services/tours";
+import { getAvailability } from "@/lib/services/availability";
+import { getSessionUser } from "@/lib/services/session";
+import { type WeekTemplate } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { Calendar } from "lucide-react";
 import { MessagingProvider } from "@/components/messaging/chat-provider";
-import posthog from "posthog-js";
 
-const sortKey = (t: TourRequest) => {
-  const s = tourSlot(t);
-  return `${s.date}|${s.time}`;
-};
+/* The tours an owner has received. Fetched, grouped and rendered on the
+   server; only the button row of each card and its chat panel are islands.
 
-function Section({
-  title,
-  items,
-  render,
-}: {
-  title: string;
-  items: OwnerTour[];
-  render: (t: OwnerTour) => React.ReactNode;
-}) {
-  if (items.length === 0) return null;
-  return (
-    <div className="mb-7">
-      <div className="flex items-baseline gap-2 mb-3">
-        <h2 className="text-base font-semibold tracking-tight">{title}</h2>
-        <span className="text-sm text-muted-foreground tabular-nums">
-          {items.length}
-        </span>
-      </div>
-      <div className="flex flex-col gap-3 stagger">{items.map(render)}</div>
-    </div>
-  );
-}
-
-export function OwnerTours() {
-  const t = useTranslations("dashboard.tours");
-  const { items, acceptTour, declineTour, proposeTime } = useOwnerTours();
-  const { template } = useMyAvailability();
-  const [proposeFor, setProposeFor] = React.useState<TourRequest | null>(null);
-
-  const needsResponse = items
-    .filter((m) => m.tour.status === "pending" || m.tour.status === "reschedule")
-    .sort((a, b) => sortKey(a.tour).localeCompare(sortKey(b.tour)));
-  const upcoming = items
-    .filter((m) => m.tour.status === "confirmed")
-    .sort((a, b) => sortKey(a.tour).localeCompare(sortKey(b.tour)));
-  const past = items.filter((m) => m.tour.status === "declined");
-
-  const handleAccept = (id: string) => {
-    acceptTour(id);
-    posthog.capture("tour_accepted", { tour_id: id });
-    toast.success(t("confirmedToast"), {
-      description: t("confirmedToastDesc"),
-    });
-  };
-
-  const handleDecline = (id: string) => {
-    declineTour(id);
-    posthog.capture("tour_declined", { tour_id: id });
-    toast(t("declinedToast"));
-  };
-
-  const renderCard = (m: OwnerTour) => (
-    <OwnerTourCard
-      key={m.tour.id}
-      tour={m.tour}
-      listing={m.listing}
-      onAccept={handleAccept}
-      onDecline={handleDecline}
-      onPropose={setProposeFor}
-    />
-  );
+   The owner's availability comes along because a card may offer to propose a
+   new time, and the picker needs the week to offer from. It is a public,
+   cross-request cached read (tagged per owner), so asking for it here costs
+   nothing on a warm tag. */
+export async function OwnerTours() {
+  const t = await getTranslations("dashboard.tours");
+  const [items, user] = await Promise.all([listTours("owner"), getSessionUser()]);
+  const template: WeekTemplate = user ? await getAvailability(user.id) : {};
 
   if (items.length === 0) {
     return (
@@ -94,37 +34,53 @@ export function OwnerTours() {
     );
   }
 
+  const groups = groupOwnerTours(items);
+  const card = (m: TourWithListing) => (
+    <OwnerTourCard
+      key={m.tour.id}
+      tour={m.tour}
+      listing={m.listing}
+      template={template}
+      /* Worked out per card, because the slot a card may offer is every slot
+         this owner holds *except* the one that card is moving. */
+      occupied={occupiedSlotsExcluding(items, m.tour)}
+    />
+  );
+
   return (
     /* One Stream connection for every card's chat panel; children render
-       immediately, so the dashboard never waits on the socket. */
+       immediately, so the dashboard never waits on the socket. A client
+       component wrapping server-rendered children — the cards below stay
+       Server Components. */
     <MessagingProvider>
-    <div className="anim-fade">
-      <Section title={t("needsResponse")} items={needsResponse} render={renderCard} />
-      <Section title={t("upcoming")} items={upcoming} render={renderCard} />
-      <Section title={t("past")} items={past} render={renderCard} />
-
-      <ProposeTimeModal
-        key={proposeFor?.id ?? "none"}
-        open={!!proposeFor}
-        onClose={() => setProposeFor(null)}
-        tour={proposeFor}
-        listing={
-          proposeFor
-            ? items.find((m) => m.tour.id === proposeFor.id)?.listing ?? null
-            : null
-        }
-        template={template}
-        tours={items.map((m) => m.tour)}
-        onSubmit={(id, date, time) => {
-          proposeTime(id, date, time);
-          posthog.capture("tour_time_proposed", { tour_id: id, proposed_date: date, proposed_time: time });
-          setProposeFor(null);
-          toast.success(t("proposedToast"), {
-            description: t("proposedToastDesc"),
-          });
-        }}
-      />
-    </div>
+      <div className="anim-fade">
+        <Section title={t("needsResponse")} items={groups.needsResponse} card={card} />
+        <Section title={t("upcoming")} items={groups.upcoming} card={card} />
+        <Section title={t("past")} items={groups.past} card={card} />
+      </div>
     </MessagingProvider>
+  );
+}
+
+function Section({
+  title,
+  items,
+  card,
+}: {
+  title: string;
+  items: TourWithListing[];
+  card: (m: TourWithListing) => React.ReactNode;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className="mb-7">
+      <div className="flex items-baseline gap-2 mb-3">
+        <h2 className="text-base font-semibold tracking-tight">{title}</h2>
+        <span className="text-sm text-muted-foreground tabular-nums">
+          {items.length}
+        </span>
+      </div>
+      <div className="flex flex-col gap-3 stagger">{items.map(card)}</div>
+    </div>
   );
 }

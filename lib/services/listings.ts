@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -335,8 +336,14 @@ export async function getListingDetail(id: string): Promise<{
    than as a silent no-op the UI reports as success.
    ============================================================ */
 
-/** Every listing the caller owns, newest first — drafts included. */
-export async function listMyListings(): Promise<Listing[]> {
+/** Every listing the caller owns, newest first — drafts included.
+
+    Memoized per request like getSessionUser(): the dashboard reads this from
+    the layout (stats, nav) and again from the tab page, and they should share
+    one round trip. Cookie-bound, so this is request memoization and nothing
+    more — no entry outlives the request, and cache() does not reach inside a
+    "use cache" boundary. */
+export const listMyListings = cache(async (): Promise<Listing[]> => {
   const user = await requireUser();
 
   const supabase = await createClient();
@@ -348,7 +355,7 @@ export async function listMyListings(): Promise<Listing[]> {
 
   if (error) throw new ServiceError("failed", error.message);
   return (data ?? []).map(toListing);
-}
+});
 
 /** Create a listing owned by the caller, with whatever translations its core
     carries. */

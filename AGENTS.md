@@ -81,6 +81,41 @@ These stay on a direct Supabase client, and the lint rule exempts them:
 
 Adding an exception means editing `eslint.config.mjs`. That is the point.
 
+# Server rendering
+
+`cacheComponents` is on. A route is a static shell plus dynamic holes: anything
+cookie-bound renders inside a `<Suspense>`, and the frame around it reads
+nothing and prerenders per locale. `pnpm build` should report the route as `◐`.
+
+## Every page pins its own locale
+
+**A page whose subtree calls `getTranslations()` or `useTranslations()` on the
+server must call `setRequestLocale(lang)` itself.** Its layout doing so is not
+enough. Without it next-intl resolves the locale from the request, and that
+read is attributed to the enclosing render rather than to the `<Suspense>` the
+caller sits inside — so the route is rejected as blocking:
+
+> Runtime data such as `cookies()`, `headers()`, `params`, or `searchParams`
+> was accessed outside of `<Suspense>`.
+
+Two traps in that message, both cost real time on the owner dashboard:
+
+- **It blames the wrong file.** The stack points at `<NextIntlClientProvider>`
+  in `app/[lang]/layout.tsx` — where the delay surfaces, not where the read is.
+- **It is not about the cookies it names.** A cookie-bound service call inside
+  a boundary is fine. Look for the translations call in a segment that never
+  pinned its locale.
+
+## `◐` is necessary, not sufficient
+
+The build only prerenders the shell — it never executes the dynamic holes, and
+it reported `◐` on all six dashboard routes while the error above fired on
+every request. A route that renders on the server has to be **loaded once**
+with `.next/dev/logs/next-development.log` watched. The same gap makes
+`pnpm build` no evidence that a Server Component renders at all; mount it on a
+throwaway route with fixture data if there is no signed-in way to reach it
+(see the `verify` skill).
+
 # Tests
 
 Two suites, separated by file extension so neither runner picks up the other's

@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { type Listing } from "@/schemas/listing";
 import { type BookTourInput, type TourRequest } from "@/schemas/tour";
@@ -49,10 +50,13 @@ const ACTIVE_STATUS = ["pending", "confirmed", "reschedule"] as const;
  *
  * Scoping by side matters beyond RLS: an account that both rents and hosts
  * would otherwise see its own requests in the owner dashboard.
+ *
+ * Memoized per request, keyed on scope: the owner dashboard reads the "owner"
+ * scope from its layout (stats, nav) and again from the tours tab.
  */
-export async function listTours(
+export const listTours = cache(async (
   scope: TourScope
-): Promise<TourWithListing[]> {
+): Promise<TourWithListing[]> => {
   const user = await requireUser();
 
   const supabase = await createClient();
@@ -67,7 +71,7 @@ export async function listTours(
     tour: toTourRequest(row),
     listing: row.listing ? toListing(row.listing) : null,
   }));
-}
+});
 
 /** The caller's current live tour for one listing, or null. */
 export async function getActiveTour(
