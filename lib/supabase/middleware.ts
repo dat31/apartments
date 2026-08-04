@@ -39,6 +39,9 @@ const PROTECTED: RegExp[] = [
   /^\/apartments\/saved(?!\/compare(\/|$))(\/|$)/,
   /^\/apartments\/create(\/|$)/,
   /^\/apartments\/[^/]+\/edit(\/|$)/,
+  // An owner previewing their own unpublished listing. Signed out there is
+  // nothing to show — the page reads the listing as the owner, not anonymously.
+  /^\/apartments\/[^/]+\/preview(\/|$)/,
   // The tour editor. Not covered by the /edit pattern above — that one stops
   // at the id's own segment, and this lives a level deeper.
   /^\/apartments\/[^/]+\/virtual-tour\/edit(\/|$)/,

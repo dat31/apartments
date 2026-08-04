@@ -44,6 +44,9 @@
     "edit": {
       "title": "Edit listing"
     },
+    "preview": {
+      "title": "Listing preview"
+    },
     "tourEditor": {
       "title": "Edit the 360° tour"
     },
@@ -704,13 +707,18 @@
       "pause": "Pause",
       "publish": "Publish",
       "actions": "Listing actions",
-      "preview": "Preview",
       "edit": "Edit listing",
       "tour360": "360° tour",
       "addTour360": "Add 360° tour",
       "delete": "Delete",
       "deleteFailed": "Couldn't delete that listing. Please try again.",
       "statusFailed": "Couldn't update that listing. Please try again."
+    },
+    "preview": {
+      "title": "Draft preview",
+      "body": "This is how your home will read once it's live. Only you can see this page — publish the listing to open it to renters.",
+      "back": "Back to dashboard",
+      "edit": "Edit listing"
     },
     "tours": {
       "needsResponse": "Needs your response",

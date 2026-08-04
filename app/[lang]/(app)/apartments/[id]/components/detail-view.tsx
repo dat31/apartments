@@ -26,7 +26,18 @@ import { coordsOf } from "@/lib/geo";
 import { districtLabel, type LocalizedListing } from "@/schemas/listing";
 import { localeNames, type Locale } from "@/i18n/routing";
 
-export function DetailView({ listing }: { listing: LocalizedListing }) {
+export function DetailView({
+  listing,
+  preview,
+}: {
+  listing: LocalizedListing;
+  /** Rendered for the owner on /apartments/[id]/preview, where this home is
+      still a draft. Two things that only make sense for a live listing come
+      off: the recently-viewed record (its public URL 404s for everyone else,
+      so remembering it would plant a dead card in the owner's history) and
+      share, which would hand out that same dead URL. */
+  preview?: boolean;
+}) {
   const t = useTranslations("detail");
   const tc = useTranslations("common");
   const locale = useLocale();
@@ -51,7 +62,7 @@ export function DetailView({ listing }: { listing: LocalizedListing }) {
   return (
     <div>
       {/* Records this listing in the recently-viewed history (renders nothing). */}
-      <RecordRecentlyViewed id={listing.id} />
+      {!preview && <RecordRecentlyViewed id={listing.id} />}
 
       {/* Gallery — carries the 360° entry when this home has a tour */}
       <Gallery
@@ -91,11 +102,13 @@ export function DetailView({ listing }: { listing: LocalizedListing }) {
             </div>
             {/* Tablet / desktop share sits beside the title; mobile share
                 lives in the page's back-to-results header row instead. */}
-            <ShareButton
-              title={listing.title}
-              text={shareText}
-              className="hidden sm:inline-flex shrink-0"
-            />
+            {!preview && (
+              <ShareButton
+                title={listing.title}
+                text={shareText}
+                className="hidden sm:inline-flex shrink-0"
+              />
+            )}
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">

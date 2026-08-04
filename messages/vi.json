@@ -44,11 +44,14 @@
     "edit": {
       "title": "Chỉnh sửa tin đăng"
     },
+    "preview": {
+      "title": "Xem trước tin đăng"
+    },
     "tourEditor": {
       "title": "Chỉnh sửa tham quan 360°"
     },
     "dashboard": {
-      "title": "Bảng điều khiển chủ nhà"
+      "title": "Dashboard Chủ nhà"
     },
     "messages": {
       "title": "Tin nhắn"
@@ -206,7 +209,7 @@
     "hosting": "Đang cho thuê trên Danapa",
     "renting": "Đang thuê trên Danapa",
     "manageProfile": "Quản lý hồ sơ",
-    "ownerDashboard": "Bảng điều khiển chủ nhà",
+    "ownerDashboard": "Dashboard Chủ nhà",
     "viewPublic": "Xem hồ sơ công khai",
     "lightMode": "Giao diện sáng",
     "darkMode": "Giao diện tối",
@@ -673,7 +676,7 @@
     }
   },
   "dashboard": {
-    "eyebrow": "Bảng điều khiển chủ nhà",
+    "eyebrow": "Dashboard Chủ nhà",
     "welcome": "Chào mừng trở lại, {name}",
     "newListing": "Tin đăng mới",
     "stats": {
@@ -704,13 +707,18 @@
       "pause": "Tạm ẩn",
       "publish": "Đăng",
       "actions": "Tùy chọn tin đăng",
-      "preview": "Xem trước",
       "edit": "Chỉnh sửa tin đăng",
       "tour360": "Tham quan 360°",
       "addTour360": "Thêm tham quan 360°",
       "delete": "Xóa",
       "deleteFailed": "Không thể xóa tin đăng. Vui lòng thử lại.",
       "statusFailed": "Không thể cập nhật tin đăng. Vui lòng thử lại."
+    },
+    "preview": {
+      "title": "Xem trước bản nháp",
+      "body": "Đây là cách nhà của bạn hiện ra khi được đăng. Chỉ mình bạn thấy trang này — hãy đăng tin để người thuê xem được.",
+      "back": "Về dashboard",
+      "edit": "Chỉnh sửa tin đăng"
     },
     "tours": {
       "needsResponse": "Cần bạn phản hồi",

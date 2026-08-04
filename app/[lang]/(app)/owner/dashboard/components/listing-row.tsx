@@ -49,7 +49,23 @@ export function ListingRow({ listing }: { listing: Listing }) {
   const colors = PALETTE[listing.palette];
 
   return (
-    <div className="bg-card flex flex-col sm:flex-row anim-up group">
+    <div className="relative bg-card flex flex-col sm:flex-row transition-colors hover:bg-accent">
+      {/* Stretched link: the row reads as one listing, so clicking anywhere
+          that isn't a control opens it. The controls below sit on z-20 to stay
+          clickable through it — same shape as ListingCard.
+
+          A draft has no public page — RLS hides it from the cookieless read
+          the detail route makes, which is a 404 — so it opens the owner-only
+          preview instead. See ../../../apartments/[id]/preview/page.tsx. */}
+      <Link
+        href={
+          isActive
+            ? `/apartments/${listing.id}`
+            : `/apartments/${listing.id}/preview`
+        }
+        aria-label={listing.title}
+        className="absolute inset-0 z-10 focus-ring"
+      />
       <div className="sm:w-44 lg:w-64 shrink-0 overflow-hidden sm:self-stretch">
         <div className="relative aspect-[16/9] sm:aspect-auto sm:h-full">
           {cover ? (
@@ -58,7 +74,7 @@ export function ListingRow({ listing }: { listing: Listing }) {
               alt={listing.title}
               fill
               sizes="(min-width: 1024px) 16rem, (min-width: 640px) 11rem, 100vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              className="object-cover"
               unoptimized={cover.startsWith("data:")}
             />
           ) : (
@@ -96,7 +112,9 @@ export function ListingRow({ listing }: { listing: Listing }) {
               <span className="truncate">{districtLabel(listing.district)}</span>
             </p>
           </div>
-          <ListingRowMenu listingId={listing.id} />
+          <span className="relative z-20 shrink-0">
+            <ListingRowMenu listingId={listing.id} />
+          </span>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2.5">
@@ -122,7 +140,7 @@ export function ListingRow({ listing }: { listing: Listing }) {
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 min-w-0">
+          <div className="relative z-20 flex flex-wrap items-center gap-2 min-w-0">
             {/* The 360° tour is authored per listing, so its way in belongs
                 beside the listing rather than in the nav — and named, since
                 whether one exists yet is the thing the owner is checking. */}

@@ -12,6 +12,7 @@ const PRIVATE_PATHS = [
   "/apartments/saved",
   "/apartments/create",
   "/apartments/*/edit",
+  "/apartments/*/preview",
   "/tour",
   "/messages",
   "/forgot-password",

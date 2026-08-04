@@ -14,11 +14,13 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Ellipsis, Eye, Pencil, Trash2 } from "lucide-react";
+import { Ellipsis, Pencil, Trash2 } from "lucide-react";
 
 /* Four icon buttons crowded the title at tablet widths, so a listing row's
-   whole-listing actions collapse into one trigger and a labelled menu. The
-   two that navigate are real links; only deleting is a handler.
+   whole-listing actions collapse into one trigger and a labelled menu. Preview
+   isn't among them: the row itself is a link to the public page, so a menu
+   entry doing the same thing was a second way in. Editing is a real link; only
+   deleting is a handler.
 
    It owns the delete rather than taking an onDelete, which is what lets the
    row and the list above it be Server Components. The row goes on the screen
@@ -55,11 +57,6 @@ export function ListingRowMenu({ listingId }: { listingId: string }) {
       {/* Wide enough for the longest label in either language on one line —
           a two-line row in a 36px-tall item reads as a wrapping accident. */}
       <DropdownMenuContent align="end" className="w-52 whitespace-nowrap">
-        <DropdownMenuItem asChild className="h-9 gap-2.5 px-2">
-          <Link href={`/apartments/${listingId}`}>
-            <Eye size={16} /> {t("listings.preview")}
-          </Link>
-        </DropdownMenuItem>
         <DropdownMenuItem asChild className="h-9 gap-2.5 px-2">
           <Link href={`/apartments/${listingId}/edit`}>
             <Pencil size={16} /> {t("listings.edit")}

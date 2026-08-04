@@ -17,14 +17,7 @@ import { unwrap } from "@/lib/actions/result";
 import { coordsOf, formatDistance, kmBetween, type LatLng } from "@/lib/geo";
 import { districtLabel, type Listing } from "@/schemas/listing";
 import { cn } from "@/lib/utils";
-import {
-  ArrowLeft,
-  Check,
-  LayoutGrid,
-  LocateFixed,
-  Search,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Check, LocateFixed, Search, X } from "lucide-react";
 import { parseCompareIds } from "../../lib/compare";
 import { HeaderCard } from "./header-card";
 import { PickTwo } from "./pick-two";
@@ -126,9 +119,7 @@ export function CompareView() {
         >
           <ArrowLeft size={18} /> {t("back")}
         </Link>
-        <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2.5">
-          <LayoutGrid size={26} className="text-primary" /> {t("title")}
-        </h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="mt-1 text-muted-foreground">
           {t("subtitle", { count: n })}
         </p>
