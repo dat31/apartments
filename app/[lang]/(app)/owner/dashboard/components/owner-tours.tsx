@@ -1,15 +1,23 @@
 import { getTranslations } from "next-intl/server";
 import { OwnerTourCard } from "./owner-tour-card";
-import { groupOwnerTours, occupiedSlotsExcluding } from "../lib/tours";
-import { listTours, type TourWithListing } from "@/lib/services/tours";
+import { groupLiveOwnerTours, occupiedSlotsExcluding } from "../lib/tours";
+import {
+  listLiveTours,
+  listPastTours,
+  type TourWithListing,
+} from "@/lib/services/tours";
 import { getAvailability } from "@/lib/services/availability";
 import { getSessionUser } from "@/lib/services/session";
 import { type WeekTemplate } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { Calendar } from "lucide-react";
-import { MessagingProvider } from "@/components/messaging/chat-provider";
 
 /* The tours an owner has received. Fetched, grouped and rendered on the
    server; only the button row of each card and its chat panel are islands.
+
+   Two reads, because the two halves of the page age differently: what is still
+   ahead is small and is what the tiles above count, while history only grows.
+   Splitting them at the query means the live half stays a bounded read — see
+   listLiveTours.
 
    The owner's availability comes along because a card may offer to propose a
    new time, and the picker needs the week to offer from. It is a public,
@@ -17,10 +25,14 @@ import { MessagingProvider } from "@/components/messaging/chat-provider";
    nothing on a warm tag. */
 export async function OwnerTours() {
   const t = await getTranslations("dashboard.tours");
-  const [items, user] = await Promise.all([listTours("owner"), getSessionUser()]);
+  const [live, past, user] = await Promise.all([
+    listLiveTours("owner"),
+    listPastTours("owner"),
+    getSessionUser(),
+  ]);
   const template: WeekTemplate = user ? await getAvailability(user.id) : {};
 
-  if (items.length === 0) {
+  if (live.length === 0 && past.length === 0) {
     return (
       <div className="bg-card p-16 text-center anim-fade">
         <div className="inline-flex items-center justify-center w-14 h-14 bg-secondary text-muted-foreground mb-4">
@@ -34,7 +46,7 @@ export async function OwnerTours() {
     );
   }
 
-  const groups = groupOwnerTours(items);
+  const groups = groupLiveOwnerTours(live);
   const card = (m: TourWithListing) => (
     <OwnerTourCard
       key={m.tour.id}
@@ -42,23 +54,24 @@ export async function OwnerTours() {
       listing={m.listing}
       template={template}
       /* Worked out per card, because the slot a card may offer is every slot
-         this owner holds *except* the one that card is moving. */
-      occupied={occupiedSlotsExcluding(items, m.tour)}
+         this owner holds *except* the one that card is moving. Only the live
+         tours can hold one: a day that has gone can't be double-booked. */
+      occupied={occupiedSlotsExcluding(live, m.tour)}
     />
   );
 
   return (
-    /* One Stream connection for every card's chat panel; children render
-       immediately, so the dashboard never waits on the socket. A client
-       component wrapping server-rendered children — the cards below stay
-       Server Components. */
-    <MessagingProvider>
-      <div className="anim-fade">
-        <Section title={t("needsResponse")} items={groups.needsResponse} card={card} />
-        <Section title={t("upcoming")} items={groups.upcoming} card={card} />
-        <Section title={t("past")} items={groups.past} card={card} />
-      </div>
-    </MessagingProvider>
+    /* TODO: messaging temporarily removed from tour cards (broken). The
+       MessagingProvider that opened one Stream connection for every card's
+       inline TourChatPanel is dropped for now — restore both together, as
+       renter-tours.tsx already had to. */
+    <div className="anim-fade">
+      <Section title={t("needsResponse")} items={groups.needsResponse} card={card} />
+      <Section title={t("upcoming")} items={groups.upcoming} card={card} />
+      {/* Already newest-first from the query: a closed tour is history, and
+          history reads backwards. */}
+      <Section title={t("past")} items={past} card={card} />
+    </div>
   );
 }
 

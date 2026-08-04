@@ -1,5 +1,6 @@
 import { listMyListings } from "@/lib/services/listings";
-import { listTours } from "@/lib/services/tours";
+import { listLiveTours } from "@/lib/services/tours";
+import { isUpcomingTour, needsOwnerResponse } from "./tours";
 
 /* The five figures the dashboard chrome shows. The stat tiles and the nav
    counts are two views of the same numbers, so they derive them in one place
@@ -7,8 +8,12 @@ import { listTours } from "@/lib/services/tours";
 
    Both slots call this independently — and the sidebar and the mobile chips
    are two more calls on top. That is affordable because listMyListings and
-   listTours are request-memoized (react's cache()), so the layout still makes
-   one round trip per table however many components ask. */
+   listLiveTours are request-memoized (react's cache()), so the layout still
+   makes one round trip per table however many components ask.
+
+   The tours figures come off the live window, which is also what the tours tab
+   renders: the date cutoff is the query's job, and this only has to split what
+   comes back by status. */
 
 export type DashboardCounts = {
   listings: number;
@@ -21,18 +26,17 @@ export type DashboardCounts = {
 export async function dashboardCounts(): Promise<DashboardCounts> {
   const [listings, tours] = await Promise.all([
     listMyListings(),
-    listTours("owner"),
+    listLiveTours("owner"),
   ]);
 
   return {
     listings: listings.length,
     active: listings.filter((l) => l.status === "active").length,
     drafts: listings.filter((l) => l.status === "draft").length,
-    /* "Needs a response" — a proposed reschedule is still the owner's move,
-       which is why it counts alongside pending here and in the tours tab. */
-    pendingTours: tours.filter(
-      (m) => m.tour.status === "pending" || m.tour.status === "reschedule"
-    ).length,
-    upcomingTours: tours.filter((m) => m.tour.status === "confirmed").length,
+    /* Both figures use the predicates the tours tab groups by, so a tile and
+       the section under it can't report different numbers. "Needs a response"
+       includes a proposed reschedule, which is still the owner's move. */
+    pendingTours: tours.filter((m) => needsOwnerResponse(m.tour)).length,
+    upcomingTours: tours.filter((m) => isUpcomingTour(m.tour)).length,
   };
 }
