@@ -10,14 +10,10 @@ import { localizeListing } from "@/schemas/listing";
 
 /* Prerender the tour of every listing that has one, next to the detail pages
    they hang off. Listings whose tour is published after the build render on
-   demand (dynamicParams defaults to true). Same build-time fallback as the
-   detail route: an unreachable Supabase must not fail the build. */
+   demand (dynamicParams defaults to true). As on the detail route, a read
+   failure here fails the build rather than degrading to nothing. */
 export async function generateStaticParams() {
-  try {
-    return (await getListingIdsWithTour()).map((id) => ({ id }));
-  } catch {
-    return [];
-  }
+  return (await getListingIdsWithTour()).map((id) => ({ id }));
 }
 
 export async function generateMetadata({

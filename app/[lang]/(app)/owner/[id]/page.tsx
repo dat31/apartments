@@ -11,17 +11,13 @@ import { getOwnerProfile } from "@/lib/services/owners";
 import { getActiveOwnerIds } from "@/lib/services/listings";
 import { pageAlternates } from "@/lib/seo";
 
-/* Prerender a profile for every host with an active listing. Mirrors the
-   listing detail page: if Supabase is unreachable at build time, prerender
-   nothing rather than failing the build — profiles then render on demand
-   (dynamicParams defaults to true) and cache on first request. */
+/* Prerender a profile for every host with an active listing. Profiles created
+   after the build render on demand (dynamicParams defaults to true) and cache
+   on first request. Mirrors the listing detail page: a read failure here fails
+   the build rather than degrading to nothing. */
 export async function generateStaticParams() {
-  try {
-    const ownerIds = await getActiveOwnerIds();
-    return ownerIds.map((id) => ({ id }));
-  } catch {
-    return [];
-  }
+  const ownerIds = await getActiveOwnerIds();
+  return ownerIds.map((id) => ({ id }));
 }
 
 export async function generateMetadata({
