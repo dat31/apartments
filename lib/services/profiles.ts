@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
 import {
@@ -71,8 +72,11 @@ export async function getProfileSeeds(ids: string[]): Promise<ProfileSeed[]> {
  * The signed-in user's profile — the `profiles` row merged with the identity
  * that only the auth user carries (email, and the signup metadata the row
  * falls back to before the seeding trigger has run).
+ *
+ * Memoized per request: a server-rendered page may greet the user and read
+ * their role from separate components.
  */
-export async function getMyProfile(): Promise<Profile> {
+export const getMyProfile = cache(async (): Promise<Profile> => {
   const user = await requireUser();
 
   const supabase = await createClient();
@@ -92,7 +96,7 @@ export async function getMyProfile(): Promise<Profile> {
     palette: data?.palette ?? DEFAULT_PROFILE.palette,
     role: data?.role ?? (meta.role as Role) ?? DEFAULT_PROFILE.role,
   };
-}
+});
 
 /**
  * Apply a patch to the caller's own row. Returns the id that changed so the

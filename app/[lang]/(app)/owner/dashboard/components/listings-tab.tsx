@@ -1,10 +1,8 @@
-"use client";
-
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { ListingRow } from "./listing-row";
-import { useListings } from "@/hooks/use-listings";
+import { listMyListings } from "@/lib/services/listings";
 import { writtenLocales } from "@/schemas/listing";
 import { Building2, Globe, Plus } from "lucide-react";
 
@@ -16,10 +14,20 @@ const EMPTY_TITLE_KEY: Record<Filter, string> = {
   drafts: "emptyDrafts",
 };
 
-/* Owner-listing list for the overview / active / drafts tabs. */
-export function ListingsTab({ filter }: { filter: Filter }) {
-  const t = useTranslations("dashboard");
-  const { listings, toggleStatus, removeListing, ready } = useListings();
+/* Owner-listing list for the overview / active / drafts tabs.
+
+   Reads the owner's listings on the server, so the rows are in the HTML and
+   there is no `ready` gate: the old client version rendered null until
+   react-query resolved, which is the "return null, then everything" flash
+   this replaces. The tab pages wrap it in the <Suspense> that streams it.
+
+   The listings arrive in the owner's own words — listMyListings is
+   deliberately not localized (see fetchMyListings), because the same copy
+   feeds the edit form, and resolving it here would eventually overwrite the
+   original with its own translation. */
+export async function ListingsTab({ filter }: { filter: Filter }) {
+  const t = await getTranslations("dashboard");
+  const listings = await listMyListings();
 
   const shown =
     filter === "active"
@@ -27,9 +35,6 @@ export function ListingsTab({ filter }: { filter: Filter }) {
       : filter === "drafts"
         ? listings.filter((l) => l.status === "draft")
         : listings;
-
-  // Avoid flashing the empty state before the owner's listings have loaded.
-  if (!ready) return null;
 
   if (shown.length === 0) {
     return (
@@ -68,12 +73,7 @@ export function ListingsTab({ filter }: { filter: Filter }) {
         </span>
       </p>
       {shown.map((l) => (
-        <ListingRow
-          key={l.id}
-          listing={l}
-          onToggleStatus={toggleStatus}
-          onDelete={removeListing}
-        />
+        <ListingRow key={l.id} listing={l} />
       ))}
     </div>
   );

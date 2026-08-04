@@ -11,7 +11,9 @@ export function StatCard({
   accent = false,
 }: {
   label: string;
-  value: number | string;
+  /* A node, not just a number, so a tile can hold a skeleton while its count
+     streams in — see DashboardStats. */
+  value: React.ReactNode;
   icon: LucideIcon;
   accent?: boolean;
 }) {
@@ -38,9 +40,11 @@ export function StatCard({
           className={accent ? "text-primary-foreground/80" : "text-primary"}
         />
       </div>
-      <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
+      {/* A div rather than a p: the value may be a skeleton element, which a
+          paragraph can't legally contain. */}
+      <div className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
         {value}
-      </p>
+      </div>
     </Card>
   );
 }

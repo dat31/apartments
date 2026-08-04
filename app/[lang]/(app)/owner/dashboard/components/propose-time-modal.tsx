@@ -12,34 +12,36 @@ import {
 } from "@/components/ui/dialog";
 import { MonthCalendar } from "@/app/[lang]/(app)/apartments/[id]/components/month-calendar";
 import { TimeSlots } from "@/app/[lang]/(app)/apartments/[id]/components/time-slots";
-import { type Listing } from "@/schemas/listing";
 import { type TourRequest } from "@/schemas/tour";
 import {
   type WeekTemplate,
-  occupiedSet,
   openSlotsFor,
   parseYmd,
 } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { User } from "lucide-react";
-import { useUser } from "@/hooks/auth";
 
 /* Owner suggests an alternative slot to the renter, chosen from the owner's
-   own availability minus already-booked slots. */
+   own availability minus already-booked slots.
+
+   Takes the occupied slots ready-made rather than every tour the owner has:
+   working them out needs the whole list *and* the session, both of which the
+   server already has when it renders the card (occupiedSlotsExcluding, in
+   ../lib/tours). What crosses to the browser is a list of "date|time" keys. */
 export function ProposeTimeModal({
   open,
   onClose,
   tour,
-  listing,
+  listingTitle,
   template,
-  tours,
+  occupied,
   onSubmit,
 }: {
   open: boolean;
   onClose: () => void;
   tour: TourRequest | null;
-  listing: Listing | null;
+  listingTitle: string | null;
   template: WeekTemplate;
-  tours: TourRequest[];
+  occupied: string[];
   onSubmit: (id: string, date: string, time: string) => void;
 }) {
   const t = useTranslations("dashboard.propose");
@@ -62,17 +64,8 @@ export function ProposeTimeModal({
   const [date, setDate] = React.useState("");
   const [time, setTime] = React.useState("");
 
-  // Avoid double-booking the owner: exclude the tour being rescheduled, and
-  // scope occupied slots to this owner. All `tours` here already belong to
-  // them, so the id just needs to match what toTourRequest put on the rows.
-  const { data: user } = useUser();
-  const ownerId = tour?.ownerKey ?? user?.id ?? "";
-  const occupied = React.useMemo(
-    () =>
-      occupiedSet(tour ? tours.filter((t) => t.id !== tour.id) : tours, ownerId),
-    [tours, tour, ownerId]
-  );
-  const slots = date ? openSlotsFor(template, date, occupied) : [];
+  const occupiedSlots = React.useMemo(() => new Set(occupied), [occupied]);
+  const slots = date ? openSlotsFor(template, date, occupiedSlots) : [];
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -91,9 +84,9 @@ export function ProposeTimeModal({
             <div className="flex flex-wrap items-center gap-2.5 bg-secondary p-3 mb-5 text-sm">
               <User size={16} className="text-primary shrink-0" />
               <span className="font-medium">{tour.renterName}</span>
-              {listing && (
+              {listingTitle && (
                 <span className="text-muted-foreground truncate">
-                  · {listing.title}
+                  · {listingTitle}
                 </span>
               )}
               <span className="text-muted-foreground">
@@ -109,7 +102,7 @@ export function ProposeTimeModal({
           <div className="grid sm:grid-cols-2 gap-5">
             <MonthCalendar
               template={template}
-              occupied={occupied}
+              occupied={occupiedSlots}
               selected={date}
               onSelect={(d) => {
                 setDate(d);

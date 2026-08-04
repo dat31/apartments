@@ -703,10 +703,14 @@
       "alsoIn": "also {languages}",
       "pause": "Pause",
       "publish": "Publish",
+      "actions": "Listing actions",
       "preview": "Preview",
-      "edit": "Edit",
-      "editTour": "Edit the 360° tour",
-      "delete": "Delete"
+      "edit": "Edit listing",
+      "tour360": "360° tour",
+      "addTour360": "Add 360° tour",
+      "delete": "Delete",
+      "deleteFailed": "Couldn't delete that listing. Please try again.",
+      "statusFailed": "Couldn't update that listing. Please try again."
     },
     "tours": {
       "needsResponse": "Needs your response",
@@ -718,7 +722,8 @@
       "confirmedToastDesc": "We let the renter know it's on.",
       "declinedToast": "Tour declined",
       "proposedToast": "New time proposed",
-      "proposedToastDesc": "The renter can accept or decline your suggestion."
+      "proposedToastDesc": "The renter can accept or decline your suggestion.",
+      "actionFailed": "Couldn't update that tour. Please try again."
     },
     "tourCard": {
       "listingRemoved": "Listing removed",

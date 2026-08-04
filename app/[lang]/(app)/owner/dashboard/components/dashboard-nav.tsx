@@ -4,8 +4,7 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { Chip } from "@/components/chip";
-import { useListings } from "@/hooks/use-listings";
-import { useOwnerTours } from "@/hooks/use-owner-tours";
+import type { DashboardCounts } from "../lib/counts";
 import {
   Calendar,
   CircleCheck,
@@ -22,42 +21,53 @@ type NavItem = {
   count: number | null;
 };
 
-function useNavItems(): NavItem[] {
-  const t = useTranslations("dashboard.nav");
-  const { listings: mine } = useListings();
-  const { items } = useOwnerTours();
-  const base = "/owner/dashboard";
+/* Still a client component — the active-tab highlight needs usePathname, and
+   that is the only thing here the server can't decide. The counts it used to
+   fetch through client data hooks now arrive as a prop from the
+   layout's Suspense slot, so this file has no data hooks left.
 
-  return [
-    { href: `${base}/overview`, label: t("overview"), icon: LayoutGrid, count: mine.length },
+   `counts={null}` is the streaming fallback: every count slot renders empty,
+   exactly as availability's always does, and the navigation itself is usable
+   from the first paint rather than hidden behind a skeleton. */
+export function DashboardNav({
+  variant,
+  counts,
+}: {
+  variant: "sidebar" | "chips";
+  counts: DashboardCounts | null;
+}) {
+  const t = useTranslations("dashboard.nav");
+  const pathname = usePathname();
+  const base = "/owner/dashboard";
+  const isActive = (href: string) => pathname === href;
+
+  const items: NavItem[] = [
+    {
+      href: `${base}/overview`,
+      label: t("overview"),
+      icon: LayoutGrid,
+      count: counts?.listings ?? null,
+    },
     {
       href: `${base}/active`,
       label: t("active"),
       icon: CircleCheck,
-      count: mine.filter((l) => l.status === "active").length,
+      count: counts?.active ?? null,
     },
     {
       href: `${base}/drafts`,
       label: t("drafts"),
       icon: Pencil,
-      count: mine.filter((l) => l.status === "draft").length,
+      count: counts?.drafts ?? null,
     },
     {
       href: `${base}/tours`,
       label: t("tours"),
       icon: Calendar,
-      count: items.filter(
-        (m) => m.tour.status === "pending" || m.tour.status === "reschedule"
-      ).length,
+      count: counts?.pendingTours ?? null,
     },
     { href: `${base}/availability`, label: t("availability"), icon: Clock, count: null },
   ];
-}
-
-export function DashboardNav({ variant }: { variant: "sidebar" | "chips" }) {
-  const pathname = usePathname();
-  const items = useNavItems();
-  const isActive = (href: string) => pathname === href;
 
   if (variant === "chips") {
     return (
