@@ -15,7 +15,6 @@ import { useSaved } from "@/hooks/use-saved";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useProfile } from "@/hooks/use-profile";
 import { useUser, useSignOut } from "@/hooks/auth";
-import { Calendar, Heart, MessagesSquare } from "lucide-react";
 
 export function SiteHeader() {
   const { saved } = useSaved();
@@ -23,11 +22,13 @@ export function SiteHeader() {
   const { data: user } = useUser();
   const signOut = useSignOut();
   const header = useTranslations("header");
+  const account = useTranslations("account");
   const [manageOpen, setManageOpen] = React.useState(false);
   const pathname = usePathname();
   const savedActive = pathname === "/apartments/saved";
   const toursActive = pathname === "/tour";
   const messagesActive = pathname === "/messages";
+  const dashboardActive = pathname.startsWith("/owner/dashboard");
   const isOwner = profile.role === "owner";
   // Auth, saved count and role all come from client-only stores (react-query
   // cache seeded from cookies, localStorage). They're unknown during SSR, so
@@ -61,11 +62,21 @@ export function SiteHeader() {
                   className="h-9 gap-1.5 px-3"
                 >
                   <Link href="/messages">
-                    <MessagesSquare size={16} />
                     {header("messages")}
                     <MessagesUnreadBadge active={messagesActive} />
                   </Link>
                 </Button>
+
+                {isOwner && (
+                  <Button
+                    asChild
+                    variant={dashboardActive ? "default" : "ghost"}
+                    size="default"
+                    className="h-9 gap-1.5 px-3"
+                  >
+                    <Link href="/owner/dashboard">{account("ownerDashboard")}</Link>
+                  </Button>
+                )}
 
                 {!isOwner && (
                   <Button
@@ -74,10 +85,7 @@ export function SiteHeader() {
                     size="default"
                     className="h-9 gap-1.5 px-3"
                   >
-                    <Link href="/tour">
-                      <Calendar size={16} />
-                      {header("tours")}
-                    </Link>
+                    <Link href="/tour">{header("tours")}</Link>
                   </Button>
                 )}
 
@@ -88,7 +96,6 @@ export function SiteHeader() {
                   className="relative h-9 gap-1.5 px-3"
                 >
                   <Link href="/apartments/saved">
-                    <Heart size={16} />
                     {header("saved")}
                     {saved.length > 0 && (
                       <span

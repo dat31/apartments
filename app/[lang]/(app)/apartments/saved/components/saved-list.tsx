@@ -361,9 +361,7 @@ function Header({
   return (
     <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2.5">
-          <Heart size={26} className="text-primary" /> {t("title")}
-        </h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
         {/* The subtitle counts saved homes, so until the count lands it would
             otherwise read as the empty-state hint and then flip. */}
         {loading ? (

@@ -63,7 +63,7 @@ export async function ListingsTab({ filter }: { filter: Filter }) {
   const multilingual = listings.filter((l) => writtenLocales(l).length > 1).length;
 
   return (
-    <div className="flex flex-col gap-3 stagger">
+    <div className="flex flex-col gap-3">
       <p className="flex items-start gap-2 text-sm text-muted-foreground text-pretty">
         <Globe size={15} className="shrink-0 mt-0.5" />
         <span>

@@ -48,9 +48,7 @@ export function Inbox({ initialChannelId }: { initialChannelId?: string }) {
     <div className="group/inbox container mx-auto px-5 py-8 sm:px-8">
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-2.5 text-3xl font-semibold tracking-tight">
-            <MessageSquareText size={26} className="text-primary" /> {t("title")}
-          </h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
           <InboxSubtitle count={channelCount} />
         </div>
         {profile.role !== "owner" && (

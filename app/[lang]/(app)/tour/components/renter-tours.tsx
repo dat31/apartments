@@ -70,9 +70,7 @@ export function RenterTours() {
     <div className="container mx-auto px-5 sm:px-8 py-8">
       <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2.5">
-            <Calendar size={26} className="text-primary" /> {t("title")}
-          </h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="mt-1 text-muted-foreground">
             {total === 0 ? t("emptyHint") : t("countSub", { count: total })}
           </p>
