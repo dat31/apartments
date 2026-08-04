@@ -14,16 +14,17 @@ import { ogDefaults, pageAlternates } from "@/lib/seo";
 // the route's shell is statically generated. Reads the cookieless, "use
 // cache"d active-listings set, so this shares the page's own data. Listings
 // created after the build still render on-demand (dynamicParams defaults to
-// true) and get cached on first request. If Supabase is unreachable at build
-// time, fall back to prerendering nothing rather than failing the build —
-// every listing then renders on demand.
+// true) and get cached on first request.
+//
+// A read failure here fails the build, deliberately. There is no degraded
+// mode to fall back to: Cache Components rejects an empty
+// generateStaticParams outright, and prerendering a placeholder id is no
+// better, because the page body reads that listing too. So an unreachable
+// Supabase can only produce a site with no prerendered listings at all —
+// better to stop and ship the previous build than to publish that one.
 export async function generateStaticParams() {
-  try {
-    const listings = await getActiveListings();
-    return listings.map((l) => ({ id: l.id }));
-  } catch {
-    return [];
-  }
+  const listings = await getActiveListings();
+  return listings.map((l) => ({ id: l.id }));
 }
 
 /* Listing-derived metadata: unique title/description per home, the cover

@@ -1,6 +1,6 @@
 import { setRequestLocale } from "next-intl/server";
 import { TourEditor } from "./components/tour-editor";
-import { getActiveListings } from "@/lib/services/listings";
+import { shellParams } from "../../lib/shell-params";
 import { privateMetadata } from "@/lib/seo";
 
 /* The owner's tour editor. Private (auth-gated by lib/supabase/middleware,
@@ -8,21 +8,12 @@ import { privateMetadata } from "@/lib/seo";
    the prerendered shell is identical for every id.
 
    generateStaticParams is not about crawlability here — nothing links to this
-   page publicly. Under `cacheComponents` a route with unknown params is fully
-   dynamic, and that makes the (app) layout's <SiteHeader> read the locale
-   outside any cache boundary or <Suspense>, which Next rejects as a blocking
-   route. Generating the shell for the same listings the detail route
-   prerenders resolves the layout at build time instead. Listings created
-   after the build render on demand (dynamicParams defaults to true); if
-   Supabase is unreachable at build time, prerender nothing rather than
-   failing the build. Same reasoning as ../../edit/page.tsx. */
-export async function generateStaticParams() {
-  try {
-    return (await getActiveListings()).map((l) => ({ id: l.id }));
-  } catch {
-    return [];
-  }
-}
+   page publicly. Under `cacheComponents` a route with no prerendered params
+   can't render the (app) layout's <SiteHeader>, which resolves the locale
+   outside any cache boundary; one shell per locale satisfies that. See
+   ../../lib/shell-params.ts. Listings render on demand (dynamicParams
+   defaults to true). Same reasoning as ../../edit/page.tsx. */
+export const generateStaticParams = shellParams;
 
 export async function generateMetadata({
   params,
