@@ -1,9 +1,10 @@
 import "server-only";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { todayYmd } from "@/app/[lang]/(app)/apartments/[id]/constants/tours";
 import { type Listing } from "@/schemas/listing";
 import { type BookTourInput, type TourRequest } from "@/schemas/tour";
-import type { Tables } from "@/lib/database.types";
+import type { Tables, TablesUpdate } from "@/lib/database.types";
 import { LISTING_SELECT, toListing } from "./listings-map";
 import { getListingById } from "./listings";
 import { toTourRequest } from "./tours-map";
@@ -44,34 +45,76 @@ const scopeColumn = (scope: TourScope) =>
    a declined / cancelled tour frees the home to be booked again. */
 const ACTIVE_STATUS = ["pending", "confirmed", "reschedule"] as const;
 
+/** Which end of today's cutoff a read wants. */
+type TourWindow = "all" | "live" | "past";
+
 /**
- * The caller's tours as renter or as owner, newest first, with the listing
- * joined in for the card.
+ * The caller's tours on one side of the booking, newest first, with the
+ * listing joined in for the card.
  *
  * Scoping by side matters beyond RLS: an account that both rents and hosts
  * would otherwise see its own requests in the owner dashboard.
  *
- * Memoized per request, keyed on scope: the owner dashboard reads the "owner"
- * scope from its layout (stats, nav) and again from the tours tab.
+ * The date cutoff is applied here rather than by the caller, against
+ * `slot_date` — the stored generated column holding the day a tour actually
+ * holds (the proposed day once an owner has offered one, the requested day
+ * otherwise). A dashboard read is then proportional to what the page shows
+ * instead of to everything the owner has ever hosted. `todayYmd()` supplies
+ * the cutoff because the day is Da Nang's, not the database server's UTC.
  */
-export const listTours = cache(async (
-  scope: TourScope
-): Promise<TourWithListing[]> => {
+async function queryTours(
+  scope: TourScope,
+  window: TourWindow
+): Promise<TourWithListing[]> {
   const user = await requireUser();
 
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("tours")
     .select(`*, listing:listings(${LISTING_SELECT})`)
-    .eq(scopeColumn(scope), user.id)
-    .order("created_at", { ascending: false });
+    .eq(scopeColumn(scope), user.id);
+
+  const today = todayYmd();
+  if (window === "live") {
+    query = query.neq("status", "declined").gte("slot_date", today);
+  } else if (window === "past") {
+    /* Exactly the complement of "live", so the two windows partition the
+       table and no tour can fall between them: declined whatever day it sat
+       on, or any day that has gone. */
+    query = query.or(`status.eq.declined,slot_date.lt.${today}`);
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false });
 
   if (error) throw new ServiceError("failed", error.message);
   return ((data ?? []) as TourRowWithListing[]).map((row) => ({
     tour: toTourRequest(row),
     listing: row.listing ? toListing(row.listing) : null,
   }));
-});
+}
+
+/* All three are memoized per request and keyed on scope, so the owner
+   dashboard's layout (stat tiles, nav counts) and its tours tab share one
+   round trip per window however many components ask. */
+
+/** Every tour on this side, whatever day it sits on. */
+export const listTours = cache((scope: TourScope) => queryTours(scope, "all"));
+
+/**
+ * The tours still ahead: not declined, and holding a day that hasn't passed.
+ *
+ * What the dashboard counts and what its two live sections render — a tour
+ * belongs here until the end of the day it is booked for, matching the
+ * renter's /tour page so neither side retires it first.
+ */
+export const listLiveTours = cache((scope: TourScope) =>
+  queryTours(scope, "live")
+);
+
+/** History: declined, or a day that has gone. */
+export const listPastTours = cache((scope: TourScope) =>
+  queryTours(scope, "past")
+);
 
 /** The caller's current live tour for one listing, or null. */
 export async function getActiveTour(
@@ -299,11 +342,15 @@ export async function getTourForChat(
 
 /* One tour update, scoped to the side allowed to make it. A row that doesn't
    match reads as "not-found" rather than as a silent success, so the UI can't
-   report a change that never happened. */
+   report a change that never happened.
+
+   TablesUpdate rather than Partial<TourRow>: the generated `slot_date` is a
+   readable column but not a writable one, and only the Update type knows the
+   difference. */
 async function writeTour(
   id: string,
   scope: TourScope,
-  patch: Partial<TourRow>
+  patch: TablesUpdate<"tours">
 ): Promise<string> {
   const user = await requireUser();
 

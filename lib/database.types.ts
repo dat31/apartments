@@ -484,6 +484,7 @@ export type Database = {
           renter_email: string
           renter_id: string | null
           renter_name: string
+          slot_date: string | null
           status: Database["public"]["Enums"]["tour_status"]
           time: string
           updated_at: string
@@ -502,6 +503,7 @@ export type Database = {
           renter_email: string
           renter_id?: string | null
           renter_name: string
+          slot_date?: string | null
           status?: Database["public"]["Enums"]["tour_status"]
           time: string
           updated_at?: string
@@ -520,6 +522,7 @@ export type Database = {
           renter_email?: string
           renter_id?: string | null
           renter_name?: string
+          slot_date?: string | null
           status?: Database["public"]["Enums"]["tour_status"]
           time?: string
           updated_at?: string

@@ -18,14 +18,12 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { TourChatPanel } from "@/components/messaging/tour-chat-panel";
 
 /* One incoming tour request with the owner's available actions.
 
    A Server Component: everything above the button row is the request read
-   back to its owner. The buttons are one island (TourActions) and the chat
-   is another (TourChatPanel) — both were already separate concerns, so the
-   card between them never needed the client. */
+   back to its owner. The buttons are the one island (TourActions) — a
+   separate concern already, so the card around it never needed the client. */
 export function OwnerTourCard({
   tour,
   listing,
@@ -140,7 +138,10 @@ export function OwnerTourCard({
           />
         </div>
 
-        <TourChatPanel tour={tour} />
+        {/* TODO: the inline messaging panel (<TourChatPanel tour={tour} />) is
+            temporarily removed here — it's currently broken. Restore once
+            fixed; owner-tours.tsx also drops MessagingProvider in the
+            meantime. */}
       </div>
     </div>
   );
