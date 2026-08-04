@@ -59,4 +59,44 @@ test.describe("owner dashboard", () => {
       ).toBeVisible({ timeout: 30_000 });
     }
   });
+
+  /* A draft is invisible to the public detail route by design — RLS hides it
+     from the cookieless read behind that route's cache — so the row opens the
+     owner-only preview instead. Before this route existed, clicking a draft
+     row landed on a 404. */
+  test("a draft row opens the owner's preview, not a 404", async ({ page }) => {
+    await page.goto("/owner/dashboard/drafts");
+
+    const row = page.locator('a[href*="/preview"]').first();
+    // A fresh account owns no drafts; nothing to open, and the tab rendering
+    // is already covered above.
+    test.skip(
+      (await row.count()) === 0,
+      "this account owns no draft listings"
+    );
+
+    await row.click();
+
+    await expect(page).toHaveURL(/\/apartments\/[^/]+\/preview$/);
+    await expect(
+      page.getByText("Xem trước bản nháp", { exact: false })
+    ).toBeVisible({ timeout: 30_000 });
+    // The point of the page: the listing itself renders, not just the banner.
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  });
+
+  test("an active listing has no separate preview URL", async ({ page }) => {
+    await page.goto("/owner/dashboard/active");
+
+    const row = page.locator('a[href^="/apartments/"]').first();
+    test.skip((await row.count()) === 0, "this account owns no active listings");
+
+    const href = await row.getAttribute("href");
+    // Rows for a live home point straight at its public page.
+    expect(href).not.toContain("/preview");
+
+    // And asking for the preview URL anyway lands back on that public page.
+    await page.goto(`${href}/preview`);
+    await expect(page).toHaveURL(new RegExp(`${href}$`));
+  });
 });

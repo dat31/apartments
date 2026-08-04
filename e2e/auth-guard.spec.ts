@@ -10,6 +10,10 @@ const PROTECTED = [
   "/owner/dashboard",
   "/apartments/saved",
   "/apartments/create",
+  // The owner's draft preview. The id is arbitrary — the guard runs in the
+  // proxy, before anything reads a listing, so an unknown one redirects just
+  // the same as a real one.
+  "/apartments/00000000-0000-4000-8000-000000000000/preview",
 ];
 
 test.describe("anonymous route guards", () => {

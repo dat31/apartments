@@ -357,6 +357,32 @@ export const listMyListings = cache(async (): Promise<Listing[]> => {
   return (data ?? []).map(toListing);
 });
 
+/** One listing the caller owns — drafts included — or null when the id is
+    unknown or belongs to someone else.
+
+    The owner's counterpart to getListingById: that one reads through the
+    cookieless client, so RLS only ever hands it an *active* row, which is why
+    a draft 404s on the public detail page. This one states the ownership in
+    its own filter (RLS is the second line) and stays out of every cache
+    boundary, so it's the read a preview of an unpublished home has to use. */
+export const getMyListingById = cache(
+  async (id: string): Promise<Listing | null> => {
+    if (!UUID_RE.test(id)) return null;
+    const user = await requireUser();
+
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("listings")
+      .select(LISTING_SELECT)
+      .eq("id", id)
+      .eq("owner_id", user.id)
+      .maybeSingle();
+
+    if (error) throw new ServiceError("failed", error.message);
+    return data ? toListing(data) : null;
+  }
+);
+
 /** Create a listing owned by the caller, with whatever translations its core
     carries. */
 export async function createListing(

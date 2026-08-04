@@ -1,8 +1,8 @@
 /* Static params for the private routes under /apartments/[id] whose
    prerendered output does not depend on the id at all — the edit form, the
-   owner's draft preview, the tour editor. Each of them hydrates its listing
-   client-side (or below a Suspense boundary), so every prerendered shell is
-   byte-for-byte the same page.
+   tour editor, and any other shell that hydrates its listing client-side (or
+   below a Suspense boundary). Every shell they prerender is byte-for-byte the
+   same page.
 
    They still need *a* prerendered param, and can't opt out:
 

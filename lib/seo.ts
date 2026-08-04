@@ -46,6 +46,7 @@ export async function privateMetadata(
     | "messages"
     | "create"
     | "edit"
+    | "preview"
     | "tourEditor"
     | "dashboard"
 ): Promise<Metadata> {
