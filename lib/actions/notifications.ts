@@ -2,14 +2,22 @@
 
 import { getLocale } from "next-intl/server";
 
-import { notificationIdSchema, type NotificationItem } from "@/schemas/notification";
+import {
+  notificationIdSchema,
+  notificationPreferenceUpdateSchema,
+  type NotificationCategory,
+  type NotificationItem,
+  type NotificationPreferences,
+} from "@/schemas/notification";
 import {
   countMyUnreadNotifications,
   dismissNotification,
+  getMyNotificationPreferences,
   listMyNotifications,
   markAllNotificationsRead,
   markNotificationRead,
   restoreNotification,
+  setMyNotificationPreference,
 } from "@/lib/services/notifications";
 import { localizeListing } from "@/schemas/listing";
 import { toResult, type ActionResult } from "./result";
@@ -82,4 +90,27 @@ export async function restoreNotificationAction(
   const parsed = notificationIdSchema.safeParse(id);
   if (!parsed.success) return { ok: false, error: "invalid" };
   return toResult(() => restoreNotification(parsed.data));
+}
+
+/** The caller's category switches — what the settings dialog renders. */
+export async function fetchNotificationPreferences(): Promise<
+  ActionResult<NotificationPreferences>
+> {
+  return toResult(getMyNotificationPreferences);
+}
+
+/** Flip one category. One switch per call, so the payload can name a category
+    and a boolean and nothing else. */
+export async function updateNotificationPreferenceAction(
+  category: NotificationCategory,
+  enabled: boolean
+): Promise<ActionResult> {
+  const parsed = notificationPreferenceUpdateSchema.safeParse({
+    category,
+    enabled,
+  });
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  return toResult(() =>
+    setMyNotificationPreference(parsed.data.category, parsed.data.enabled)
+  );
 }

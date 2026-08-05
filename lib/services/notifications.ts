@@ -2,7 +2,15 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { type Listing } from "@/schemas/listing";
-import { type Notification } from "@/schemas/notification";
+import {
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_KIND_CATEGORY,
+  NOTIFICATION_KINDS,
+  type Notification,
+  type NotificationCategory,
+  type NotificationKind,
+  type NotificationPreferences,
+} from "@/schemas/notification";
 import type { Tables, TablesInsert } from "@/lib/database.types";
 import { LISTING_SELECT, toListing } from "./listings-map";
 import { toNotification } from "./notifications-map";
@@ -48,13 +56,13 @@ const NOTIFICATION_SELECT = `
   *,
   actor:profiles!notifications_actor_id_fkey(id, name, palette),
   listing:listings(${LISTING_SELECT}),
-  tour:tours(renter_id)
+  tour:tours(renter_id, status)
 ` as const;
 
 type NotificationRow = Tables<"notifications"> & {
   actor: Pick<Tables<"profiles">, "id" | "name" | "palette"> | null;
   listing: Parameters<typeof toListing>[0] | null;
-  tour: Pick<Tables<"tours">, "renter_id"> | null;
+  tour: Pick<Tables<"tours">, "renter_id" | "status"> | null;
 };
 
 /** A notification with its subjects resolved, before localization. The action
@@ -62,7 +70,83 @@ type NotificationRow = Tables<"notifications"> & {
 export type NotificationRecord = Notification & {
   listing: Listing | null;
   tourRole: "renter" | "owner" | null;
+  tourStatus: Tables<"tours">["status"] | null;
 };
+
+/* The all-on state a person has before they ever open the settings dialog, and
+   the fallback when the row is missing. Kept here rather than read from the
+   column defaults so a feed query never needs a round trip to learn that
+   somebody has expressed no preference. */
+export const NOTIFICATION_PREFERENCE_DEFAULTS: NotificationPreferences = {
+  tours: true,
+  matches: true,
+  activity: true,
+};
+
+/** The caller's category switches, defaulted when they have never set any. */
+export async function getMyNotificationPreferences(): Promise<NotificationPreferences> {
+  const user = await requireUser();
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("notification_preferences")
+    .select("tours, matches, activity")
+    .eq("profile_id", user.id)
+    .maybeSingle();
+
+  if (error) throw new ServiceError("failed", error.message);
+  // No row is not an absence of preferences, it *is* the default one.
+  return data ?? NOTIFICATION_PREFERENCE_DEFAULTS;
+}
+
+/**
+ * Flip one category on or off.
+ *
+ * An upsert rather than an update: the first flip is also the row's insert,
+ * and the alternative — creating a row on signup — would write a row for every
+ * account to say exactly what its absence already says. The other categories
+ * come from the current preferences rather than from the client, so a switch
+ * can only ever move the one it names.
+ */
+export async function setMyNotificationPreference(
+  category: NotificationCategory,
+  enabled: boolean
+): Promise<void> {
+  const user = await requireUser();
+  const current = await getMyNotificationPreferences();
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("notification_preferences").upsert(
+    {
+      ...current,
+      [category]: enabled,
+      // Not forgeable: the WITH CHECK on the insert policy pins this to the
+      // session, so a doctored payload is rejected by Postgres rather than
+      // trusted here.
+      profile_id: user.id,
+    },
+    { onConflict: "profile_id" }
+  );
+
+  if (error) {
+    console.error("[notifications] preference write failed", error);
+    throw new ServiceError("failed", error.message);
+  }
+}
+
+/* The kinds a set of preferences lets through.
+
+   Applied at read time, so muting a category hides its history and unmuting
+   brings it back — the triggers keep writing whatever the switches say (see
+   the migration). Returns null for "everything", which is the common case and
+   the one that should not add a filter to the query. */
+function allowedKinds(prefs: NotificationPreferences): NotificationKind[] | null {
+  const muted = NOTIFICATION_CATEGORIES.filter((c) => !prefs[c]);
+  if (!muted.length) return null;
+  return NOTIFICATION_KINDS.filter(
+    (kind) => prefs[NOTIFICATION_KIND_CATEGORY[kind]]
+  );
+}
 
 /* The popover shows a handful; the page shows a page's worth. Bounded either
    way — a feed is append-only and nobody scrolls a year of it. */
@@ -81,12 +165,19 @@ export async function listMyNotifications(
   limit: number = NOTIFICATION_PAGE_SIZE
 ): Promise<NotificationRecord[]> {
   const user = await requireUser();
+  const kinds = allowedKinds(await getMyNotificationPreferences());
+  // Every category muted. `.in("kind", [])` would answer the same thing, but
+  // not asking is cheaper and says what it means.
+  if (kinds?.length === 0) return [];
 
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("notifications")
     .select(NOTIFICATION_SELECT)
-    .is("dismissed_at", null)
+    .is("dismissed_at", null);
+  if (kinds) query = query.in("kind", kinds);
+
+  const { data, error } = await query
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -103,23 +194,35 @@ export async function listMyNotifications(
         ? "renter"
         : "owner"
       : null,
+    /* Read for the same reason, and used for a stricter one: the feed offers
+       "Accept" on a tour request, and a button that acts on a tour someone
+       already answered elsewhere is worse than no button. */
+    tourStatus: row.tour?.status ?? null,
   }));
 }
 
 /** How many unread the caller has — what the bell badge renders. */
 export async function countMyUnreadNotifications(): Promise<number> {
   await requireUser();
+  /* The same filter the feed applies, for the same reason it has to be here
+     too: a badge counting notifications the list will not show sends people
+     looking for news that isn't there. */
+  const kinds = allowedKinds(await getMyNotificationPreferences());
+  if (kinds?.length === 0) return 0;
 
   const supabase = await createClient();
   // head: true asks for the count and no rows; this runs on every page whose
   // badge cache went stale, so it must not ship a payload.
-  const { count, error } = await supabase
+  let query = supabase
     .from("notifications")
     .select("id", { count: "exact", head: true })
     .is("read_at", null)
     // Load-bearing: without it, dismissing an unread notification leaves the
     // badge counting a row nobody can see any more.
     .is("dismissed_at", null);
+  if (kinds) query = query.in("kind", kinds);
+
+  const { count, error } = await query;
 
   if (error) throw new ServiceError("failed", error.message);
   return count ?? 0;
@@ -153,9 +256,11 @@ export async function markNotificationRead(id: string): Promise<void> {
     "there was nothing to mark" is a success, not a not-found. */
 export async function markAllNotificationsRead(): Promise<void> {
   const user = await requireUser();
+  const kinds = allowedKinds(await getMyNotificationPreferences());
+  if (kinds?.length === 0) return;
 
   const supabase = await createClient();
-  const { error } = await supabase
+  let query = supabase
     .from("notifications")
     .update({ read_at: new Date().toISOString() })
     .eq("profile_id", user.id)
@@ -164,6 +269,11 @@ export async function markAllNotificationsRead(): Promise<void> {
     // would decide, on their behalf, that an item they undo later has already
     // been looked at.
     .is("dismissed_at", null);
+  // And for the same reason, not a muted category's backlog: switching tours
+  // back on should show what was missed, not a stack of pre-read rows.
+  if (kinds) query = query.in("kind", kinds);
+
+  const { error } = await query;
 
   if (error) {
     console.error("[notifications] mark all read failed", error);

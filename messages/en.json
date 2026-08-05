@@ -1182,6 +1182,57 @@
     "emptyBody": "Tour updates and saved-search matches will show up here.",
     "someone": "Someone",
     "aHome": "a home",
+    "summary": "<strong>{unread} unread</strong> · {total} in total",
+    "summaryCaughtUp": "You're all caught up · {total} in total",
+    "summaryEmpty": "Nothing to catch up on.",
+    "browseHomes": "Browse homes",
+    "caughtUpTitle": "You're all caught up",
+    "caughtUpBody": "Every notification has been read.",
+    "noneInFilterTitle": "Nothing in this group",
+    "noneInFilterBody": "No notifications of this kind yet.",
+    "filters": {
+      "all": "All",
+      "unread": "Unread",
+      "tours": "Viewings",
+      "matches": "Matches",
+      "activity": "Activity",
+      "showAll": "Show all"
+    },
+    "days": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "thisWeek": "This week",
+      "earlier": "Earlier"
+    },
+    "actions": {
+      "accept": "Accept",
+      "decline": "Decline",
+      "acceptNewTime": "Accept new time",
+      "acceptedToast": "Viewing confirmed",
+      "newTimeAcceptedToast": "New time confirmed",
+      "declinedToast": "Viewing declined",
+      "failed": "That didn't go through. Please try again."
+    },
+    "settings": {
+      "open": "Settings",
+      "title": "Notification settings",
+      "subtitle": "Choose what shows up in your notifications.",
+      "done": "Done",
+      "saveFailed": "That didn't save. Please try again.",
+      "mutedNote": "Turning a group off only hides it. Turn it back on and everything you missed is here again.",
+      "tours": {
+        "label": "Viewing activity",
+        "hint": "Requests, confirmations, new times and cancellations."
+      },
+      "matches": {
+        "label": "Saved-search matches",
+        "hint": "New homes that fit a search you saved."
+      },
+      "activity": {
+        "label": "Reviews",
+        "hint": "Reviews renters leave on your profile."
+      }
+    },
     "kind": {
       "tourRequested": "<strong>{name}</strong> requested a viewing of {listing}",
       "tourConfirmed": "<strong>{name}</strong> confirmed your viewing of {listing}",

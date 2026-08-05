@@ -7,36 +7,19 @@ import { Button } from "@/components/ui/button";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { notificationHref } from "@/lib/notifications/target";
 import { type NotificationItem as Item } from "@/schemas/notification";
-import { CalendarCheck, CalendarClock, CalendarX, Home, Star, X } from "lucide-react";
+import { NOTIFICATION_ICONS, NOTIFICATION_SENTENCES } from "./kind-meta";
+import { X } from "lucide-react";
 
-/* One row of the feed.
+/* One row of the bell popover's quick view.
 
    The sentence is assembled here rather than stored: the row holds a `kind`
    and some ids, so the same notification reads in Vietnamese or English
    depending only on who is looking. That is the reason `data` on the row is
-   limited to values with no translation — a date, a time, a rating. */
+   limited to values with no translation — a date, a time, a rating.
 
-const ICONS = {
-  tour_requested: CalendarClock,
-  tour_confirmed: CalendarCheck,
-  tour_reschedule_proposed: CalendarClock,
-  tour_reschedule_accepted: CalendarCheck,
-  tour_declined: CalendarX,
-  review_received: Star,
-  saved_search_match: Home,
-} as const;
-
-/* The message key per kind. Kept as a map rather than derived from the enum so
-   a new kind fails at the type level here, next to the sentence it needs. */
-const SENTENCE = {
-  tour_requested: "kind.tourRequested",
-  tour_confirmed: "kind.tourConfirmed",
-  tour_reschedule_proposed: "kind.tourRescheduleProposed",
-  tour_reschedule_accepted: "kind.tourRescheduleAccepted",
-  tour_declined: "kind.tourDeclined",
-  review_received: "kind.reviewReceived",
-  saved_search_match: "kind.savedSearchMatch",
-} as const;
+   The icon and the message key come from ./kind-meta, which the page's row
+   reads too: the two surfaces lay a notification out differently, but they
+   must never word it differently. */
 
 export function NotificationRow({
   notification,
@@ -57,9 +40,9 @@ export function NotificationRow({
 }) {
   const t = useTranslations("notifications");
   const format = useFormatter();
-  const Icon = ICONS[notification.kind];
+  const Icon = NOTIFICATION_ICONS[notification.kind];
 
-  const sentence = t.rich(SENTENCE[notification.kind], {
+  const sentence = t.rich(NOTIFICATION_SENTENCES[notification.kind], {
     // Both subjects can be absent — an account that closed, a home that was
     // unpublished — and a sentence with a hole in it is worse than a generic
     // noun. Neither fallback is ever empty.

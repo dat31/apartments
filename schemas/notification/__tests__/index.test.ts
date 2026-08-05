@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { Constants } from "@/lib/database.types";
 import {
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_KIND_CATEGORY,
   NOTIFICATION_KINDS,
+  kindsInCategory,
   notificationDataSchema,
   notificationIdSchema,
   notificationKindSchema,
+  notificationPreferencesSchema,
 } from "../index";
 
 describe("notification kinds", () => {
@@ -24,6 +28,33 @@ describe("notification kinds", () => {
     expect(notificationKindSchema.safeParse("message_received").success).toBe(
       false
     );
+  });
+});
+
+describe("notification categories", () => {
+  it("places every kind in exactly one category", () => {
+    // The filter chips and the settings switches are both driven by this map,
+    // so a kind missing from it is a notification nobody can filter to and
+    // nobody can mute.
+    for (const kind of NOTIFICATION_KINDS) {
+      expect(NOTIFICATION_CATEGORIES).toContain(
+        NOTIFICATION_KIND_CATEGORY[kind]
+      );
+    }
+  });
+
+  it("names its categories exactly as the preferences columns do", () => {
+    /* The columns of `notification_preferences` are these keys — the service
+       spreads the row straight into the object the switches read. A rename on
+       one side and not the other would silently mute nothing. */
+    expect(Object.keys(notificationPreferencesSchema.shape).sort()).toEqual(
+      [...NOTIFICATION_CATEGORIES].sort()
+    );
+  });
+
+  it("covers the whole kind list across its categories", () => {
+    const covered = NOTIFICATION_CATEGORIES.flatMap(kindsInCategory);
+    expect(covered.sort()).toEqual([...NOTIFICATION_KINDS].sort());
   });
 });
 
