@@ -116,6 +116,45 @@ with `.next/dev/logs/next-development.log` watched. The same gap makes
 throwaway route with fixture data if there is no signed-in way to reach it
 (see the `verify` skill).
 
+# Components
+
+## Let the dialog own its own open state
+
+**Wherever it can, a dialog, drawer, popover or sheet opens from its own
+`*Trigger` and closes from its own `*Close` — not from a `useState` in the
+component around it.** Radix and vaul already track open/closed; a boolean
+beside them is a second copy of that state living one level too high.
+
+The cost is re-renders, and they are not theoretical: a `settingsOpen` in the
+notifications feed meant every open and every close re-rendered the whole
+list — fifty rows and their day sections — to change something that renders in
+a portal. Moving the trigger inside the dialog took that to zero. It also
+removes the `open`/`onClose` prop pair from the component's API, so the parent
+no longer has a way to get the two out of step.
+
+```tsx
+// Yes — the dialog is self-contained; the parent just renders <Settings />.
+<Dialog>
+  <DialogTrigger asChild><Button>Settings</Button></DialogTrigger>
+  <DialogContent>…<DialogClose asChild><Button>Done</Button></DialogClose></DialogContent>
+</Dialog>
+
+// No — a boolean that only ever mirrors what Radix already knows.
+const [open, setOpen] = useState(false);
+<Button onClick={() => setOpen(true)}>Settings</Button>
+<SettingsDialog open={open} onClose={() => setOpen(false)} />
+```
+
+Two things follow from the trigger living inside:
+
+- **The shell is always mounted, so keep the expensive parts out of it.**
+  Content mounts on open, so a query or a heavy primitive belongs in a child
+  *inside* `*Content` (and is the natural `next/dynamic` boundary) — never in
+  the component that renders the trigger.
+- **Controlled is still right when something outside decides.** Opening from a
+  URL, a keyboard shortcut, or a parent that must close it after an async
+  result needs `open`/`onOpenChange`. Reach for it then, not by default.
+
 # Tests
 
 Two suites, separated by file extension so neither runner picks up the other's

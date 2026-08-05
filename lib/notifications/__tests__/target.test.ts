@@ -18,6 +18,7 @@ function makeItem(overrides: Partial<NotificationItem> = {}): NotificationItem {
     createdAt: "2026-08-04T00:00:00.000Z",
     listing: null,
     tourRole: "renter",
+    tourStatus: "confirmed",
     ...overrides,
   };
 }

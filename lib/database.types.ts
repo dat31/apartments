@@ -219,6 +219,38 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          activity: boolean
+          matches: boolean
+          profile_id: string
+          tours: boolean
+          updated_at: string
+        }
+        Insert: {
+          activity?: boolean
+          matches?: boolean
+          profile_id: string
+          tours?: boolean
+          updated_at?: string
+        }
+        Update: {
+          activity?: boolean
+          matches?: boolean
+          profile_id?: string
+          tours?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string | null

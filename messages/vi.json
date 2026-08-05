@@ -1182,6 +1182,57 @@
     "emptyBody": "Cập nhật lịch xem nhà và nhà khớp tìm kiếm đã lưu sẽ hiện ở đây.",
     "someone": "Một người dùng",
     "aHome": "một căn nhà",
+    "summary": "<strong>{unread} chưa đọc</strong> · tổng {total}",
+    "summaryCaughtUp": "Bạn đã xem hết · tổng {total}",
+    "summaryEmpty": "Không có gì để xem lại.",
+    "browseHomes": "Xem nhà cho thuê",
+    "caughtUpTitle": "Bạn đã xem hết",
+    "caughtUpBody": "Mọi thông báo đều đã được đọc.",
+    "noneInFilterTitle": "Chưa có gì ở nhóm này",
+    "noneInFilterBody": "Chưa có thông báo nào thuộc nhóm này.",
+    "filters": {
+      "all": "Tất cả",
+      "unread": "Chưa đọc",
+      "tours": "Lịch xem nhà",
+      "matches": "Nhà phù hợp",
+      "activity": "Hoạt động",
+      "showAll": "Xem tất cả"
+    },
+    "days": {
+      "today": "Hôm nay",
+      "yesterday": "Hôm qua",
+      "thisWeek": "Tuần này",
+      "earlier": "Trước đó"
+    },
+    "actions": {
+      "accept": "Đồng ý",
+      "decline": "Từ chối",
+      "acceptNewTime": "Đồng ý giờ mới",
+      "acceptedToast": "Đã xác nhận buổi xem",
+      "newTimeAcceptedToast": "Đã xác nhận giờ mới",
+      "declinedToast": "Đã từ chối buổi xem",
+      "failed": "Chưa thực hiện được. Vui lòng thử lại."
+    },
+    "settings": {
+      "open": "Cài đặt",
+      "title": "Cài đặt thông báo",
+      "subtitle": "Chọn những gì sẽ hiện trong thông báo của bạn.",
+      "done": "Xong",
+      "saveFailed": "Chưa lưu được. Vui lòng thử lại.",
+      "mutedNote": "Tắt một nhóm chỉ là ẩn đi. Bật lại là mọi thông báo bạn đã bỏ lỡ sẽ hiện lại.",
+      "tours": {
+        "label": "Lịch xem nhà",
+        "hint": "Yêu cầu, xác nhận, giờ mới và huỷ lịch."
+      },
+      "matches": {
+        "label": "Nhà khớp tìm kiếm đã lưu",
+        "hint": "Nhà mới phù hợp với tìm kiếm bạn đã lưu."
+      },
+      "activity": {
+        "label": "Đánh giá",
+        "hint": "Đánh giá người thuê để lại trên hồ sơ của bạn."
+      }
+    },
     "kind": {
       "tourRequested": "<strong>{name}</strong> đã yêu cầu xem {listing}",
       "tourConfirmed": "<strong>{name}</strong> đã xác nhận buổi xem {listing}",
