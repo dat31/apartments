@@ -27,7 +27,11 @@ import type {
    (SAVED_SEARCH_MAX) and the candidate set is bounded by the lookback window,
    so this is not about cost — it is about a broad search ("everything in Da
    Nang") not dumping forty rows into one person's feed after a bulk import.
-   The rest are simply not claimed, so the next run picks them up. */
+   The rest are simply not claimed, so the next run picks them up — which on a
+   daily schedule means tomorrow rather than in fifteen minutes. That is a
+   deliberate trade against the alternative, a feed with forty rows in it, and
+   it stays theoretical while the catalogue publishes nothing like ten homes
+   matching one search in a day. Raise it, don't remove it, if that changes. */
 export const MAX_MATCHES_PER_SEARCH = 10;
 
 export type Match = {

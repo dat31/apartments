@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/saved-search-alerts",
-      "schedule": "*/15 * * * *"
+      "schedule": "9 2 * * *"
     },
     {
       "path": "/api/cron/purge-dismissed-notifications",

@@ -21,20 +21,28 @@ import {
    carries a hand-maintained copy of the predicate, and a saved search has to
    return exactly what the same URL returns on Browse.
 
-   Invoked by Vercel cron (vercel.json, every 15 minutes). Vercel sends
-   `Authorization: Bearer ${CRON_SECRET}` when that env var is set; without
-   CRON_SECRET configured the route refuses to run at all — it writes into
-   other people's feeds, so an open endpoint is not an option.
+   Invoked by Vercel cron (vercel.json, daily ~02:09 UTC = ~09:09 Da Nang).
+   Vercel sends `Authorization: Bearer ${CRON_SECRET}` when that env var is
+   set; without CRON_SECRET configured the route refuses to run at all — it
+   writes into other people's feeds, so an open endpoint is not an option.
 
    Manual invocation (same auth):
      ?dry=1        report what would be sent, write nothing
-     ?minutes=N    override the lookback window (default 60) */
+     ?minutes=N    override the lookback window (default 2880) */
 
-const DEFAULT_LOOKBACK_MINUTES = 60;
+const DEFAULT_LOOKBACK_MINUTES = 60 * 48;
 
-/* Deliberately four times the 15-minute schedule. A late run, a deploy, or a
-   cold start must not drop an alert, and overlap costs nothing: the dedupe
-   table is what stops a second notification, not a precise cursor. */
+/* Twice the daily schedule, and sized to it rather than to a round number.
+   The Hobby plan allows one run a day and places it anywhere inside its hour
+   (±59 min), so two consecutive runs can be almost 25 hours apart — a window
+   any tighter drops every home published in the gap, silently and daily. 48
+   hours clears that and survives one run being missed outright, which on a
+   plan with no retry is a deploy freeze or an outage away.
+
+   Overlap costs nothing: the dedupe table is what stops a second
+   notification, not a precise cursor. What a wider window does cost is
+   candidates competing for MAX_MATCHES_PER_SEARCH, which is why this is 2×
+   the cadence and not the 4× the fifteen-minute schedule used to get. */
 const MAX_LOOKBACK_MINUTES = 60 * 24 * 7;
 
 const NO_STORE = { "Cache-Control": "private, no-store" } as const;

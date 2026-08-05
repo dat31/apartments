@@ -7,7 +7,7 @@ that is deliberate — see [Why they live in the Next.js app](#why-they-live-in-
 
 | Path | Schedule (UTC) | What it does |
 | --- | --- | --- |
-| `/api/cron/saved-search-alerts` | `*/15 * * * *` (every 15 min) | Turns newly published homes into in-app notifications for renters whose saved searches match. |
+| `/api/cron/saved-search-alerts` | `9 2 * * *` (daily 02:09 UTC = 09:09 Da Nang) | Turns newly published homes into in-app notifications for renters whose saved searches match. |
 | `/api/cron/sweep-empty-channels` | `17 3 * * *` (daily 03:17 UTC = 10:17 Da Nang) | Hard-deletes Stream `messaging` channels that never carried a message. |
 | `/api/cron/purge-dismissed-notifications` | `23 4 * * *` (daily 04:23 UTC = 11:23 Da Nang) | Hard-deletes notifications dismissed more than 30 days ago — the other half of the soft delete that makes undo possible. |
 
@@ -82,10 +82,16 @@ alert a renter was promised when they flipped the toggle now actually arrives.
 
 ### The run, end to end
 
-1. **Window.** `since = now - minutes` (default 60, clamped to `[1, 7 days]`).
-   The default is deliberately four times the 15-minute schedule: a late run, a
-   deploy, or a cold start must not drop an alert. Overlap costs nothing —
-   see the claim step.
+1. **Window.** `since = now - minutes` (default 2880 — 48 hours — clamped to
+   `[1, 7 days]`). Twice the daily cadence, and sized to it: Hobby runs a job
+   once a day and places it anywhere inside its hour, so two consecutive runs
+   can be nearly 25 hours apart, and a tighter window would drop every home
+   published in the gap — silently, and every day. 48 hours clears that and
+   survives one run being missed outright.
+
+   Overlap costs nothing (see the claim step). What a wider window *does* cost
+   is candidates competing for `MAX_MATCHES_PER_SEARCH`, which is why this is
+   2× the cadence rather than the 4× the fifteen-minute schedule used to get.
 
 2. **Read (service role, RLS bypassed).** In parallel:
    - `listAlertableSavedSearches()` — every `saved_searches` row with
@@ -294,11 +300,22 @@ Notes:
 - `CRON_SECRET` can be any random string; Vercel injects it into the cron
   request's `Authorization` header automatically once it is set.
 - `vercel.json` `crons` entries only take effect on production deployments.
-  Sub-daily schedules (the 15-minute one) depend on the project's Vercel plan —
-  confirm the plan allows the cadence, or the job silently runs less often than
-  written.
-- Neither route sets `maxDuration`; both are bounded by their own page/batch
-  caps instead, and both are dynamic (they read `searchParams`), so nothing is
+- **All three schedules are daily, because the project is on Vercel's Hobby
+  plan.** That plan allows 100 cron jobs but a minimum interval of once per
+  day, and a sub-daily expression is not silently downgraded — it *fails the
+  deployment*: "Hobby accounts are limited to daily cron jobs. This cron
+  expression would run more than once per day." `saved-search-alerts` ran
+  `*/15 * * * *` while it was unshipped; that would have broken the first
+  production deploy.
+- **The minute in each schedule is aspirational on Hobby.** Scheduling
+  precision is per-hour: `9 2 * * *` fires anywhere in 02:00–02:59 UTC. The
+  three jobs are kept in separate hours rather than separate minutes, which is
+  the only separation the plan actually honours. The minutes become real on
+  Pro, which also lifts the interval to once per minute — the only thing that
+  would let `saved-search-alerts` go back to a tight cadence, and the lookback
+  window should shrink with it if it does.
+- No route sets `maxDuration`; each is bounded by its own page/batch cap
+  instead, and all three are dynamic (they read `searchParams`), so nothing is
   cached.
 
 ## Adding another job
@@ -308,7 +325,9 @@ Notes:
    half.
 3. Support `?dry=1` and clamp any window parameter.
 4. Return JSON counts with `Cache-Control: private, no-store`.
-5. Add the `{ path, schedule }` entry to `vercel.json`.
+5. Add the `{ path, schedule }` entry to `vercel.json` — daily or less often
+   while the project is on Hobby, in an hour no other job uses, and size any
+   lookback window to that cadence rather than to the schedule you wanted.
 6. If it needs to bypass RLS, put the queries in the service-role section of a
    service module (as `lib/services/notifications.ts` does) rather than
    reaching for `createAdminClient()` from the route — keeping every RLS bypass
