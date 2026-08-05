@@ -114,6 +114,7 @@ export type Database = {
           owner_id: string
           palette: number
           price: number
+          published_at: string | null
           status: Database["public"]["Enums"]["listing_status"]
           title: string
           type: Database["public"]["Enums"]["listing_type"]
@@ -152,6 +153,7 @@ export type Database = {
           owner_id: string
           palette?: number
           price: number
+          published_at?: string | null
           status?: Database["public"]["Enums"]["listing_status"]
           title: string
           type: Database["public"]["Enums"]["listing_type"]
@@ -190,6 +192,7 @@ export type Database = {
           owner_id?: string
           palette?: number
           price?: number
+          published_at?: string | null
           status?: Database["public"]["Enums"]["listing_status"]
           title?: string
           type?: Database["public"]["Enums"]["listing_type"]
@@ -212,6 +215,84 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          data: Json
+          dismissed_at: string | null
+          id: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          listing_id: string | null
+          profile_id: string
+          read_at: string | null
+          saved_search_id: string | null
+          tour_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          data?: Json
+          dismissed_at?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          listing_id?: string | null
+          profile_id: string
+          read_at?: string | null
+          saved_search_id?: string | null
+          tour_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          data?: Json
+          dismissed_at?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["notification_kind"]
+          listing_id?: string | null
+          profile_id?: string
+          read_at?: string | null
+          saved_search_id?: string | null
+          tour_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_saved_search_id_fkey"
+            columns: ["saved_search_id"]
+            isOneToOne: false
+            referencedRelation: "saved_searches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
             referencedColumns: ["id"]
           },
         ]
@@ -644,6 +725,14 @@ export type Database = {
         | "son-tra"
       listing_status: "active" | "draft"
       listing_type: "studio" | "apartment" | "loft" | "townhouse" | "house"
+      notification_kind:
+        | "tour_requested"
+        | "tour_confirmed"
+        | "tour_reschedule_proposed"
+        | "tour_reschedule_accepted"
+        | "tour_declined"
+        | "review_received"
+        | "saved_search_match"
       room_kind: "living" | "bed" | "bath" | "kitchen" | "balcony" | "other"
       tour_status: "pending" | "confirmed" | "declined" | "reschedule"
       user_role: "renter" | "owner"
@@ -788,6 +877,15 @@ export const Constants = {
       ],
       listing_status: ["active", "draft"],
       listing_type: ["studio", "apartment", "loft", "townhouse", "house"],
+      notification_kind: [
+        "tour_requested",
+        "tour_confirmed",
+        "tour_reschedule_proposed",
+        "tour_reschedule_accepted",
+        "tour_declined",
+        "review_received",
+        "saved_search_match",
+      ],
       room_kind: ["living", "bed", "bath", "kitchen", "balcony", "other"],
       tour_status: ["pending", "confirmed", "declined", "reschedule"],
       user_role: ["renter", "owner"],

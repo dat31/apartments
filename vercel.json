@@ -3,6 +3,14 @@
     {
       "path": "/api/cron/sweep-empty-channels",
       "schedule": "17 3 * * *"
+    },
+    {
+      "path": "/api/cron/saved-search-alerts",
+      "schedule": "9 2 * * *"
+    },
+    {
+      "path": "/api/cron/purge-dismissed-notifications",
+      "schedule": "23 4 * * *"
     }
   ]
 }

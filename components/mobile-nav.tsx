@@ -18,8 +18,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { MessagesUnreadBadge } from "@/components/messaging/unread-badge";
+import { NotificationCountChip } from "@/components/notifications/notification-count-chip";
 import { type Profile } from "@/schemas/profile";
 import {
+  Bell,
   Calendar,
   Eye,
   Heart,
@@ -58,6 +60,7 @@ export function MobileNav({
   savedActive,
   toursActive,
   messagesActive,
+  notificationsActive,
   onManage,
   onSignOut,
   className,
@@ -68,6 +71,7 @@ export function MobileNav({
   savedActive: boolean;
   toursActive: boolean;
   messagesActive: boolean;
+  notificationsActive: boolean;
   onManage: () => void;
   onSignOut: () => void;
   className?: string;
@@ -173,6 +177,24 @@ export function MobileNav({
                   {header("messages")}
                 </span>
                 <MessagesUnreadBadge active={messagesActive} variant="drawer" />
+              </Link>
+            </DrawerClose>
+            {/* The header bell opens a preview; this is the way to the full
+                history, and it belongs beside the other destinations rather
+                than only behind a "See all" inside a popover. */}
+            <DrawerClose asChild>
+              <Link
+                href="/notifications"
+                aria-current={notificationsActive ? "page" : undefined}
+                className={navRow({
+                  tone: notificationsActive ? "active" : "default",
+                })}
+              >
+                <Bell size={19} className="shrink-0 opacity-90" />
+                <span className="flex-1 leading-tight truncate">
+                  {header("notifications")}
+                </span>
+                <NotificationCountChip active={notificationsActive} variant="drawer" />
               </Link>
             </DrawerClose>
           </div>

@@ -47,6 +47,8 @@ const PROTECTED: RegExp[] = [
   /^\/apartments\/[^/]+\/virtual-tour\/edit(\/|$)/,
   /^\/tour(\/|$)/,
   /^\/messages(\/|$)/,
+  // A feed of things that happened to you. Signed out there is no "you".
+  /^\/notifications(\/|$)/,
 ];
 
 /* Auth pages a signed-in user has no reason to see. /reset-password is left
