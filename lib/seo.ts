@@ -44,6 +44,7 @@ export async function privateMetadata(
     | "compare"
     | "tours"
     | "messages"
+    | "notifications"
     | "create"
     | "edit"
     | "preview"

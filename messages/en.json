@@ -55,6 +55,9 @@
     },
     "messages": {
       "title": "Messages"
+    },
+    "notifications": {
+      "title": "Notifications"
     }
   },
   "header": {
@@ -65,7 +68,8 @@
     "closeMenu": "Close menu",
     "browse": "Browse",
     "account": "Account",
-    "messages": "Messages"
+    "messages": "Messages",
+    "notifications": "Notifications"
   },
   "landing": {
     "footer": "Danapa — a demo prototype. No account required.",
@@ -1161,6 +1165,32 @@
     "tourPreview": "Tour · {date}",
     "noToursRenter": "No tour booked for this home yet. Book one from the listing to attach it here.",
     "noToursOwner": "No tour requests for this home from this renter yet."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Everything that happened while you were away.",
+    "bellAria": "Notifications, {count} unread",
+    "unreadBadge": "unread notifications",
+    "markAllRead": "Mark all as read",
+    "seeAll": "See all notifications",
+    "open": "Open",
+    "dismiss": "Dismiss",
+    "dismissed": "Notification dismissed",
+    "undo": "Undo",
+    "dismissFailed": "That didn't go through. Please try again.",
+    "emptyTitle": "Nothing new",
+    "emptyBody": "Tour updates and saved-search matches will show up here.",
+    "someone": "Someone",
+    "aHome": "a home",
+    "kind": {
+      "tourRequested": "<strong>{name}</strong> requested a viewing of {listing}",
+      "tourConfirmed": "<strong>{name}</strong> confirmed your viewing of {listing}",
+      "tourRescheduleProposed": "<strong>{name}</strong> proposed a new time for {listing}",
+      "tourRescheduleAccepted": "<strong>{name}</strong> accepted your proposed time for {listing}",
+      "tourDeclined": "<strong>{name}</strong> cancelled the viewing of {listing}",
+      "reviewReceived": "<strong>{name}</strong> left you a {rating}-star review",
+      "savedSearchMatch": "A new home matches a saved search: <strong>{listing}</strong>"
+    }
   },
   "validation": {
     "email": {

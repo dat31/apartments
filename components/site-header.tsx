@@ -11,6 +11,7 @@ import { AccountMenu } from "@/components/account-menu";
 import { MobileNav } from "@/components/mobile-nav";
 import { ManageProfileDialog } from "@/components/manage-profile-dialog";
 import { MessagesUnreadBadge } from "@/components/messaging/unread-badge";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useSaved } from "@/hooks/use-saved";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useProfile } from "@/hooks/use-profile";
@@ -28,6 +29,7 @@ export function SiteHeader() {
   const savedActive = pathname === "/apartments/saved";
   const toursActive = pathname === "/tour";
   const messagesActive = pathname === "/messages";
+  const notificationsActive = pathname === "/notifications";
   const dashboardActive = pathname.startsWith("/owner/dashboard");
   const isOwner = profile.role === "owner";
   // Auth, saved count and role all come from client-only stores (react-query
@@ -113,6 +115,11 @@ export function SiteHeader() {
                 </Button>
               </div>
 
+              {/* Outside the md:flex group above: the bell is the one nav
+                  affordance that matters on a phone too, and the drawer is a
+                  worse place for it — news should be one tap, not two. */}
+              <NotificationBell />
+
               <LanguageSwitcher />
 
               <AccountMenu
@@ -131,6 +138,7 @@ export function SiteHeader() {
                 savedActive={savedActive}
                 toursActive={toursActive}
                 messagesActive={messagesActive}
+                notificationsActive={notificationsActive}
                 onManage={() => setManageOpen(true)}
                 onSignOut={() => signOut.mutate()}
               />

@@ -55,6 +55,9 @@
     },
     "messages": {
       "title": "Tin nhắn"
+    },
+    "notifications": {
+      "title": "Thông báo"
     }
   },
   "header": {
@@ -65,7 +68,8 @@
     "closeMenu": "Đóng menu",
     "browse": "Khám phá",
     "account": "Tài khoản",
-    "messages": "Tin nhắn"
+    "messages": "Tin nhắn",
+    "notifications": "Thông báo"
   },
   "landing": {
     "footer": "Danapa — bản mẫu demo. Không cần tài khoản.",
@@ -1161,6 +1165,32 @@
     "tourPreview": "Lịch xem · {date}",
     "noToursRenter": "Chưa có lịch xem cho nhà này. Đặt một lịch từ trang tin đăng để đính kèm vào đây.",
     "noToursOwner": "Chưa có yêu cầu xem nhà này từ người thuê này."
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "subtitle": "Mọi cập nhật khi bạn vắng mặt.",
+    "bellAria": "Thông báo, {count} chưa đọc",
+    "unreadBadge": "thông báo chưa đọc",
+    "markAllRead": "Đánh dấu đã đọc tất cả",
+    "seeAll": "Xem tất cả thông báo",
+    "open": "Mở",
+    "dismiss": "Bỏ qua",
+    "dismissed": "Đã bỏ thông báo",
+    "undo": "Hoàn tác",
+    "dismissFailed": "Chưa thực hiện được. Vui lòng thử lại.",
+    "emptyTitle": "Chưa có gì mới",
+    "emptyBody": "Cập nhật lịch xem nhà và nhà khớp tìm kiếm đã lưu sẽ hiện ở đây.",
+    "someone": "Một người dùng",
+    "aHome": "một căn nhà",
+    "kind": {
+      "tourRequested": "<strong>{name}</strong> đã yêu cầu xem {listing}",
+      "tourConfirmed": "<strong>{name}</strong> đã xác nhận buổi xem {listing}",
+      "tourRescheduleProposed": "<strong>{name}</strong> đã đề xuất giờ khác cho {listing}",
+      "tourRescheduleAccepted": "<strong>{name}</strong> đã đồng ý giờ bạn đề xuất cho {listing}",
+      "tourDeclined": "<strong>{name}</strong> đã huỷ buổi xem {listing}",
+      "reviewReceived": "<strong>{name}</strong> đã đánh giá bạn {rating} sao",
+      "savedSearchMatch": "Có nhà mới khớp với tìm kiếm đã lưu: <strong>{listing}</strong>"
+    }
   },
   "validation": {
     "email": {
