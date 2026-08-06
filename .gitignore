@@ -14,6 +14,7 @@
 /coverage/
 /test-results/
 /playwright-report/
+/playwright-report-instant/
 /blob-report/
 /playwright/.cache/
 # playwright-cli scratch snapshots
