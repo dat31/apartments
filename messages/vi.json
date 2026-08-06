@@ -75,14 +75,14 @@
     "footer": "Danapa — bản mẫu demo. Không cần tài khoản.",
     "chooser": {
       "eyebrow": "Chào mừng đến Danapa",
-      "headline": "Ngôi nhà tiếp theo của bạn bắt đầu từ đây.",
-      "sub": "Hàng nghìn căn hộ khắp Đà Nẵng. Chọn cách bạn muốn bắt đầu."
+      "headline": "Tìm Nhà Dễ Dàng. Cho Thuê Nhanh Chóng.",
+      "sub": "Kết nối người thuê và chủ nhà trên cùng một nền tảng. Chọn vai trò của bạn để tiếp tục."
     },
     "roles": {
       "rentTitle": "Tôi đang thuê",
-      "rentBlurb": "Xem nhà, tìm chỗ ở tiếp theo của bạn.",
+      "rentBlurb": "Tìm kiếm căn hộ phù hợp với nhu cầu.",
       "listTitle": "Tôi đang cho thuê",
-      "listBlurb": "Đăng tin và quản lý nhà của bạn."
+      "listBlurb": "Quản lý tin đăng và kết nối với người thuê."
     },
     "stats": {
       "eyebrow": "Danapa qua những con số",
@@ -90,13 +90,13 @@
       "renters": "Người thuê đang hoạt động",
       "hosts": "Chủ nhà đã xác minh",
       "districts": "Quận đang phục vụ",
-      "caption": "Cập nhật mỗi ngày khắp Đà Nẵng"
+      "caption": "Cập nhật mỗi ngày"
     },
     "showcase": {
       "districtsTitle": "Xem theo quận",
-      "districtsSub": "Đến thẳng những khu vực bạn đang để ý",
+      "districtsSub": "Khám phá căn hộ theo khu vực bạn đang quan tâm.",
       "newestTitle": "Nhà mới nhất",
-      "newestSub": "Tin đăng mới, vừa thêm",
+      "newestSub": "Các tin đăng mới nhất đang chờ bạn khám phá.",
       "trendingTitle": "Đang nổi bật",
       "trendingSub": "Những căn được người thuê quan tâm nhất",
       "seeAll": "Xem tất cả",
@@ -832,7 +832,7 @@
     "countSub": "{count, plural, other {# nhà bạn đang để mắt tới}}",
     "keepBrowsing": "Tiếp tục xem",
     "emptyTitle": "Chưa có nhà nào được lưu",
-    "emptyBody": "Chạm vào biểu tượng trái tim trên bất kỳ tin đăng nào để lưu. Danh sách rút gọn của bạn sẽ ở đây để so sánh và xem lại.",
+    "emptyBody": "Chạm vào hình trái tim ở bất kỳ nhà nào để lưu lại. Nhà đã lưu sẽ nằm ở đây để bạn tiện so sánh và xem lại.",
     "browseHomes": "Xem nhà",
     "compare": {
       "button": "So sánh",
