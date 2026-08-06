@@ -48,10 +48,10 @@
       "title": "Xem trước tin đăng"
     },
     "tourEditor": {
-      "title": "Chỉnh sửa tham quan 360°"
+      "title": "Chỉnh sửa tham quan ảo 360°"
     },
     "dashboard": {
-      "title": "Dashboard Chủ nhà"
+      "title": "Trang quản lý chủ nhà"
     },
     "messages": {
       "title": "Tin nhắn"
@@ -82,14 +82,14 @@
       "rentTitle": "Tôi đang thuê",
       "rentBlurb": "Xem nhà, tìm chỗ ở tiếp theo của bạn.",
       "listTitle": "Tôi đang cho thuê",
-      "listBlurb": "Đăng và quản lý chỗ của bạn."
+      "listBlurb": "Đăng tin và quản lý nhà của bạn."
     },
     "stats": {
       "eyebrow": "Danapa qua những con số",
       "apartments": "Căn hộ đã đăng",
       "renters": "Người thuê đang hoạt động",
       "hosts": "Chủ nhà đã xác minh",
-      "districts": "Quận được phủ sóng",
+      "districts": "Quận đang phục vụ",
       "caption": "Cập nhật mỗi ngày khắp Đà Nẵng"
     },
     "showcase": {
@@ -111,19 +111,19 @@
   "auth": {
     "signin": {
       "title": "Chào mừng trở lại",
-      "subtitle": "Đăng nhập để quản lý tìm kiếm và tin đăng của bạn.",
+      "subtitle": "Đăng nhập để quản lý việc tìm nhà và tin đăng của bạn.",
       "continueApple": "Tiếp tục với Apple",
       "continueGoogle": "Tiếp tục với Google",
       "dividerEmail": "hoặc bằng email",
       "email": "Email",
       "forgot": "Quên mật khẩu?",
-      "keepSignedIn": "Duy trì đăng nhập",
+      "keepSignedIn": "Ghi nhớ đăng nhập",
       "submit": "Đăng nhập",
       "submitting": "Đang đăng nhập…",
-      "noAccount": "Bạn mới biết đến Danapa?",
+      "noAccount": "Lần đầu đến với Danapa?",
       "createAccount": "Tạo tài khoản",
       "errorToast": "Không thể đăng nhập. Vui lòng thử lại.",
-      "soonToast": "Đăng nhập bằng mạng xã hội sẽ sớm có mặt."
+      "soonToast": "Đăng nhập bằng mạng xã hội sắp ra mắt."
     },
     "signup": {
       "title": "Tạo tài khoản",
@@ -139,7 +139,7 @@
       "email": "Email",
       "emailPlaceholder": "you@email.com",
       "password": "Mật khẩu",
-      "passwordPlaceholder": "8+ ký tự, có hoa thường, số, ký hiệu",
+      "passwordPlaceholder": "8+ ký tự, có chữ hoa, số và ký tự đặc biệt",
       "agree": "Tôi đồng ý với <terms>Điều khoản</terms> và <privacy>Chính sách bảo mật</privacy> của Danapa.",
       "submit": "Tạo tài khoản",
       "submitting": "Đang tạo tài khoản…",
@@ -147,30 +147,30 @@
       "signin": "Đăng nhập",
       "confirmToast": "Đã tạo tài khoản — kiểm tra email để xác nhận.",
       "errorToast": "Không thể tạo tài khoản.",
-      "soonToast": "Đăng ký bằng mạng xã hội sẽ sớm có mặt."
+      "soonToast": "Đăng ký bằng mạng xã hội sắp ra mắt."
     },
     "forgot": {
       "back": "Quay lại đăng nhập",
       "title": "Đặt lại mật khẩu",
-      "subtitle": "Nhập email gắn với tài khoản của bạn, chúng tôi sẽ gửi liên kết để đặt mật khẩu mới.",
+      "subtitle": "Nhập email bạn đã dùng để đăng ký, chúng tôi sẽ gửi liên kết để bạn đặt mật khẩu mới.",
       "email": "Email",
       "emailPlaceholder": "you@email.com",
-      "submit": "Gửi liên kết đặt lại",
+      "submit": "Gửi liên kết đặt lại mật khẩu",
       "submitting": "Đang gửi…",
-      "remembered": "Đã nhớ ra?",
+      "remembered": "Nhớ ra rồi?",
       "signin": "Đăng nhập",
-      "errorToast": "Không thể gửi liên kết đặt lại.",
+      "errorToast": "Không thể gửi liên kết đặt lại mật khẩu.",
       "sentTitle": "Kiểm tra email của bạn",
-      "sentLead": "Chúng tôi đã gửi liên kết đặt lại tới <b>{email}</b>. Liên kết hết hạn sau 30 phút.",
+      "sentLead": "Chúng tôi đã gửi liên kết đặt lại mật khẩu tới <b>{email}</b>. Liên kết hết hạn sau 30 phút.",
       "backToSignin": "Quay lại đăng nhập",
       "differentEmail": "Dùng email khác",
       "didntGet": "Chưa nhận được? Kiểm tra hộp thư rác, hoặc <resend>gửi lại</resend>."
     },
     "reset": {
       "title": "Đặt mật khẩu mới",
-      "subtitle": "Chọn mật khẩu mới cho tài khoản của bạn. Bạn vẫn sẽ đăng nhập.",
+      "subtitle": "Chọn mật khẩu mới cho tài khoản của bạn. Bạn sẽ không bị đăng xuất.",
       "newPassword": "Mật khẩu mới",
-      "newPasswordPlaceholder": "8+ ký tự, có hoa thường, số, ký hiệu",
+      "newPasswordPlaceholder": "8+ ký tự, có chữ hoa, số và ký tự đặc biệt",
       "confirmPassword": "Xác nhận mật khẩu",
       "submit": "Cập nhật mật khẩu",
       "submitting": "Đang cập nhật…",
@@ -184,11 +184,11 @@
     },
     "brand": {
       "eyebrow": "Danapa · Đà Nẵng",
-      "headline": "Tìm chỗ ở, hoặc lấp đầy chỗ trống.",
-      "lead": "Một cách thuê nhà nhẹ nhàng và minh bạch tại Đà Nẵng — cho người đang tìm, và cho người đang cho thuê.",
-      "point1": "Xem những tin đăng gọn gàng, dễ nhìn",
-      "point2": "Chi tiết phòng, tiện nghi & chi phí thực",
-      "point3": "Nhắn trực tiếp với chủ nhà — không qua trung gian",
+      "headline": "Người tìm nhà, nhà tìm người.",
+      "lead": "Thuê nhà ở Đà Nẵng theo cách nhẹ nhàng và minh bạch — cho cả người đi thuê lẫn người cho thuê.",
+      "point1": "Tin đăng gọn gàng, dễ nhìn, không rối mắt",
+      "point2": "Ảnh chi tiết, tiện nghi & chi phí thực tế",
+      "point3": "Nhắn thẳng với chủ nhà — không qua môi giới",
       "copyright": "© 2026 Danapa — bản mẫu demo."
     }
   },
@@ -213,7 +213,7 @@
     "hosting": "Đang cho thuê trên Danapa",
     "renting": "Đang thuê trên Danapa",
     "manageProfile": "Quản lý hồ sơ",
-    "ownerDashboard": "Dashboard Chủ nhà",
+    "ownerDashboard": "Trang quản lý chủ nhà",
     "viewPublic": "Xem hồ sơ công khai",
     "lightMode": "Giao diện sáng",
     "darkMode": "Giao diện tối",
@@ -333,10 +333,10 @@
       "apply": "Áp dụng tìm kiếm này",
       "applyAria": "Áp dụng tìm kiếm đã lưu: {name}",
       "deleteAria": "Xóa tìm kiếm đã lưu: {name}",
-      "alertsOn": "Cảnh báo bật",
-      "alertsOff": "Cảnh báo tắt",
-      "alertsOnTitle": "Đang bật cảnh báo — nhấn để tắt",
-      "alertsOffTitle": "Cảnh báo đang tắt — nhấn để bật",
+      "alertsOn": "Đã bật thông báo",
+      "alertsOff": "Đã tắt thông báo",
+      "alertsOnTitle": "Đang bật thông báo — nhấn để tắt",
+      "alertsOffTitle": "Đang tắt thông báo — nhấn để bật",
       "saveButton": "Lưu tìm kiếm này",
       "alreadySaved": "Đã lưu tìm kiếm này",
       "nouns": {
@@ -383,7 +383,7 @@
       },
       "gate": {
         "title": "Đăng nhập để lưu tìm kiếm",
-        "description": "Cảnh báo gửi email khi có nhà mới khớp, nên cần tài khoản để lưu.",
+        "description": "Chúng tôi gửi email khi có nhà mới khớp, nên cần tài khoản để lưu.",
         "saveTitle": "Lưu tìm kiếm",
         "saveDesc": "Mở lại cả bộ lọc chỉ với một chạm.",
         "alertTitle": "Biết tin đầu tiên",
@@ -401,7 +401,7 @@
     "viewProfile": "Xem hồ sơ",
     "aboutTitle": "Giới thiệu về nơi này",
     "descriptionNotWritten": "Chủ nhà chưa viết mô tả bằng {reader}. Bạn đang đọc bản gốc, bằng {original}.",
-    "writtenIn": "Chủ nhà viết nhà này bằng {original}.",
+    "writtenIn": "Chủ nhà đã viết tin đăng này bằng {original}.",
     "readOriginal": "Đọc bản gốc",
     "hideOriginal": "Ẩn bản gốc",
     "includedTitle": "Tiện nghi đi kèm",
@@ -411,7 +411,7 @@
     "save": "Lưu nhà",
     "saved": "Đã lưu",
     "backToResults": "Quay lại kết quả",
-    "loadingHome": "Đang tải nhà",
+    "loadingHome": "Đang tải thông tin nhà",
     "share": "Chia sẻ",
     "linkCopied": "Đã sao chép liên kết",
     "linkCopyFailed": "Không thể sao chép liên kết",
@@ -470,9 +470,9 @@
       "compactBreakdown": "Tháng đầu {first} + cọc {deposit}",
       "moveInNote": "Con số gần đúng. Điện nước và các khoản phí phát sinh tính riêng.",
       "minLease": "Thuê tối thiểu",
-      "notListed": "Chưa niêm yết",
+      "notListed": "Chưa có thông tin",
       "utilities": "Điện nước & dịch vụ",
-      "askOwner": "Chưa niêm yết — hãy hỏi chủ nhà khi đi xem.",
+      "askOwner": "Chưa có thông tin — hãy hỏi chủ nhà khi đi xem.",
       "included": "Bao gồm",
       "metered": "Theo chỉ số",
       "fixedPerMonth": "{amount}/tháng",
@@ -517,7 +517,7 @@
     "continueGoogle": "Tiếp tục với Google",
     "or": "hoặc",
     "fullName": "Họ và tên",
-    "fullNamePlaceholder": "Jordan Rivera",
+    "fullNamePlaceholder": "Nguyễn Văn A",
     "email": "Email",
     "emailPlaceholder": "you@email.com",
     "password": "Mật khẩu",
@@ -573,7 +573,7 @@
       "pinSet": "Đã ghim tại {lat}, {lng} — kéo để điều chỉnh.",
       "clear": "Xóa ghim"
     },
-    "backToDashboard": "Quay lại bảng điều khiển",
+    "backToDashboard": "Quay lại trang quản lý",
     "editTitle": "Chỉnh sửa tin đăng",
     "newTitle": "Tin đăng mới",
     "editSubtitle": "Cập nhật thông tin bên dưới.",
@@ -604,15 +604,15 @@
     "languages": {
       "heading": "Ngôn ngữ khác",
       "originalNote": "Người thuê thấy bản gốc của bạn ở bất cứ đâu chưa có bản khác. Chỉ bản gốc là bắt buộc.",
-      "readerMismatch": "Bạn đang xem Danapa bằng {reader}. Nhà này viết bằng {original} — ở đây bạn luôn thấy đúng chữ mình đã gõ.",
+      "readerMismatch": "Bạn đang xem Danapa bằng {reader}. Tin đăng này viết bằng {original} — ở đây bạn luôn thấy đúng chữ mình đã gõ.",
       "writtenInLabel": "Ngôn ngữ đã viết",
       "readersSee": "Hiện tại, người đọc {language} thấy tiêu đề và mô tả {original} của bạn.",
-      "writeIn": "Viết nhà này bằng {language}",
+      "writeIn": "Viết tin đăng này bằng {language}",
       "titleIn": "Tiêu đề bằng {language}",
       "descriptionIn": "Mô tả bằng {language}",
       "yourOriginal": "Bản {language} của bạn:",
       "emptyMeans": "Bỏ trống ô nào thì người đọc {language} thấy bản {original} của ô đó — không bao giờ để trắng.",
-      "liveNow": "Nhà này đang hiển thị. Người đọc {language} sẽ thấy bản này ngay khi bạn lưu.",
+      "liveNow": "Tin đăng này đang hiển thị. Người đọc {language} sẽ thấy bản này ngay khi bạn lưu.",
       "remove": "Xoá bản {language}",
       "removeTitle": "Xoá bản {language}?",
       "removeBody": "Thao tác này xoá phần bạn đã viết. Người đọc {language} sẽ thấy lại tiêu đề và mô tả {original} của bạn.",
@@ -680,7 +680,7 @@
     }
   },
   "dashboard": {
-    "eyebrow": "Dashboard Chủ nhà",
+    "eyebrow": "Trang quản lý chủ nhà",
     "welcome": "Chào mừng trở lại, {name}",
     "newListing": "Tin đăng mới",
     "stats": {
@@ -712,8 +712,8 @@
       "publish": "Đăng",
       "actions": "Tùy chọn tin đăng",
       "edit": "Chỉnh sửa tin đăng",
-      "tour360": "Tham quan 360°",
-      "addTour360": "Thêm tham quan 360°",
+      "tour360": "Tham quan ảo 360°",
+      "addTour360": "Thêm tham quan ảo 360°",
       "delete": "Xóa",
       "deleteFailed": "Không thể xóa tin đăng. Vui lòng thử lại.",
       "statusFailed": "Không thể cập nhật tin đăng. Vui lòng thử lại."
@@ -721,7 +721,7 @@
     "preview": {
       "title": "Xem trước bản nháp",
       "body": "Đây là cách nhà của bạn hiện ra khi được đăng. Chỉ mình bạn thấy trang này — hãy đăng tin để người thuê xem được.",
-      "back": "Về dashboard",
+      "back": "Về trang quản lý",
       "edit": "Chỉnh sửa tin đăng"
     },
     "tours": {
@@ -761,7 +761,7 @@
       "title": "Lịch trống cho xem nhà",
       "subtitle": "Chọn những khung giờ bạn sẵn sàng cho xem nhà. Lịch này lặp lại mỗi tuần.",
       "slotsPerWeek": "{count, plural, other {# khung}}/tuần",
-      "presetWeekday": "Ngày thường 10–4",
+      "presetWeekday": "Ngày thường 10–16",
       "presetAll": "Mọi ngày, mọi giờ",
       "presetClear": "Xóa hết"
     },
@@ -937,8 +937,8 @@
     }
   },
   "virtualTourEditor": {
-    "title": "Tham quan 360°",
-    "intro": "Thêm ảnh 360° cho từng phòng, đặt tên và chọn phòng mở đầu. Khách xem có thể chuyển phòng từ danh sách phòng, nên bản tham quan dùng được ngay từ phòng đầu tiên bạn thêm.",
+    "title": "Tham quan ảo 360°",
+    "intro": "Thêm ảnh 360° cho từng phòng, đặt tên và chọn phòng mở đầu. Khách xem có thể chuyển phòng từ danh sách phòng, nên bản tham quan ảo dùng được ngay từ phòng đầu tiên bạn thêm.",
     "backToListing": "Quay lại tin đăng",
     "statusDraft": "Bản nháp",
     "statusPublished": "Đang hiển thị",
@@ -981,10 +981,10 @@
       "self-link": "Có cửa dẫn ngược về chính phòng đó.",
       "unreachable-scene": "Chưa có cửa nào dẫn tới phòng này — khách vẫn tới được từ danh sách phòng."
     },
-    "publish": "Đăng bản tham quan",
+    "publish": "Đăng bản tham quan ảo",
     "unpublish": "Gỡ xuống",
-    "published": "Bản tham quan 360° đã hiển thị",
-    "unpublished": "Bản tham quan 360° đã được gỡ xuống",
+    "published": "Bản tham quan ảo 360° đã hiển thị",
+    "unpublished": "Bản tham quan ảo 360° đã được gỡ xuống",
     "previewTour": "Xem thử",
     "saveFailed": "Không lưu được thay đổi. Vui lòng thử lại.",
     "summary": "{rooms} phòng · {doors} cửa · {notes} ghi chú",
@@ -992,8 +992,8 @@
     "thisRoom": "Phòng này",
     "roomNameHint": "Người thuê thấy tên này, và mọi cửa dẫn vào đây cũng vậy.",
     "removeRoomNamed": "Xoá {room}",
-    "moveUp": "Lên trước",
-    "moveDown": "Xuống sau",
+    "moveUp": "Chuyển lên",
+    "moveDown": "Chuyển xuống",
     "removedRoom": "Đã xoá {room}",
     "removedRoomBroke": "Đã xoá {room} — {count} cửa ở phòng khác giờ không dẫn đi đâu",
     "leadsNowhereCount": "{count} cửa không dẫn đi đâu",
@@ -1003,7 +1003,7 @@
     "noConnections": "Chưa đặt cửa nào.",
     "leadsNowhere": "không dẫn đi đâu",
     "arrival": "Góc nhìn khi vừa vào",
-    "arrivalNone": "Chưa chọn — người thuê vào ở đúng góc ảnh bắt đầu.",
+    "arrivalNone": "Chưa chọn — người thuê sẽ vào đúng góc mà ảnh bắt đầu.",
     "arrivalSet": "Người thuê vào phòng này nhìn về {direction}.",
     "arrivalWhere": "Nhìn quanh phòng, rồi bấm nút trên ảnh để lưu góc nhìn.",
     "arrivalUse": "Dùng góc nhìn này",
@@ -1030,12 +1030,12 @@
     "noteMarker": "Ghi chú: {title}",
     "noteUntitled": "Ghi chú chưa đặt tên",
     "notePlaced": "Đã đặt ghi chú ở {direction}. Người thuê cần biết gì về nó?",
-    "nudge": "Dịch",
-    "nudgeLeft": "Dịch sang trái",
-    "nudgeRight": "Dịch sang phải",
-    "nudgeUp": "Dịch lên",
-    "nudgeDown": "Dịch xuống",
-    "moveMarker": "Dịch chỗ khác",
+    "nudge": "Nhích",
+    "nudgeLeft": "Nhích sang trái",
+    "nudgeRight": "Nhích sang phải",
+    "nudgeUp": "Nhích lên",
+    "nudgeDown": "Nhích xuống",
+    "moveMarker": "Chuyển sang chỗ khác",
     "aimDoor": "Nhắm vào lối đi sang {room}",
     "aimNote": "Nhắm vào thứ bạn muốn nói tới",
     "aimMove": "Nhắm vào chỗ mới",
@@ -1059,7 +1059,7 @@
     "readyTitle": "Không có gì cản việc đăng",
     "advisoryTitle": "{count} điều bạn nên biết",
     "issueFix": {
-      "no-scenes": "Bản tham quan cần ít nhất một phòng để bước vào.",
+      "no-scenes": "Bản tham quan ảo cần ít nhất một phòng để bước vào.",
       "entry-missing": "Hãy chọn phòng mở đầu.",
       "duplicate-scene": "Hãy xoá bớt một phòng.",
       "dangling-link": "Ở {room}: chọn phòng khác cho cửa này, hoặc xoá cửa.",
@@ -1076,10 +1076,10 @@
       "left": "bên trái",
       "halfLeft": "chếch trái"
     },
-    "liveWarnTitle": "Người thuê đang xem được bản tham quan này.",
+    "liveWarnTitle": "Người thuê đang xem được bản tham quan ảo này.",
     "liveWarnBody": "Thay đổi hiển thị ngay khi bạn sửa.",
-    "emptyTitle": "Chưa có tham quan 360°",
-    "emptyBody": "Tham quan 360° cho người xem đứng trong từng phòng ngay trên điện thoại. Mỗi phòng cần một ảnh 360° — loại ảnh rộng gấp đôi chiều cao.",
+    "emptyTitle": "Chưa có tham quan ảo 360°",
+    "emptyBody": "Tham quan ảo 360° cho người xem đứng trong từng phòng ngay trên điện thoại. Mỗi phòng cần một ảnh 360° — loại ảnh rộng gấp đôi chiều cao.",
     "emptyGood": "Ảnh 360° — dùng được",
     "emptyBad": "Ảnh thường — không dùng được",
     "emptyHow": "Chụp ảnh 360° thế nào?",
@@ -1096,17 +1096,17 @@
     "howClose": "Đã hiểu"
   },
   "virtualTour": {
-    "entryCta": "Tham quan 360°",
-    "entryCtaLong": "Xem tham quan 360°",
+    "entryCta": "Tham quan ảo 360°",
+    "entryCtaLong": "Xem tham quan ảo 360°",
     "badge": "360°",
-    "badgeLabel": "Căn nhà này có tham quan 360°",
-    "metaTitle": "Tham quan 360° — {title}",
+    "badgeLabel": "Căn nhà này có tham quan ảo 360°",
+    "metaTitle": "Tham quan ảo 360° — {title}",
     "metaDescription": "Đi qua {rooms, plural, other {# phòng}} của {title} bằng ảnh 360° trước khi đặt lịch xem nhà.",
-    "loading": "Đang tải chuyến tham quan",
+    "loading": "Đang tải bản tham quan ảo",
     "loadingScene": "Đang tải phòng…",
     "backToListing": "Quay lại tin đăng",
     "rooms": "Các phòng",
-    "editTour": "Chỉnh sửa bản tham quan",
+    "editTour": "Chỉnh sửa bản tham quan ảo",
     "roomOf": "Phòng {index}/{total}",
     "goTo": "Sang {room}",
     "hotspotsLabel": "Điểm đáng chú ý trong {room}",
@@ -1124,7 +1124,7 @@
     "bathsLabel": "Phòng tắm",
     "sizeLabel": "Diện tích",
     "propertyPanelTitle": "Thông tin căn nhà",
-    "panelNote": "Tham quan 360° chỉ để tham khảo — hãy đặt lịch xem nhà để cảm nhận thực tế."
+    "panelNote": "Tham quan ảo 360° chỉ để tham khảo — hãy đặt lịch xem nhà để cảm nhận thực tế."
   },
   "messaging": {
     "title": "Tin nhắn",
@@ -1150,7 +1150,7 @@
     "countSub": "{count, plural, other {# cuộc trò chuyện}}",
     "emptySubtitle": "Tin nhắn bạn gửi sẽ hiện ở đây.",
     "conversations": "Cuộc trò chuyện",
-    "browseHomes": "Tìm nhà",
+    "browseHomes": "Xem nhà",
     "roleOwner": "Chủ nhà",
     "roleRenter": "Người thuê",
     "chipPrice": "{price}/tháng · Xem →",
@@ -1185,7 +1185,7 @@
     "summary": "<strong>{unread} chưa đọc</strong> · tổng {total}",
     "summaryCaughtUp": "Bạn đã xem hết · tổng {total}",
     "summaryEmpty": "Không có gì để xem lại.",
-    "browseHomes": "Xem nhà cho thuê",
+    "browseHomes": "Xem nhà",
     "caughtUpTitle": "Bạn đã xem hết",
     "caughtUpBody": "Mọi thông báo đều đã được đọc.",
     "noneInFilterTitle": "Chưa có gì ở nhóm này",
@@ -1281,7 +1281,7 @@
     },
     "virtualTour": {
       "noteTitle": "Cho biết đây là gì",
-      "noteBody": "Nói với người thuê đôi điều về nó"
+      "noteBody": "Cho người thuê biết đôi điều về chỗ này"
     }
   }
 }
