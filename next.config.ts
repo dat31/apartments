@@ -13,6 +13,9 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
 const nextConfig: NextConfig = {
   cacheComponents: true,
   skipTrailingSlashRedirect: true,
+  logging: {
+    browserToTerminal: true,
+  },
   async rewrites() {
     return [
       {
