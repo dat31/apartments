@@ -11,6 +11,11 @@ const BASE_URL = process.env.E2E_BASE_URL ?? "http://localhost:3000";
 
 export default defineConfig({
   testDir: "./e2e",
+  /* e2e/instant/** belongs to playwright.instant.config.ts and must never run
+     from here. Those specs measure whether a route's prerendered shell commits,
+     which is only meaningful against a production build — this suite serves
+     `next dev`, where the answer is noise. See instant-nav.rig.md. */
+  testIgnore: /instant\//,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
@@ -49,12 +54,15 @@ export default defineConfig({
     },
     {
       name: "chromium",
-      testIgnore: /authed\//,
+      // Project-level testIgnore replaces the top-level one, so instant/ has to
+      // be repeated here rather than inherited.
+      testIgnore: [/authed\//, /instant\//],
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "chromium-auth",
-      testMatch: /authed\/.*\.spec\.ts/,
+      // Anchored to e2e/authed/ so it cannot also pick up e2e/instant/authed/.
+      testMatch: /e2e\/authed\/.*\.spec\.ts/,
       dependencies: ["setup"],
       use: {
         ...devices["Desktop Chrome"],
@@ -65,10 +73,15 @@ export default defineConfig({
 
   webServer: {
     /* Testing the production build would be better — it is what actually
-       ships — but /apartments blanks on ~half of production-build loads
-       (issue #89), so 8 of 28 specs fail there. Until that is fixed, CI runs
-       the same dev server as local. Set E2E_PRODUCTION_BUILD=1 to serve a
-       build instead; the workflow flips to that once #89 closes. */
+       ships. This ran on dev because /apartments blanked on ~half of
+       production-build loads under Playwright's Chromium (issue #89).
+
+       That no longer reproduces: 8 cold loads of /apartments on a production
+       build came back clean, with no HierarchyRequestError, when the instant
+       rig was stood up (instant-nav.rig.md). Flipping this suite over is
+       worth doing, but it is a change to 28 specs and belongs in its own pass
+       — set E2E_PRODUCTION_BUILD=1 to try it. The instant specs already run
+       against a production build exclusively; they have no dev fallback. */
     command: process.env.E2E_PRODUCTION_BUILD ? "pnpm start" : "pnpm dev",
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,

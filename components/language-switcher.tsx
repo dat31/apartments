@@ -24,7 +24,9 @@ export function LanguageSwitcher() {
     const target = getPathname({ href: pathname, locale });
     // Full-page navigation: switching the locale segment re-renders the root
     // layout (<html lang> + next-themes script), which can't happen on a soft
-    // client navigation. A hard load resets the document cleanly.
+    // client navigation. A hard load resets the document cleanly — so the
+    // router.push() the rule asks for is exactly what we can't use here.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.assign(`${target}${window.location.search}`);
   };
 

@@ -10,6 +10,7 @@ import {
 } from "stream-chat-react";
 import type { ChannelFilters, ChannelOptions, ChannelSort } from "stream-chat";
 import { MessageSquareText, Search } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,7 @@ const LIST_COLUMN = "grid grid-cols-1 lg:grid-cols-[minmax(300px,360px)_1fr]";
    written out in full on purpose: Tailwind scans source text for complete
    class names, so an interpolated variant never reaches the stylesheet. */
 
-export function Inbox({ initialChannelId }: { initialChannelId?: string }) {
+export function Inbox() {
   const t = useTranslations("messaging");
   const { profile } = useProfile();
   const [channelCount, setChannelCount] = React.useState(0);
@@ -60,11 +61,31 @@ export function Inbox({ initialChannelId }: { initialChannelId?: string }) {
         )}
       </header>
 
+      {/* Everything above this line is static: the heading and the subtitle
+          shell prerender per locale, so a navigation to /messages paints the
+          page frame immediately and only the conversations arrive later.
+
+          The boundary is what keeps that true. Reading `?channel=` is a URL
+          read, and an unbounded one would pull the whole route back out of the
+          static shell — the state this page was in before, when it awaited
+          searchParams on the server. Scoped here, the shell keeps the heading
+          and the skeleton owns the wait. */}
       <MessagingChat fallback={<InboxSkeleton />}>
-        <InboxPanes initialChannelId={initialChannelId} onCount={setChannelCount} />
+        <React.Suspense fallback={<InboxSkeleton />}>
+          <DeepLinkedPanes onCount={setChannelCount} />
+        </React.Suspense>
       </MessagingChat>
     </div>
   );
+}
+
+/* Resolves the deep link from the URL on the client. Split out so the
+   useSearchParams() read sits below the boundary above rather than beside the
+   heading, which is the difference between a shell with a title in it and no
+   shell at all. */
+function DeepLinkedPanes({ onCount }: { onCount: (count: number) => void }) {
+  const channel = useSearchParams().get("channel");
+  return <InboxPanes initialChannelId={channel ?? undefined} onCount={onCount} />;
 }
 
 function InboxSubtitle({ count }: { count: number }) {

@@ -1,9 +1,11 @@
 <!-- BEGIN:nextjs-agent-rules -->
- 
-# Next.js: ALWAYS read docs before coding
- 
-Before any Next.js work, find and read the relevant doc in `node_modules/next/dist/docs/`. Your training data is outdated — the docs are the source of truth.
- 
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
 <!-- END:nextjs-agent-rules -->
 
 # Data access
@@ -154,6 +156,58 @@ Two things follow from the trigger living inside:
 - **Controlled is still right when something outside decides.** Opening from a
   URL, a keyboard shortcut, or a parent that must close it after an async
   result needs `open`/`onOpenChange`. Reach for it then, not by default.
+
+# Verifying a change
+
+**After every edit, verify the page it affects still works at runtime — run the
+`next-dev-loop` skill.** `pnpm typecheck`, `pnpm lint` and `pnpm build` all pass
+on a page that throws on render — the build only prerenders the shell, and the
+dynamic holes where the cookie-bound work lives never execute (`◐` is
+necessary, not sufficient, above). A green unit suite is not this check either:
+it excludes `lib/services/**` and `lib/actions/**` by design.
+
+Runtime verification is the check. Reaching for `verify` instead, or calling a
+change done on a green build, is the thing this rule exists to stop.
+
+## `next-dev-loop` — the loop to run
+
+`.claude/skills/next-dev-loop/` (a symlink to `.agents/skills/next-dev-loop/`).
+It cross-checks two views of the running app: `/_next/mcp` (routes, RSC, server
+actions, compilation issues, errors as Next.js saw them) against `agent-browser`
+driving a real Chrome (DOM, console, network, React fiber). Its floors are
+hard — preflight refuses rather than falling back to a weaker probe:
+
+| Floor | Status |
+|---|---|
+| Next.js **16.3+**, Turbopack — `/_next/mcp` does not exist below it | met — 16.3.0 |
+| `agent-browser` **>= 0.31.1** | met — 0.33.2, installed globally |
+
+Both floors are met, so the loop runs here — a preflight refusal means
+something regressed, not that the skill doesn't apply. Read `SKILL.md` for the
+preflight and the session handling; three things it can't warn you about:
+
+- `/_next/mcp` speaks JSON-RPC over **POST** only. A plain `GET` answers `406`,
+  which is the endpoint working, not a missing route.
+- `get_errors` and `get_page_metadata` report what a **browser session** saw, so
+  they stay empty ("No browser sessions connected") until `agent-browser` has
+  loaded a page. `get_routes` and `get_compilation_issues` need no browser.
+- `get_compilation_issues` reports the pre-existing `@charset` warning in
+  `components/messaging/stream-theme.css`. It is not yours — don't chase it.
+
+## `verify` — only when the loop can't run
+
+`.claude/skills/verify/`. Use it when `next-dev-loop` is genuinely unavailable
+(no Chrome, no `agent-browser`), not as a shortcut — and say which one you ran.
+Cheapest first:
+
+- **`pnpm test:e2e`** when a spec already covers the change. It auto-starts the
+  dev server and reaches auth-gated routes through a saved `storageState`.
+- Otherwise **`pnpm dev`, load the route, and read
+  `.next/dev/logs/next-development.log`.** A page that looks right in the
+  browser can still log the `<Suspense>` error on every request.
+- **Auth-gated subtrees** (`PROTECTED` in `lib/supabase/middleware.ts`) no spec
+  reaches: mount the component on a throwaway route outside the gated prefixes
+  with fixture data, drive that, delete it before committing.
 
 # Tests
 

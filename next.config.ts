@@ -13,6 +13,18 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
 const nextConfig: NextConfig = {
   cacheComponents: true,
   skipTrailingSlashRedirect: true,
+  logging: {
+    browserToTerminal: true,
+  },
+  experimental: {
+    /* Exposes the testing API that @next/playwright's instant() drives to hold
+       dynamic data back and assert the static shell still commits. Without it
+       instant() silently no-ops and every instant spec passes vacuously, so it
+       has to be on for the builds we measure — and never in production. The
+       instant rig (playwright.instant.config.ts) sets EXPOSE_TESTING_API=1;
+       nothing else does. */
+    exposeTestingApiInProductionBuild: process.env.EXPOSE_TESTING_API === "1",
+  },
   async rewrites() {
     return [
       {
